@@ -1,9 +1,7 @@
 # dart_dice_parser
 
-A library for Dart developers.
+A library for parsing dice notation
 
-Created from templates made available by Stagehand under a BSD-style
-[license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
 
 ## Usage
 
@@ -12,11 +10,16 @@ A simple usage example:
     import 'package:dart_dice_parser/dart_dice_parser.dart';
 
     main() {
-      var awesome = new Awesome();
+      
+      var diceParser = new DiceParser();
+      
+      var diceExpression = "2d6 + 1 + 3d10";
+      
+      print("$diceExpression : ${diceParser.roll(diceExpression)}");
     }
 
 ## Features and bugs
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
-[tracker]: http://example.com/issues/replaceme
+[tracker]: https://github.com/stevesea/dart-dice-parser/issues
