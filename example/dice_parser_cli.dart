@@ -22,6 +22,9 @@ int roll(int numRolls, String expression) {
   }
   print ("Evaluating: $expression\n");
   var diceParser = new DiceParser();
+
+  print ("\t\t [${diceParser.parser.parse(expression)}]\n");
+
   for (int i=0; i < numRolls; i++) {
     print("${i+1}: ${diceParser.roll(expression)}\n");
   }
