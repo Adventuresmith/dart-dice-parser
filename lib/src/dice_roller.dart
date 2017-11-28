@@ -24,6 +24,7 @@ class DiceRoller {
     1, 1
   ];
 
+  // fudge dice roll
   int rollFudge(int ndice) {
     var sum = 0;
     for (int i = 0; i < ndice; i++) {

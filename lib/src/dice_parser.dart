@@ -1,5 +1,8 @@
 import 'package:petitparser/petitparser.dart';
+
 import 'dice_roller.dart';
+
+import 'package:quiver/strings.dart';
 
 class DiceParser {
   DiceRoller roller;
@@ -33,9 +36,10 @@ class DiceParser {
   }
 
   int roll(String diceStr) {
-    if (diceStr.isEmpty) {
+    if (isEmpty(diceStr)) {
       throw new FormatException("No diceStr specified");
     }
+
     var result = parser.parse(diceStr);
     if (result.isFailure) {
       throw new FormatException("Unable to parse '${result.buffer}' (${result.toPositionString()})", result.position);
@@ -44,6 +48,10 @@ class DiceParser {
   }
 
   List<int> rollN(String diceStr, int num) {
+
+    if (isEmpty(diceStr)) {
+      throw new FormatException("No diceStr specified");
+    }
 
     var result = parser.parse(diceStr);
     if (result.isFailure) {
