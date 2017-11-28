@@ -1,2 +1,22 @@
-# dart-dice-parser
-a parser library to evaluate dice notation. e.g. "2d6+2"
+# dart_dice_parser
+
+A library for Dart developers.
+
+Created from templates made available by Stagehand under a BSD-style
+[license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
+
+## Usage
+
+A simple usage example:
+
+    import 'package:dart_dice_parser/dart_dice_parser.dart';
+
+    main() {
+      var awesome = new Awesome();
+    }
+
+## Features and bugs
+
+Please file feature requests and bugs at the [issue tracker][tracker].
+
+[tracker]: http://example.com/issues/replaceme
