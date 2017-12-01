@@ -1,6 +1,6 @@
 name: dart_dice_parser
 description: A small library for parsing dice notation
-version: 0.0.5
+version: 0.0.6
 homepage: https://github.com/stevesea/dart-dice-parser
 authors:
   - steve christensen <adventuresmith.rpg@gmail.com>
@@ -9,7 +9,6 @@ environment:
   sdk: '>=1.20.1 <2.0.0'
 
 dependencies:
-  quiver: ^0.25.0
   petitparser: ^1.6.1
   args: ">=0.13.4 <2.0.0"
 

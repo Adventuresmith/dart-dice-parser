@@ -2,8 +2,6 @@ import 'package:petitparser/petitparser.dart';
 
 import 'dice_roller.dart';
 
-import 'package:quiver/strings.dart';
-
 class DiceParser {
   DiceRoller roller;
   Parser parser;
@@ -36,7 +34,7 @@ class DiceParser {
   }
 
   int roll(String diceStr) {
-    if (isEmpty(diceStr)) {
+    if (diceStr == null || diceStr.isEmpty) {
       throw new FormatException("No diceStr specified");
     }
 
@@ -49,7 +47,7 @@ class DiceParser {
 
   List<int> rollN(String diceStr, int num) {
 
-    if (isEmpty(diceStr)) {
+    if (diceStr == null || diceStr.isEmpty) {
       throw new FormatException("No diceStr specified");
     }
 
