@@ -1,6 +1,6 @@
 name: dart_dice_parser
 description: A small library for parsing dice notation
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/stevesea/dart-dice-parser
 authors:
   - steve christensen <adventuresmith.rpg@gmail.com>

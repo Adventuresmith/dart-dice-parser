@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- added contributing/code-of-conduct docs
+
 ## 0.1.0
 
 - change DiceRoller to output information about individual rolls, instead of just returning the sum.
