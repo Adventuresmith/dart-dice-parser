@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0
+
+- change DiceRoller to output information about individual rolls, instead of just returning the sum.
+
 ## 0.0.6
 
 - remove dependency on quiver, since not heavily using it
