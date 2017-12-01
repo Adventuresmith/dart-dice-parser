@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- move args to dev_dependency, since it's just for the example
+
 ## 0.1.1
 
 - added contributing/code-of-conduct docs
