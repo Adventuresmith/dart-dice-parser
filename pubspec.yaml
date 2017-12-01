@@ -9,7 +9,7 @@ environment:
   sdk: '>=1.20.1 <2.0.0'
 
 dependencies:
-  petitparser: ">=1.6.1"
+  petitparser: ">=1.6.1 <2.0.0"
   args: ">=0.13.4 <2.0.0"
 
 dev_dependencies:
