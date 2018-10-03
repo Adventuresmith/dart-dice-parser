@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.0
+- upgrade to dart 2
+
 ## 0.1.2
 
 - move args to dev_dependency, since it's just for the example
