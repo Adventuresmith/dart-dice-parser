@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.1
+- upgrade some dependencies
+
 ## 0.2.0
 - upgrade to dart 2
 
@@ -27,4 +30,4 @@
 ## 0.0.1
 
 - Initial version, created by Steve Christensen
-  
+
