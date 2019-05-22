@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.2
+- reformat
+
 ## 0.2.1
 - upgrade some dependencies
 
