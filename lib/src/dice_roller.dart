@@ -1,4 +1,3 @@
-
 import 'dart:math';
 
 ///
@@ -18,11 +17,7 @@ class DiceRoller {
     return new DiceRollResult(rolls);
   }
 
-  static const _fudgeVals = const [
-    -1, -1,
-    0, 0,
-    1, 1
-  ];
+  static const _fudgeVals = const [-1, -1, 0, 0, 1, 1];
 
   // fudge dice roll
   DiceRollResult rollFudge(int ndice) {
@@ -40,6 +35,6 @@ class DiceRollResult {
   DiceRollResult(this.rolls);
 
   int total() {
-    return rolls.reduce((a,b) => a + b);
+    return rolls.reduce((a, b) => a + b);
   }
 }

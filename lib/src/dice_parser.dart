@@ -17,8 +17,7 @@ class DiceParser {
     builder.group()
       ..postfix(string('dF').trim(), action((a, op) => roller.rollFudge(a).total()))
       ..left(char('d').trim(), action((a, op, b) => roller.roll(a, b).total()));
-    builder.group()
-      ..left(char('*').trim(), action((a, op, b) => a * b));
+    builder.group()..left(char('*').trim(), action((a, op, b) => a * b));
     builder.group()
       ..left(char('+').trim(), action((a, op, b) => a + b))
       ..left(char('-').trim(), action((a, op, b) => a - b));
@@ -46,7 +45,6 @@ class DiceParser {
   }
 
   List<int> rollN(String diceStr, int num) {
-
     if (diceStr == null || diceStr.isEmpty) {
       throw new FormatException("No diceStr specified");
     }
@@ -57,7 +55,7 @@ class DiceParser {
     }
 
     var ret = <int>[];
-    for (int i=0; i < num; i++) {
+    for (int i = 0; i < num; i++) {
       ret.add(evaluator.parse(diceStr).value);
     }
 
