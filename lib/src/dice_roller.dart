@@ -9,10 +9,9 @@ class DiceRoller {
   }
 
   /// return result of rolling given number of nsided dice.
-  DiceRollResult roll(int ndice, int nsides) {
+  List<int> roll(int ndice, int nsides) {
     // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
-    return new DiceRollResult(
-        [for (int i = 0; i < ndice; i++) random.nextInt(nsides) + 1]);
+    return [for (int i = 0; i < ndice; i++) random.nextInt(nsides) + 1];
   }
 }
 
@@ -26,21 +25,12 @@ class FudgeDiceRoller {
   }
 
   /// Roll N fudge dice, return results
-  DiceRollResult roll(int ndice) {
-    return new DiceRollResult([
+  List<int> roll(int ndice) {
+    return [
       for (var i = 0; i < ndice; i++)
         _fudgeVals[random.nextInt(_fudgeVals.length)]
-    ]);
+    ];
   }
 }
 
-/// Results of dice roles
-class DiceRollResult {
-  final List<int> rolls;
-
-  DiceRollResult(this.rolls);
-
-  int total() {
-    return rolls.reduce((a, b) => a + b);
-  }
-}
+int sum(Iterable<int> l) => l.reduce((a, b) => a + b);

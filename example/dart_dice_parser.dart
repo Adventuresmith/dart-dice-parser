@@ -25,9 +25,15 @@ int roll(int numRolls, String expression) {
   print("Evaluating: $expression\n");
   var diceParser = new DiceParser();
 
-  // use the parser, rather than the evaluator -- this makes grouping easier to debug
-  print("\t\t [${diceParser.parse(expression)}]\n");
-
+  var result = diceParser.parse(expression);
+  if (result.isFailure) {
+    print(expression);
+    print('${' ' * (result.position - 1)}^-- ${result.message}');
+    return 1;
+  }
+  // use the parser to display parse results
+  print("\t ${result}\n");
+  // but use the evaluator via roll/rollN to actually parse and perform dice roll
   diceParser
       .rollN(expression, numRolls)
       .asMap() // convert list to map so have an index
