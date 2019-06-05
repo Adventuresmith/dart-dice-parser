@@ -3,6 +3,9 @@
 ## 1.0.0
 - bump min dart SDK to 2.2.2
 - cleanup parser code
+- cleanup analysis problems
+- add percentile and D66 dice
+- handle missing A or X in AdX
 
 ## 0.2.2
 - reformat
