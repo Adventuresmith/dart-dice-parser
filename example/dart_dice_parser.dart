@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
 
-main(List<String> arguments) {
-  var argParser = new ArgParser()
+void main(List<String> arguments) {
+  var argParser = ArgParser()
     ..addOption(
       "num",
       abbr: "n",
@@ -22,17 +22,19 @@ int roll(int numRolls, String expression) {
     print("Supply a dice expression. e.g. '2d6+1'");
     return 1;
   }
-  var diceParser = new DiceParser();
+  var diceParser = DiceParser();
 
+  // use the parser here because we'll display $result on success,
+  // and it's helpful sometimes
   var result = diceParser.parse(expression);
   if (result.isFailure) {
     print("Failure:");
-    print('\t' + expression);
+    print('\t$expression');
     print('\t${' ' * (result.position - 1)}^-- ${result.message}');
     return 1;
   }
   // use the parser to display parse results
-  print("Evaluating: $expression => ${result}\n");
+  print("Evaluating: $expression => $result\n");
   // but use the evaluator via roll/rollN to actually parse and perform dice roll
   diceParser
       .rollN(expression, numRolls)

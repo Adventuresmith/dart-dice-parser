@@ -1,34 +1,56 @@
 import 'package:petitparser/petitparser.dart';
 
-import 'dice_roller.dart';
 import 'package:quiver/strings.dart';
+import 'dice_roller.dart';
 
-/// Parser/evalutator for dice notation
+/// A Parser/evalutator for dice notation
 ///
+/// Supported notation:
+/// * `AdX` -- roll A dice of X sides, total will be returned as value
+/// * addition/subtraction/multiplication and parenthesis are allowed
+///   * `2d6 + 1` -- roll two six-sided dice, sum results and add one
+///   * `2d(2*10) + 3d100` -- roll 2 twenty-sided dice, sum results,
+///     add that to sum of 3 100-sided die
+/// * numbers must be integers, and division is is not supported.
+///
+/// Usage example:
+///
+///     int roll(String diceStr) {
+///       var result = DiceParser().evaluate(diceStr);
+///
+///       if (result.isFailure) {
+///         print("Failure:");
+///         print('\t{expression}');
+///         print('\t${' ' * (result.position - 1)}^-- ${result.message}');
+///         return 1;
+///       } else {
+///         return result.value;
+///       }
+///     }
 ///
 class DiceParser {
-  DiceRoller roller;
-  FudgeDiceRoller fudgeDiceRoller;
+  DiceRoller _roller;
+  FudgeDiceRoller _fudgeDiceRoller;
   // parser w/out actions -- makes it easier to debug output rather than evaluated
-  Parser parser;
-  Parser evaluator;
+  Parser _parser;
+  Parser _evaluator;
 
-  Parser build({attachAction: true}) {
+  Parser _build({attachAction = true}) {
     var action = attachAction ? (func) => func : (func) => null;
-    var builder = new ExpressionBuilder();
+    var builder = ExpressionBuilder();
     builder.group()
       ..primitive(digit()
           .plus()
           .flatten('integer expected')
           .trim()
-          .map((a) => int.parse(a))) // handle integers
+          .map(int.parse)) // handle integers
       ..wrapper(char('(').trim(), char(')').trim(),
           action((l, a, r) => a)); // handle parens; // handle integers
     builder.group()
       ..postfix(string('dF').trim(),
-          action((a, op) => sum(fudgeDiceRoller.roll(a)))) // fudge dice
+          action((a, op) => sum(_fudgeDiceRoller.roll(a)))) // fudge dice
       ..left(char('d').trim(),
-          action((a, op, b) => sum(roller.roll(a, b)))); // AdX
+          action((a, op, b) => sum(_roller.roll(a, b)))); // AdX
     builder.group()
       ..left(char('*').trim(),
           action((a, op, b) => a * b)); // left-associated mult
@@ -38,39 +60,44 @@ class DiceParser {
     return builder.build().end();
   }
 
+  /// Constructs a dice parser, dice rollers can be injected
   DiceParser([DiceRoller r, FudgeDiceRoller rF]) {
-    roller = r ?? new DiceRoller();
-    fudgeDiceRoller = rF ?? new FudgeDiceRoller();
+    _roller = r ?? DiceRoller();
+    _fudgeDiceRoller = rF ?? FudgeDiceRoller();
 
-    parser = build(attachAction: false);
-    evaluator = build(attachAction: true);
+    _parser = _build(attachAction: false);
+    _evaluator = _build(attachAction: true);
   }
 
-  /// parse the given expression and return the result (NOTE: this cannot be evaluated)
+  /// Parses the given expression and return Result
   Result<dynamic> parse(String diceStr) {
     if (isEmpty(diceStr)) {
-      throw new FormatException("No diceStr specified");
+      throw FormatException("No diceStr specified");
     }
-    return parser.parse(diceStr);
+    return _parser.parse(diceStr);
   }
 
-  /// parse the given dice expression for evaluation.
+  /// Parses the given dice expression return evaluate-able Result.
   Result<dynamic> evaluate(String diceStr) {
     if (isEmpty(diceStr)) {
-      throw new FormatException("No diceStr specified");
+      throw FormatException("No diceStr specified");
     }
-    return evaluator.parse(diceStr);
+    return _evaluator.parse(diceStr);
   }
 
+  /// Evaluates the input dice expression and returns evaluated result.
+  ///
+  /// throws FormatException if unable to parse expression
   int roll(String diceStr) {
     var result = evaluate(diceStr);
     if (result.isFailure) {
-      throw new FormatException(
-          "Unable to parse '${result.buffer}' (${result})", result.position);
+      throw FormatException(
+          "Unable to parse '${result.buffer}' ($result)", result.position);
     }
     return result.value;
   }
 
+  /// Evaluates given dice expression N times.
   List<int> rollN(String diceStr, int num) {
     return [for (var i = 0; i < num; i++) roll(diceStr)];
   }

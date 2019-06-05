@@ -7,12 +7,13 @@ import 'package:test/test.dart';
 class MockRandom extends Mock implements Random {}
 
 void main() {
-  var mockRandom = new MockRandom();
-  var roller = new DiceRoller(mockRandom);
-  var fudgeRoller = new FudgeDiceRoller(mockRandom);
-  var diceParser = new DiceParser(roller, fudgeRoller);
+  var mockRandom = MockRandom();
+  var roller = DiceRoller(mockRandom);
+  var fudgeRoller = FudgeDiceRoller(mockRandom);
+  var diceParser = DiceParser(roller, fudgeRoller);
 
-  // NOTE: this mocks the random number generator to always return '1' -- that means the dice-roll is '2' (since rolls are 1-based)
+  // NOTE: this mocks the random number generator to always return '1'
+  //    -- that means the dice-roll is '2' (since rolls are 1-based)
   when(mockRandom.nextInt(argThat(inInclusiveRange(1, 1000)))).thenReturn(1);
 
   group("arithmetic", () {
