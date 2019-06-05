@@ -42,6 +42,27 @@ void main() {
       expect(diceParser.roll(input), equals(17));
     });
   });
+  group("missing ints", () {
+    test("empty string returns zero", () {
+      expect(diceParser.roll(""), equals(0));
+    });
+    test("empty arith returns zero - add", () {
+      expect(diceParser.roll("+"), equals(0));
+    });
+    test("empty arith returns zero - sub", () {
+      expect(diceParser.roll("-"), equals(0));
+    });
+    test("empty arith returns zero - mult", () {
+      expect(diceParser.roll("*"), equals(0));
+    });
+    test("empty ndice is 1", () {
+      expect(diceParser.roll("d6"), equals(2));
+    });
+    test("empty nsides is 1", () {
+      // weird because mocked random returns '2'
+      expect(diceParser.roll("6d"), equals(12));
+    });
+  });
 
   group("dice", () {
     test("order of operations, with dice", () {
@@ -52,6 +73,15 @@ void main() {
     test("simple roll", () {
       var input = "1d6";
       expect(diceParser.roll(input), equals(2));
+    });
+    test("percentile", () {
+      expect(diceParser.roll("1d%"), equals(2));
+    });
+    test("D66", () {
+      expect(diceParser.roll("1D66"), equals(22));
+    });
+    test("d66 -- 66-sided, not D66", () {
+      expect(diceParser.roll("1d66"), equals(2));
     });
 
     test("ndice in parens", () {
