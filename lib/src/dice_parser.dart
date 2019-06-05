@@ -31,27 +31,59 @@ class DiceParser {
 
     builder.group()
       // fudge dice `AdF`
-      ..postfix(string('dF').trim(),
-          action((a, op) => sum(_fudgeDiceRoller.roll(a ?? 1))))
+      ..postfix(string('dF').trim(), action(_handleSpecialDice))
       // percentile dice `Ad%`
-      ..postfix(string('d%').trim(),
-          action((a, op) => sum(_roller.roll(a ?? 1, 100))))
+      ..postfix(string('d%').trim(), action(_handleSpecialDice))
       // D66 dice, `AD66` aka A(1d6*10+1d6)
-      ..postfix(
-          string('D66').trim(),
-          action((a, op) => sum([
-                for (var i = 0; i < (a ?? 1); i++)
-                  _roller.roll(1, 6)[0] * 10 + _roller.roll(1, 6)[0]
-              ])))
+      ..postfix(string('D66').trim(), action(_handleSpecialDice))
       // `AdX`
-      ..left(char('d').trim(),
-          action((a, op, x) => sum(_roller.roll(a ?? 1, x ?? 1))));
+      ..left(char('d').trim(), action(_handleStdDice));
+    // multiplication in different group than add/subtract to enforce order of operations
+    builder.group()..left(char('*').trim(), action(_handleArith));
     builder.group()
-      ..left(char('*').trim(), action((a, op, b) => (a ?? 0) * (b ?? 0)));
-    builder.group()
-      ..left(char('+').trim(), action((a, op, b) => (a ?? 0) + (b ?? 0)))
-      ..left(char('-').trim(), action((a, op, b) => (a ?? 0) - (b ?? 0)));
+      ..left(char('+').trim(), action(_handleArith))
+      ..left(char('-').trim(), action(_handleArith));
     return builder.build().end();
+  }
+
+  int _handleSpecialDice(final a, final String op) {
+    switch (op) {
+      case 'D66':
+        return sum([
+          for (var i = 0; i < (a ?? 1); i++)
+            _roller.roll(1, 6)[0] * 10 + _roller.roll(1, 6)[0]
+        ]);
+        break;
+      case 'd%':
+        return sum(_roller.roll(a ?? 1, 100));
+        break;
+      case 'dF':
+        return sum(_fudgeDiceRoller.roll(a ?? 1));
+        break;
+      default:
+        throw FormatException("unknown dice operator: $op");
+        break;
+    }
+  }
+
+  int _handleStdDice(final a, final String op, final x) {
+    return sum(_roller.roll(a ?? 1, x ?? 1));
+  }
+
+  int _handleArith(final a, final String op, final b) {
+    switch (op) {
+      case '+':
+        return (a ?? 0) + (b ?? 0);
+        break;
+      case '-':
+        return (a ?? 0) - (b ?? 0);
+        break;
+      case '*':
+        return (a ?? 0) * (b ?? 0);
+        break;
+      default:
+        return 0;
+    }
   }
 
   /// Constructs a dice parser, dice rollers can be injected
