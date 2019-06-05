@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0
+- bump min dart SDK to 2.2.2
+- cleanup parser code
+
 ## 0.2.2
 - reformat
 
