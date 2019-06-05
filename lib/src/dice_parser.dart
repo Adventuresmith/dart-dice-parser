@@ -85,7 +85,7 @@ class DiceParser {
               "\t${' ' * (result.position - 1)}^-- ${result.message}",
           result.position);
     }
-    return result.value;
+    return result.value ?? 0;
   }
 
   /// Evaluates given dice expression N times.
