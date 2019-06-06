@@ -7,10 +7,10 @@ import 'package:logging/logging.dart';
 final Logger log = Logger('main');
 
 void main(List<String> arguments) {
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.INFO;
 
   Logger.root.onRecord.listen((rec) {
-    print('${rec.level.name}: ${rec.message}');
+    print('$rec');
   });
 
   var argParser = ArgParser()
@@ -19,9 +19,25 @@ void main(List<String> arguments) {
       abbr: "n",
       help: "number of times to roll the expression",
       defaultsTo: "1",
-    );
+    )
+    ..addFlag("verbose",
+        abbr: "v",
+        help: "enable verbose logging",
+        defaultsTo: false, callback: (verbose) {
+      if (verbose) {
+        Logger.root.level = Level.ALL;
+      } else {
+        Logger.root.level = Level.INFO;
+      }
+    })
+    ..addFlag("help", abbr: "h", defaultsTo: false);
 
   var results = argParser.parse(arguments);
+  if (results["help"]) {
+    print("Usage:");
+    print(argParser.usage);
+    exit(1);
+  }
 
   exit(roll(int.parse(results["num"]), results.rest.join(" ")));
 }
@@ -37,9 +53,11 @@ int roll(int numRolls, String expression) {
   // and it's helpful sometimes
   var result = diceParser.parse(expression);
   if (result.isFailure) {
-    log.severe("Failure:\n" +
-        '\t$expression\n' +
-        '\t${' ' * (result.position - 1)}^-- ${result.message}');
+    log.severe("""
+Parsing failure:
+    $expression
+    ${' ' * (result.position - 1)}^-- ${result.message}
+    """);
     return 1;
   }
   // use the parser to display parse results
@@ -48,7 +66,7 @@ int roll(int numRolls, String expression) {
   diceParser
       .rollN(expression, numRolls)
       .asMap() // convert list to map so have an index
-      .forEach((i, r) => print("${i + 1}: $r"));
+      .forEach((i, r) => log.info("${i + 1}: $r"));
 
   return 0;
 }

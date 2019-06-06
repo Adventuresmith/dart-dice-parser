@@ -25,6 +25,3 @@ class DiceRoller {
     ];
   }
 }
-
-/// sum an Iterable of integers
-int sum(Iterable<int> l) => l.reduce((a, b) => a + b);

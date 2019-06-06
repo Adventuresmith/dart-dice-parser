@@ -1,10 +1,16 @@
+import 'package:logging/logging.dart';
 import 'package:petitparser/petitparser.dart';
 
 import 'dice_roller.dart';
 
+/// sum an Iterable of integers
+int sum(Iterable<int> l) => l.reduce((a, b) => a + b);
+
 /// A Parser/evalutator for dice notation
 ///
 class DiceParser {
+  final Logger log = Logger('DiceParser');
+
   DiceRoller _roller;
   // parser w/out actions -- makes it easier to debug output rather than evaluated
   Parser _parser;
@@ -62,50 +68,60 @@ class DiceParser {
   List<int> _handleDropHighLow(final a, final String op, final b) {
     var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
     if (a is List<int>) {
-      var localA = List.from(a);
-      localA.sort();
+      List<int> results;
+      var localA = List<int>.from(a)..sort();
       switch (op) {
         case 'H': // drop high
-          return a;
+          results = localA.reversed.skip(resolvedB).toList();
           break;
         case 'L': // drop low
-          return a;
+          results = localA.skip(resolvedB).toList();
           break;
         default:
           throw FormatException("unknown drop operator: $op");
           break;
       }
+      log.finest(() =>
+          "_handleDropHighLow: $a $op $b {resolved to: $a $op $resolvedB} => yielded $results");
+      return results;
     }
-    throw FormatException("unknown drop $a $op $b");
+    throw FormatException("unknown drop type: $a $op $b");
   }
 
   List<int> _handleStdDice(final a, final String op, final x) {
-    return _roller.roll(_resolveToInt(a, 1), _resolveToInt(x, 1));
+    var resolvedA = _resolveToInt(a, 1);
+    var resolvedX = _resolveToInt(x, 1);
+    var results = _roller.roll(resolvedA, resolvedX);
+    log.finest(() =>
+        "_handleStdDice: $a $op $x {resolved to: $resolvedA $op $resolvedX} => yielded $results");
+    return results;
   }
 
   List<int> _handleSpecialDice(final a, final String op) {
     // if a null, assume 1; e.g. interpret 'd10' as '1d10'
     // if it's a list (i.e. a dice roll), sum the results
     var resolvedA = _resolveToInt(a, 1);
-    var result = <int>[];
+    var results = <int>[];
     switch (op) {
       case 'D66':
-        result = [
+        results = [
           for (var i = 0; i < resolvedA; i++)
             _roller.roll(1, 6)[0] * 10 + _roller.roll(1, 6)[0]
         ];
         break;
       case 'd%':
-        result = _roller.roll(resolvedA, 100);
+        results = _roller.roll(resolvedA, 100);
         break;
       case 'dF':
-        result = _roller.rollFudge(resolvedA);
+        results = _roller.rollFudge(resolvedA);
         break;
       default:
         throw FormatException("unknown dice operator: $op");
         break;
     }
-    return result;
+    log.finest(() =>
+        "_handleSpecialDice: $a $op {resolved to: $resolvedA $op} => yielded $results");
+    return results;
   }
 
   /// Return variable as in -- if null: return default, if List: sum
@@ -123,6 +139,8 @@ class DiceParser {
   int _handleArith(final a, final String op, final b) {
     var resolvedA = _resolveToInt(a);
     var resolvedB = _resolveToInt(b);
+    log.finest(() =>
+        "_handleArith: $a $op $b {resolved to: $resolvedA $op $resolvedB}");
     switch (op) {
       case '+':
         return resolvedA + resolvedB;
@@ -154,11 +172,11 @@ class DiceParser {
   int roll(String diceStr) {
     var result = evaluate(diceStr);
     if (result.isFailure) {
-      throw FormatException(
-          "Error parsing dice expression\n" +
-              "\t$diceStr\n" +
-              "\t${' ' * (result.position - 1)}^-- ${result.message}",
-          result.position);
+      throw FormatException("""
+Error parsing dice expression
+    $diceStr
+    ${' ' * (result.position - 1)}^-- ${result.message}
+        """, result.position);
     }
     return _resolveToInt(result.value);
   }

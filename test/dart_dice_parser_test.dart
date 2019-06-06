@@ -57,16 +57,35 @@ void main() {
     });
   });
 
-  group("drop high/low", () {
+  group("drop high/low:", () {
     test("drop high", () {
-      // mocked responses should return rolls of 0,1,2,3 (+1 to each)
+      // mocked responses should return rolls of 1,2,3,4
       //
-      expect(incrementingDiceParser.roll("4d6H"), equals(3));
+      expect(incrementingDiceParser.roll("4d6H"), equals(6));
     });
-    test("drop high - with num", () {
-      // mocked responses should return rolls of 0,1,2,3 (+1 to each)
+    test("drop high - 1", () {
+      // equivalent to the above
+      expect(incrementingDiceParser.roll("4d6H1"), equals(6));
+    });
+    test("drop high - 3", () {
+      // mocked responses should return rolls of 1,2,3,4
       //
-      expect(incrementingDiceParser.roll("4d6H1"), equals(3));
+      expect(incrementingDiceParser.roll("4d6H3"), equals(1));
+    });
+    test("drop low", () {
+      // mocked responses should return rolls of 1,2,3,4
+      //
+      expect(incrementingDiceParser.roll("4d6L"), equals(9));
+    });
+    test("drop low - 1", () {
+      // mocked responses should return rolls of 1,2,3,4
+      //
+      expect(incrementingDiceParser.roll("4d6L1"), equals(9));
+    });
+    test("drop low - 3", () {
+      // mocked responses should return rolls of 1,2,3,4
+      //
+      expect(incrementingDiceParser.roll("4d6L3"), equals(4));
     });
   });
 
