@@ -94,7 +94,7 @@ class DiceParser {
           "prefix to drop operator $op must be a dice roll results, not $a");
       results = [a];
     }
-    log.finer(() => "$a$op$b => $results (dropped: $dropped)");
+    log.finer(() => "$a$op${b ?? resolvedB} => $results (dropped: $dropped)");
     return results;
   }
 
@@ -102,7 +102,7 @@ class DiceParser {
     var resolvedA = _resolveToInt(a, 1);
     var resolvedX = _resolveToInt(x, 1);
     var results = _roller.roll(resolvedA, resolvedX);
-    log.finer(() => "$a$op$x => $results");
+    log.finer(() => "${a ?? resolvedA}$op${x ?? resolvedX} => $results");
     return results;
   }
 
@@ -129,7 +129,7 @@ class DiceParser {
         log.warning("unknown dice operator: $a$op");
         break;
     }
-    log.finer(() => "$a$op => $results");
+    log.finer(() => "${a ?? resolvedA}$op => $results");
     return results;
   }
 
@@ -159,7 +159,7 @@ class DiceParser {
     } else {
       results = [resolvedA + resolvedB];
     }
-    log.finer(() => "$a$op$b => $results");
+    log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $results");
     return results;
   }
 
@@ -178,7 +178,7 @@ class DiceParser {
       default:
         result = 0;
     }
-    log.finer(() => "$a$op$b => $result");
+    log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $result");
     return result;
   }
 
