@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.2
+- more tests and cleanup examples
+
 ## 1.1.1
 - fix typo in readme
 
