@@ -10,7 +10,8 @@ Supported notation:
 * special dice variations:
   * `AdF` -- roll A fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
   * `Ad%` -- roll A percentile dice (equivalent to `1d100`)
-  * `AD66` -- roll A D66, aka `1d6*10 + 1d6` (NOTE: this _must_ use uppercase D)
+  * `AD66` -- roll A D66, aka `1d6*10 + 1d6` (NOTE: this _must_ use
+    uppercase D, lowercase d will be interpreted as 66-sided die)
 * addition/subtraction/multiplication and parenthesis are allowed
 * numbers must be integers, and division is is not supported.
 
@@ -21,6 +22,10 @@ examples:
 * `1D66` -- roll a D66 -- aka two six-sided dice, multiply first by 10 and sum results
 * `1d%` -- roll one percentile dice
 * `4dF` -- roll three fudge dice ()
+
+other dice notation info:
+* https://en.wikipedia.org/wiki/Dice_notation
+* https://itch.io/t/423732/dice-notation
 
 ## Usage
 

@@ -14,20 +14,11 @@ class DiceRoller {
     // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
     return [for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1];
   }
-}
 
-/// A dice roller for fudge dice (values -1,0,1)
-class FudgeDiceRoller {
   static const _fudgeVals = [-1, -1, 0, 0, 1, 1];
-  Random _random;
-
-  /// Constructs a fudge dice roller (Random can be injected)
-  FudgeDiceRoller([Random r]) {
-    _random = r ?? Random.secure();
-  }
 
   /// Roll N fudge dice, return results
-  List<int> roll(int ndice) {
+  List<int> rollFudge(int ndice) {
     return [
       for (var i = 0; i < ndice; i++)
         _fudgeVals[_random.nextInt(_fudgeVals.length)]

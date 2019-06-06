@@ -6,10 +6,17 @@ import 'dice_roller.dart';
 ///
 class DiceParser {
   DiceRoller _roller;
-  FudgeDiceRoller _fudgeDiceRoller;
   // parser w/out actions -- makes it easier to debug output rather than evaluated
   Parser _parser;
   Parser _evaluator;
+
+  /// Constructs a dice parser, dice roller injectible for mocking random
+  DiceParser({DiceRoller diceRoller}) {
+    _roller = diceRoller ?? DiceRoller();
+
+    _parser = _build(attachAction: false);
+    _evaluator = _build(attachAction: true);
+  }
 
   Parser _build({attachAction = true}) {
     var action = attachAction ? (func) => func : (func) => null;
@@ -38,6 +45,12 @@ class DiceParser {
       ..postfix(string('D66').trim(), action(_handleSpecialDice))
       // `AdX`
       ..left(char('d').trim(), action(_handleStdDice));
+    // before arithmetic, but after dice grouping... handle dice re-rolls/variation
+    //   AdXHN -- roll AdX, drop N highest
+    //   AdXLN -- roll AdX, drop N lowest
+    builder.group()
+      ..left(char('H').trim(), action(_handleDropHighLow))
+      ..left(char('L').trim(), action(_handleDropHighLow));
     // multiplication in different group than add/subtract to enforce order of operations
     builder.group()..left(char('*').trim(), action(_handleArith));
     builder.group()
@@ -46,9 +59,34 @@ class DiceParser {
     return builder.build().end();
   }
 
-  int _handleSpecialDice(final a, final String op) {
-    var resolvedA =
-        a ?? 1; // if a null, assume 1; e.g. interpret 'd10' as '1d10'
+  List<int> _handleDropHighLow(final a, final String op, final b) {
+    var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
+    if (a is List<int>) {
+      var localA = List.from(a);
+      localA.sort();
+      switch (op) {
+        case 'H': // drop high
+          return a;
+          break;
+        case 'L': // drop low
+          return a;
+          break;
+        default:
+          throw FormatException("unknown drop operator: $op");
+          break;
+      }
+    }
+    throw FormatException("unknown drop $a $op $b");
+  }
+
+  List<int> _handleStdDice(final a, final String op, final x) {
+    return _roller.roll(_resolveToInt(a, 1), _resolveToInt(x, 1));
+  }
+
+  List<int> _handleSpecialDice(final a, final String op) {
+    // if a null, assume 1; e.g. interpret 'd10' as '1d10'
+    // if it's a list (i.e. a dice roll), sum the results
+    var resolvedA = _resolveToInt(a, 1);
     var result = <int>[];
     switch (op) {
       case 'D66':
@@ -61,23 +99,19 @@ class DiceParser {
         result = _roller.roll(resolvedA, 100);
         break;
       case 'dF':
-        result = _fudgeDiceRoller.roll(resolvedA);
+        result = _roller.rollFudge(resolvedA);
         break;
       default:
         throw FormatException("unknown dice operator: $op");
         break;
     }
-    return sum(result);
+    return result;
   }
 
-  int _handleStdDice(final a, final String op, final x) {
-    return sum(_roller.roll(a ?? 1, x ?? 1));
-  }
-
-  /// Return variable as in -- if null: 0, if List: sum, otherwise variable
-  int _resolveToInt(final v) {
+  /// Return variable as in -- if null: return default, if List: sum
+  int _resolveToInt(final v, [final defaultVal = 0]) {
     if (v == null) {
-      return 0;
+      return defaultVal;
     } else if (v is Iterable<int>) {
       return sum(v);
     } else {
@@ -104,15 +138,6 @@ class DiceParser {
     }
   }
 
-  /// Constructs a dice parser, dice rollers can be injected
-  DiceParser([DiceRoller r, FudgeDiceRoller rF]) {
-    _roller = r ?? DiceRoller();
-    _fudgeDiceRoller = rF ?? FudgeDiceRoller();
-
-    _parser = _build(attachAction: false);
-    _evaluator = _build(attachAction: true);
-  }
-
   /// Parses the given expression and return Result
   Result<dynamic> parse(String diceStr) {
     return _parser.parse(diceStr);
@@ -135,7 +160,7 @@ class DiceParser {
               "\t${' ' * (result.position - 1)}^-- ${result.message}",
           result.position);
     }
-    return result.value ?? 0;
+    return _resolveToInt(result.value);
   }
 
   /// Evaluates given dice expression N times.

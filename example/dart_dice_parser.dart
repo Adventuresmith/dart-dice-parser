@@ -2,8 +2,17 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
+import 'package:logging/logging.dart';
+
+final Logger log = Logger('main');
 
 void main(List<String> arguments) {
+  Logger.root.level = Level.ALL;
+
+  Logger.root.onRecord.listen((rec) {
+    print('${rec.level.name}: ${rec.message}');
+  });
+
   var argParser = ArgParser()
     ..addOption(
       "num",
@@ -19,7 +28,7 @@ void main(List<String> arguments) {
 
 int roll(int numRolls, String expression) {
   if (expression.isEmpty) {
-    print("Supply a dice expression. e.g. '2d6+1'");
+    log.warning("Supply a dice expression. e.g. '2d6+1'");
     return 1;
   }
   var diceParser = DiceParser();
@@ -28,13 +37,13 @@ int roll(int numRolls, String expression) {
   // and it's helpful sometimes
   var result = diceParser.parse(expression);
   if (result.isFailure) {
-    print("Failure:");
-    print('\t$expression');
-    print('\t${' ' * (result.position - 1)}^-- ${result.message}');
+    log.severe("Failure:\n" +
+        '\t$expression\n' +
+        '\t${' ' * (result.position - 1)}^-- ${result.message}');
     return 1;
   }
   // use the parser to display parse results
-  print("Evaluating: $expression => $result\n");
+  log.fine("Evaluating: $expression => $result\n");
   // but use the evaluator via roll/rollN to actually parse and perform dice roll
   diceParser
       .rollN(expression, numRolls)
