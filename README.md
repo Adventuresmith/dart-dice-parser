@@ -15,6 +15,9 @@ Supported notation:
 * dropping high/low:
   * `AdX-HN` -- roll A X-sided dice, drop N highest
   * `AdX-LN` -- roll A X-sided dice, drop N lowest
+  * NOTE: the '-H' and '-L' operators have higher precedence than
+    the arithmetic operators, `4d10-L2+2` is equivalent to `(4d10-L2)+2`
+
 * addition/subtraction/multiplication and parenthesis are allowed
 * numbers must be integers, and division is is not supported.
 
@@ -24,7 +27,7 @@ examples:
   add that to sum of 3 100-sided die
 * `1D66` -- roll a D66 -- aka two six-sided dice, multiply first by 10 and sum results
 * `1d%` -- roll one percentile dice
-* `4dF` -- roll four fudge dice ()
+* `4dF` -- roll four fudge dice
 * `2d20-H` -- roll 2d20, drop highest (disadvantage)
 * `2d20-L` -- roll 2d20, drop lowest (advantage)
 * `10d10-L3` -- roll 10d10, drop 10 lowest results
