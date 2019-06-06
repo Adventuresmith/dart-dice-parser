@@ -8,7 +8,7 @@ A library for parsing dice notation
 Supported notation:
 * `AdX` -- roll A dice of X sides, total will be returned as value
 * special dice variations:
-  * `AdF` -- roll A fudge dice (sides: -1,-1,0,0,1,1)
+  * `AdF` -- roll A fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
   * `Ad%` -- roll A percentile dice (100-sided)
   * `AD66` -- roll A D66, aka `1d6*10 + 1d6` (NOTE: this _must_ use uppercase D)
 * addition/subtraction/multiplication and parenthesis are allowed
