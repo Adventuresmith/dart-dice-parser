@@ -92,6 +92,12 @@ void main() {
       // [1,2] + [3,4,5] = [1,2,3,4,5]-L3 => [4,5] = 9
       expect(incrementingDiceParser.roll("(2d10+3d20)-L3"), equals(9));
     });
+    test("drop on int has no effect", () {
+      expect(incrementingDiceParser.roll("4-L3"), equals(4));
+    });
+    test("can drop more than rolled", () {
+      expect(incrementingDiceParser.roll("3d6-H4"), equals(0));
+    });
   });
 
   group("missing ints", () {

@@ -85,14 +85,14 @@ class DiceParser {
           dropped = localA.take(resolvedB).toList();
           break;
         default:
-          log.warning(() => "unknown drop operator: $op");
-          return a;
+          log.warning(() => "unknown drop operator: $a$op");
+          results = a;
           break;
       }
     } else {
       log.warning(() =>
           "prefix to drop operator $op must be a dice roll results, not $a");
-      dropped = [a];
+      results = [a];
     }
     log.finer(() => "$a$op$b => $results (dropped: $dropped)");
     return results;
@@ -125,7 +125,8 @@ class DiceParser {
         results = _roller.rollFudge(resolvedA);
         break;
       default:
-        throw FormatException("unknown dice operator: $op");
+        results = a;
+        log.warning("unknown dice operator: $a$op");
         break;
     }
     log.finer(() => "$a$op => $results");
@@ -213,10 +214,7 @@ Error parsing dice expression
     var stats = Stats.fromData(rolls);
     var results = stats.withPrecision(precision).toJson();
     var histogram = SplayTreeMap<int, int>();
-    rolls.forEach((i) {
-      var current = histogram[i] ?? 0;
-      histogram[i] = current + 1;
-    });
+    rolls.forEach((i) => histogram[i] = (histogram[i] ?? 0) + 1);
     results['histogram'] = histogram;
     return results;
   }
