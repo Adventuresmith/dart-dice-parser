@@ -60,21 +60,9 @@ A simple usage example:
     main() {
       var diceExpression = "2d6 + 1 + 3d10";
 
-      print("$diceExpression : ${roll(diceExpression)}");
+      print("$diceExpression : ${DiceParser().roll(diceExpression)}");
     }
 
-    int roll(String diceStr) {
-        var result = DiceParser().evaluate(diceStr);
-
-        if (result.isFailure) {
-            print("Failure:");
-            print('\t${expression}');
-            print('\t${' ' * (result.position - 1)}^-- ${result.message}');
-            return 1;
-        } else {
-            return result.value;
-        }
-    }
 ```
 
 ## Features and bugs
