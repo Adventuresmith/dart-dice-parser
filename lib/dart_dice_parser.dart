@@ -1,16 +1,5 @@
 /// A Parser/evalutator for dice notation
 ///
-/// Supported notation:
-/// * `AdX` -- roll A dice of X sides, total will be returned as value
-/// * special handling:
-///   * `Ad%` -- roll A percentile dice (100-sided)
-///   * `AD66` -- roll A D66, aka `1d6*10 + 1d6`
-///     * NOTE: this _must_ use uppercase D
-/// * addition/subtraction/multiplication and parenthesis are allowed
-///   * `2d6 + 1` -- roll two six-sided dice, sum results and add one
-///   * `2d(2*10) + 3d100` -- roll 2 twenty-sided dice, sum results,
-///     add that to sum of 3 100-sided die
-/// * numbers must be integers, and division is is not supported.
 ///
 /// Usage example:
 ///
