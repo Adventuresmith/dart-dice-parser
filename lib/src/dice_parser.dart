@@ -94,8 +94,7 @@ class DiceParser {
           "prefix to drop operator $op must be a dice roll results, not $a");
       dropped = [a];
     }
-    log.finest(() =>
-        "_handleDropHighLow: $a $op $b {resolved to: $a $op $resolvedB} => yielded $results (dropped: $dropped)");
+    log.finer(() => "$a$op$b => $results (dropped: $dropped)");
     return results;
   }
 
@@ -103,8 +102,7 @@ class DiceParser {
     var resolvedA = _resolveToInt(a, 1);
     var resolvedX = _resolveToInt(x, 1);
     var results = _roller.roll(resolvedA, resolvedX);
-    log.finest(() =>
-        "_handleStdDice: $a $op $x {resolved to: $resolvedA $op $resolvedX} => yielded $results");
+    log.finer(() => "$a$op$x => $results");
     return results;
   }
 
@@ -130,8 +128,7 @@ class DiceParser {
         throw FormatException("unknown dice operator: $op");
         break;
     }
-    log.finest(() =>
-        "_handleSpecialDice: $a $op {resolved to: $resolvedA $op} => yielded $results");
+    log.finer(() => "$a$op => $results");
     return results;
   }
 
@@ -161,8 +158,7 @@ class DiceParser {
     } else {
       results = [resolvedA + resolvedB];
     }
-    log.finest(() =>
-        "_handleAdd: $a $op $b {resolved to: $resolvedA $op $resolvedB} => yielded $results");
+    log.finer(() => "$a$op$b => $results");
     return results;
   }
 
@@ -181,8 +177,7 @@ class DiceParser {
       default:
         result = 0;
     }
-    log.finest(() =>
-        "_handleArith: $a $op $b {resolved to: $resolvedA $op $resolvedB} => yielded $result");
+    log.finer(() => "$a$op$b => $result");
     return result;
   }
 

@@ -16,7 +16,7 @@ class DiceRoller {
   List<int> roll(int ndice, int nsides) {
     // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
     var results = [for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1];
-    log.finest(() => "roll ${ndice}d${nsides} => $results");
+    log.finest(() => "roll ${ndice}d$nsides => $results");
     return results;
   }
 
