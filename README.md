@@ -67,12 +67,12 @@ A simple usage example:
 
 ### CLI Usage
 
-```
-> pub run example/dart_dice_parser.dart  "3d6"
+```console
+foo@bar$ pub run example/dart_dice_parser.dart  "3d6"
 1, 9
 
 # run N number of rolls
-> pub run example/dart_dice_parser.dart -n 6 "3d6"
+foo@bar$ pub run example/dart_dice_parser.dart -n 6 "3d6"
 1, 6
 2, 8
 3, 15
@@ -81,11 +81,11 @@ A simple usage example:
 6, 10
 
 # show stats
-> pub run example/dart_dice_parser.dart -s "3d6"
+foo@bar$ pub run example/dart_dice_parser.dart -s "3d6"
 {count: 1000, mean: 10.5, median: 10.0, max: 18, min: 3, standardDeviation: 2.95, histogram: {3: 3, 4: 14, 5: 25, 6: 50, 7: 72, 8: 107, 9: 105, 10: 146, 11: 121, 12: 101, 13: 87, 14: 76, 15: 48, 16: 27, 17: 14, 18: 4}}
 
 # increase verbositoy to show what's going on under the hood:
-> pub run example/dart_dice_parser.dart  -v "4d10-H + 2d6"
+foo@bar$ pub run example/dart_dice_parser.dart  -v "4d10-H + 2d6"
 [FINE] main: Evaluating: 4d10-H + 2d6 => Success[1:13]: [[[4, d, 10], -H, null], +, [2, d, 6]]
 
 [FINEST] DiceRoller: roll 4d10 => [7, 7, 3, 9]
