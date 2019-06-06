@@ -24,9 +24,10 @@ examples:
   add that to sum of 3 100-sided die
 * `1D66` -- roll a D66 -- aka two six-sided dice, multiply first by 10 and sum results
 * `1d%` -- roll one percentile dice
-* `4dF` -- roll three fudge dice ()
+* `4dF` -- roll four fudge dice ()
 * `2d20-H` -- roll 2d20, drop highest (disadvantage)
 * `2d20-L` -- roll 2d20, drop lowest (advantage)
+* `10d10-L3` -- roll 10d10, drop 10 lowest results
 
 other dice notation info:
 * https://en.wikipedia.org/wiki/Dice_notation
