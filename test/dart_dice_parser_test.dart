@@ -62,6 +62,10 @@ void main() {
       // weird because mocked random returns '2'
       expect(diceParser.roll("6d"), equals(12));
     });
+    test("whitespace should be swallowed", () {
+      expect(diceParser.roll("2 d6"), equals(4));
+      expect(diceParser.roll("2d 6"), equals(4));
+    });
   });
 
   group("dice", () {

@@ -47,7 +47,8 @@ class DiceParser {
   }
 
   int _handleSpecialDice(final a, final String op) {
-    var resolvedA = a ?? 1;
+    var resolvedA =
+        a ?? 1; // if a null, assume 1; e.g. interpret 'd10' as '1d10'
     var result = <int>[];
     switch (op) {
       case 'D66':
