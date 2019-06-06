@@ -6,6 +6,7 @@
 - cleanup analysis problems
 - add percentile and D66 dice
 - handle missing A or X in AdX
+- flesh out API docs
 
 ## 0.2.2
 - reformat

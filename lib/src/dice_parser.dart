@@ -47,39 +47,56 @@ class DiceParser {
   }
 
   int _handleSpecialDice(final a, final String op) {
+    var resolvedA = a ?? 1;
+    var result = <int>[];
     switch (op) {
       case 'D66':
-        return sum([
-          for (var i = 0; i < (a ?? 1); i++)
+        result = [
+          for (var i = 0; i < resolvedA; i++)
             _roller.roll(1, 6)[0] * 10 + _roller.roll(1, 6)[0]
-        ]);
+        ];
         break;
       case 'd%':
-        return sum(_roller.roll(a ?? 1, 100));
+        result = _roller.roll(resolvedA, 100);
         break;
       case 'dF':
-        return sum(_fudgeDiceRoller.roll(a ?? 1));
+        result = _fudgeDiceRoller.roll(resolvedA);
         break;
       default:
         throw FormatException("unknown dice operator: $op");
         break;
     }
+    return sum(result);
   }
 
   int _handleStdDice(final a, final String op, final x) {
     return sum(_roller.roll(a ?? 1, x ?? 1));
   }
 
+  /// Return variable as in -- if null: 0, if List: sum, otherwise variable
+  int _resolveToInt(final v) {
+    if (v == null) {
+      return 0;
+    } else if (v is Iterable<int>) {
+      return sum(v);
+    } else {
+      return v;
+    }
+  }
+
+  /// Handles arithmetic operations -- mult, add, sub
   int _handleArith(final a, final String op, final b) {
+    var resolvedA = _resolveToInt(a);
+    var resolvedB = _resolveToInt(b);
     switch (op) {
       case '+':
-        return (a ?? 0) + (b ?? 0);
+        return resolvedA + resolvedB;
         break;
       case '-':
-        return (a ?? 0) - (b ?? 0);
+        return resolvedA - resolvedB;
         break;
       case '*':
-        return (a ?? 0) * (b ?? 0);
+        return resolvedA * resolvedB;
         break;
       default:
         return 0;
