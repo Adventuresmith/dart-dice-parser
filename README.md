@@ -30,7 +30,7 @@ examples:
 * `4dF` -- roll four fudge dice
 * `2d20-H` -- roll 2d20, drop highest (disadvantage)
 * `2d20-L` -- roll 2d20, drop lowest (advantage)
-* `10d10-L3` -- roll 10d10, drop 10 lowest results
+* `10d10-L3` -- roll 10d10, drop 3 lowest results
 * `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists and drop lowest 3 rolls
 
 
