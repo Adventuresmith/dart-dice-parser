@@ -22,7 +22,6 @@ void main(List<String> arguments) {
     )
     ..addFlag("verbose",
         abbr: "v",
-        
         help: "enable verbose logging",
         defaultsTo: false, callback: (verbose) {
       if (verbose) {
@@ -31,6 +30,10 @@ void main(List<String> arguments) {
         Logger.root.level = Level.INFO;
       }
     })
+    ..addFlag("stats",
+        abbr: "s",
+        help: "output dice stats. assumes n=1000 unless overridden",
+        defaultsTo: false)
     ..addFlag("help", abbr: "h", defaultsTo: false);
 
   var results = argParser.parse(arguments);
@@ -39,11 +42,13 @@ void main(List<String> arguments) {
     print(argParser.usage);
     exit(1);
   }
-
-  exit(roll(int.parse(results["num"]), results.rest.join(" ")));
+  exit(run(
+      numRolls: int.parse(results["num"]),
+      expression: results.rest.join(" "),
+      stats: results["stats"]));
 }
 
-int roll(int numRolls, String expression) {
+int run({int numRolls, String expression, bool stats}) {
   if (expression.isEmpty) {
     print("Supply a dice expression. e.g. '2d6+1'");
     return 1;
@@ -61,13 +66,21 @@ Parsing failure:
     """);
     return 1;
   }
-  // use the parser to display parse results
-  log.fine("Evaluating: $expression => $result\n");
-  // but use the evaluator via roll/rollN to actually parse and perform dice roll
-  diceParser
-      .rollN(expression, numRolls)
-      .asMap() // convert list to map so have an index
-      .forEach((i, r) => print("${i + 1}, $r"));
 
+  // use the parser to display parse results/grouping
+  log.fine("Evaluating: $expression => $result\n");
+
+  if (stats) {
+    var n = numRolls;
+    if (numRolls == 1) n = 1000;
+    var stats = diceParser.stats(diceStr: expression, numRolls: n);
+    print(stats);
+  } else {
+    // but use the evaluator via roll/rollN to actually parse and perform dice roll
+    diceParser
+        .rollN(expression, numRolls)
+        .asMap() // convert list to map so have an index
+        .forEach((i, r) => print("${i + 1}, $r"));
+  }
   return 0;
 }

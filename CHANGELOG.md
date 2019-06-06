@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+- add dice stats to the parser
+- logging & error handling cleanup
+
 ## 1.1.2
 - more tests and cleanup examples
 

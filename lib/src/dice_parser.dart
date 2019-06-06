@@ -1,5 +1,8 @@
+import "dart:collection";
+
 import 'package:logging/logging.dart';
 import 'package:petitparser/petitparser.dart';
+import 'package:stats/stats.dart';
 
 import 'dice_roller.dart';
 
@@ -10,6 +13,7 @@ int sum(Iterable<int> l) => l.reduce((a, b) => a + b);
 ///
 class DiceParser {
   final Logger log = Logger('DiceParser');
+  final Logger rollLogger = Logger("DiceParser.rolls");
 
   DiceRoller _roller;
   // parser w/out actions -- makes it easier to debug output rather than evaluated
@@ -66,27 +70,33 @@ class DiceParser {
   }
 
   List<int> _handleDropHighLow(final a, final String op, final b) {
+    List<int> results;
+    List<int> dropped;
     var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
     if (a is List<int>) {
-      List<int> results;
       var localA = List<int>.from(a)..sort();
       switch (op) {
         case '-H': // drop high
           results = localA.reversed.skip(resolvedB).toList();
+          dropped = localA.reversed.take(resolvedB).toList();
           break;
         case '-L': // drop low
           results = localA.skip(resolvedB).toList();
+          dropped = localA.take(resolvedB).toList();
           break;
         default:
-          throw FormatException("unknown drop operator: $op");
+          log.warning(() => "unknown drop operator: $op");
+          return a;
           break;
       }
-      log.finest(() =>
-          "_handleDropHighLow: $a $op $b {resolved to: $a $op $resolvedB} => yielded $results");
-      return results;
+    } else {
+      log.warning(() =>
+          "prefix to drop operator $op must be a dice roll results, not $a");
+      dropped = [a];
     }
-    throw FormatException(
-        "drop high/low can only be applied to dice roll results. '$a $op $b'");
+    log.finest(() =>
+        "_handleDropHighLow: $a $op $b {resolved to: $a $op $resolvedB} => yielded $results (dropped: $dropped)");
+    return results;
   }
 
   List<int> _handleStdDice(final a, final String op, final x) {
@@ -199,6 +209,21 @@ Error parsing dice expression
         """, result.position);
     }
     return _resolveToInt(result.value);
+  }
+
+  /// Performs N rolls and outputs stats (stdev, mean, min/max, and a histogram)
+  Map<String, dynamic> stats(
+      {String diceStr, int numRolls = 1000, int precision = 3}) {
+    var rolls = rollN(diceStr, numRolls);
+    var stats = Stats.fromData(rolls);
+    var results = stats.withPrecision(precision).toJson();
+    var histogram = SplayTreeMap<int, int>();
+    rolls.forEach((i) {
+      var current = histogram[i] ?? 0;
+      histogram[i] = current + 1;
+    });
+    results['histogram'] = histogram;
+    return results;
   }
 
   /// Evaluates given dice expression N times.

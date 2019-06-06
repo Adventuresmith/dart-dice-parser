@@ -36,7 +36,8 @@ examples:
 
 TODO:
 * exploding dice
-  * for this to work, need to pass along info about dice up to parser (to know which is max#)
+  * for this to work, need to pass along info about dice up to parser (to know which is max#)... or, could do
+     `3d10!=10` (explode if equal 10)
 * drop conditionally
   * 3d10-<3 drop any less than 3
   * 3d10->3 drop any greater than 3

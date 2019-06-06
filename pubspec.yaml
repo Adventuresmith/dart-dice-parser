@@ -1,6 +1,6 @@
 name: dart_dice_parser
 description: A dart library for parsing dice notation (like "2d6+4", "3d6", or "3d10 + 2d6 - 5d4")
-version: 1.1.2
+version: 1.2.0
 homepage: https://github.com/stevesea/dart-dice-parser
 authors:
   - steve christensen <adventuresmith.rpg@gmail.com>
@@ -11,6 +11,7 @@ environment:
 dependencies:
   petitparser: ^2.3.0
   logging: ^0.11.3+2
+  stats: ^0.2.0+2
 
 dev_dependencies:
   test: ^1.6.3
