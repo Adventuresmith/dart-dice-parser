@@ -9,7 +9,7 @@ Supported notation:
 * `AdX` -- roll A dice of X sides, total will be returned as value
 * special dice variations:
   * `AdF` -- roll A fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
-  * `Ad%` -- roll A percentile dice (100-sided)
+  * `Ad%` -- roll A percentile dice (equivalent to `1d100`)
   * `AD66` -- roll A D66, aka `1d6*10 + 1d6` (NOTE: this _must_ use uppercase D)
 * addition/subtraction/multiplication and parenthesis are allowed
 * numbers must be integers, and division is is not supported.
