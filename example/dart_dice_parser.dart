@@ -22,6 +22,7 @@ void main(List<String> arguments) {
     )
     ..addFlag("verbose",
         abbr: "v",
+        
         help: "enable verbose logging",
         defaultsTo: false, callback: (verbose) {
       if (verbose) {
@@ -44,7 +45,7 @@ void main(List<String> arguments) {
 
 int roll(int numRolls, String expression) {
   if (expression.isEmpty) {
-    log.warning("Supply a dice expression. e.g. '2d6+1'");
+    print("Supply a dice expression. e.g. '2d6+1'");
     return 1;
   }
   var diceParser = DiceParser();
@@ -53,7 +54,7 @@ int roll(int numRolls, String expression) {
   // and it's helpful sometimes
   var result = diceParser.parse(expression);
   if (result.isFailure) {
-    log.severe("""
+    print("""
 Parsing failure:
     $expression
     ${' ' * (result.position - 1)}^-- ${result.message}
@@ -66,7 +67,7 @@ Parsing failure:
   diceParser
       .rollN(expression, numRolls)
       .asMap() // convert list to map so have an index
-      .forEach((i, r) => log.info("${i + 1}: $r"));
+      .forEach((i, r) => print("${i + 1}, $r"));
 
   return 0;
 }

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0
+- add drop high/low parsing
+
 ## 1.0.2
 - fix readme example
 

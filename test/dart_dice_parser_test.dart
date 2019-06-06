@@ -61,31 +61,31 @@ void main() {
     test("drop high", () {
       // mocked responses should return rolls of 1,2,3,4
       //
-      expect(incrementingDiceParser.roll("4d6H"), equals(6));
+      expect(incrementingDiceParser.roll("4d6-H"), equals(6));
     });
     test("drop high - 1", () {
       // equivalent to the above
-      expect(incrementingDiceParser.roll("4d6H1"), equals(6));
+      expect(incrementingDiceParser.roll("4d6-H1"), equals(6));
     });
     test("drop high - 3", () {
       // mocked responses should return rolls of 1,2,3,4
       //
-      expect(incrementingDiceParser.roll("4d6H3"), equals(1));
+      expect(incrementingDiceParser.roll("4d6-H3"), equals(1));
     });
     test("drop low", () {
       // mocked responses should return rolls of 1,2,3,4
       //
-      expect(incrementingDiceParser.roll("4d6L"), equals(9));
+      expect(incrementingDiceParser.roll("4d6-L"), equals(9));
     });
     test("drop low - 1", () {
       // mocked responses should return rolls of 1,2,3,4
       //
-      expect(incrementingDiceParser.roll("4d6L1"), equals(9));
+      expect(incrementingDiceParser.roll("4d6-L1"), equals(9));
     });
     test("drop low - 3", () {
       // mocked responses should return rolls of 1,2,3,4
       //
-      expect(incrementingDiceParser.roll("4d6L3"), equals(4));
+      expect(incrementingDiceParser.roll("4d6-L3"), equals(4));
     });
   });
 

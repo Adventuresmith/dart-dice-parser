@@ -12,6 +12,9 @@ Supported notation:
   * `Ad%` -- roll A percentile dice (equivalent to `1d100`)
   * `AD66` -- roll A D66, aka `1d6*10 + 1d6` (NOTE: this _must_ use
     uppercase D, lowercase d will be interpreted as 66-sided die)
+* dropping high/low:
+  * `AdX-HN` -- roll A X-sided dice, drop N highest
+  * `AdX-LN` -- roll A X-sided dice, drop N lowest
 * addition/subtraction/multiplication and parenthesis are allowed
 * numbers must be integers, and division is is not supported.
 
@@ -22,6 +25,8 @@ examples:
 * `1D66` -- roll a D66 -- aka two six-sided dice, multiply first by 10 and sum results
 * `1d%` -- roll one percentile dice
 * `4dF` -- roll three fudge dice ()
+* `2d20-H` -- roll 2d20, drop highest (disadvantage)
+* `2d20-L` -- roll 2d20, drop lowest (advantage)
 
 other dice notation info:
 * https://en.wikipedia.org/wiki/Dice_notation

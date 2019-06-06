@@ -55,8 +55,8 @@ class DiceParser {
     //   AdXHN -- roll AdX, drop N highest
     //   AdXLN -- roll AdX, drop N lowest
     builder.group()
-      ..left(char('H').trim(), action(_handleDropHighLow))
-      ..left(char('L').trim(), action(_handleDropHighLow));
+      ..left(string('-H').trim(), action(_handleDropHighLow))
+      ..left(string('-L').trim(), action(_handleDropHighLow));
     // multiplication in different group than add/subtract to enforce order of operations
     builder.group()..left(char('*').trim(), action(_handleArith));
     builder.group()
@@ -71,10 +71,10 @@ class DiceParser {
       List<int> results;
       var localA = List<int>.from(a)..sort();
       switch (op) {
-        case 'H': // drop high
+        case '-H': // drop high
           results = localA.reversed.skip(resolvedB).toList();
           break;
-        case 'L': // drop low
+        case '-L': // drop low
           results = localA.skip(resolvedB).toList();
           break;
         default:
@@ -129,7 +129,11 @@ class DiceParser {
     if (v == null) {
       return defaultVal;
     } else if (v is Iterable<int>) {
-      return sum(v);
+      if (v.length == 0) {
+        return 0;
+      } else {
+        return sum(v);
+      }
     } else {
       return v;
     }
