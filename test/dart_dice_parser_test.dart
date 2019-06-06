@@ -87,6 +87,11 @@ void main() {
       //
       expect(incrementingDiceParser.roll("4d6-L3"), equals(4));
     });
+    test("drop low on aggregated dice", () {
+      // mocked responses should return rolls of 1,2,3,4,5
+      // [1,2] + [3,4,5] = [1,2,3,4,5]-L3 => [4,5] = 9
+      expect(incrementingDiceParser.roll("(2d10+3d20)-L3"), equals(9));
+    });
   });
 
   group("missing ints", () {

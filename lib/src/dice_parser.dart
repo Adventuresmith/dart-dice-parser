@@ -60,7 +60,7 @@ class DiceParser {
     // multiplication in different group than add/subtract to enforce order of operations
     builder.group()..left(char('*').trim(), action(_handleArith));
     builder.group()
-      ..left(char('+').trim(), action(_handleArith))
+      ..left(char('+').trim(), action(_handleAdd))
       ..left(char('-').trim(), action(_handleArith));
     return builder.build().end();
   }
@@ -85,7 +85,8 @@ class DiceParser {
           "_handleDropHighLow: $a $op $b {resolved to: $a $op $resolvedB} => yielded $results");
       return results;
     }
-    throw FormatException("unknown drop type: $a $op $b");
+    throw FormatException(
+        "drop high/low can only be applied to dice roll results. '$a $op $b'");
   }
 
   List<int> _handleStdDice(final a, final String op, final x) {
@@ -139,25 +140,40 @@ class DiceParser {
     }
   }
 
-  /// Handles arithmetic operations -- mult, add, sub
+  /// Handles addition. If both params are lists, return aggregate. Otherwise, return [sum]
+  List<int> _handleAdd(final a, final String op, final b) {
+    var resolvedA = _resolveToInt(a);
+    var resolvedB = _resolveToInt(b);
+    var results = <int>[];
+    if (a is List<int> && b is List<int>) {
+      results.addAll(a);
+      results.addAll(b);
+    } else {
+      results = [resolvedA + resolvedB];
+    }
+    log.finest(() =>
+        "_handleAdd: $a $op $b {resolved to: $resolvedA $op $resolvedB} => yielded $results");
+    return results;
+  }
+
+  /// Handles arithmetic operations -- mult, sub
   int _handleArith(final a, final String op, final b) {
     var resolvedA = _resolveToInt(a);
     var resolvedB = _resolveToInt(b);
-    log.finest(() =>
-        "_handleArith: $a $op $b {resolved to: $resolvedA $op $resolvedB}");
+    int result;
     switch (op) {
-      case '+':
-        return resolvedA + resolvedB;
-        break;
       case '-':
-        return resolvedA - resolvedB;
+        result = resolvedA - resolvedB;
         break;
       case '*':
-        return resolvedA * resolvedB;
+        result = resolvedA * resolvedB;
         break;
       default:
-        return 0;
+        result = 0;
     }
+    log.finest(() =>
+        "_handleArith: $a $op $b {resolved to: $resolvedA $op $resolvedB} => yielded $result");
+    return result;
   }
 
   /// Parses the given expression and return Result

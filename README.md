@@ -16,7 +16,7 @@ Supported notation:
   * `AdX-HN` -- roll A X-sided dice, drop N highest
   * `AdX-LN` -- roll A X-sided dice, drop N lowest
   * NOTE: the '-H' and '-L' operators have higher precedence than
-    the arithmetic operators, `4d10-L2+2` is equivalent to `(4d10-L2)+2`
+    the arithmetic operators, so `4d10-L2+2` is equivalent to `(4d10-L2)+2`
 
 * addition/subtraction/multiplication and parenthesis are allowed
 * numbers must be integers, and division is is not supported.
@@ -31,10 +31,24 @@ examples:
 * `2d20-H` -- roll 2d20, drop highest (disadvantage)
 * `2d20-L` -- roll 2d20, drop lowest (advantage)
 * `10d10-L3` -- roll 10d10, drop 10 lowest results
+* `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists and drop lowest 3 rolls
 
-other dice notation info:
-* https://en.wikipedia.org/wiki/Dice_notation
-* https://itch.io/t/423732/dice-notation
+
+TODO:
+* exploding dice
+  * for this to work, need to pass along info about dice up to parser (to know which is max#)
+* drop conditionally
+  * 3d10-<3 drop any less than 3
+  * 3d10->3 drop any greater than 3
+  * 3d10-=3 drop any equal 3
+* cap/clamp
+  * 3d10C<3 treat any value less than 3 as 3
+  * 3d10C>3 treat any value greater than 3 as 3
+* count
+  * 3d10# -- count how many have maximum
+  * 3d10#>6 -- count how many are greater than 6
+  * 3d10#=7 -- count how many are equal to 7
+  * 3d10#<3 -- count how many are less than 3
 
 ## Usage
 
