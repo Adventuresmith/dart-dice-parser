@@ -19,7 +19,7 @@
 ///
 ///       if (result.isFailure) {
 ///         print("Failure:");
-///         print('\t{expression}');
+///         print('\t${expression}');
 ///         print('\t${' ' * (result.position - 1)}^-- ${result.message}');
 ///         return 1;
 ///       } else {
