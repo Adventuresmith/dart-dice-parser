@@ -8,6 +8,7 @@ A library for parsing dice notation
 
 A simple usage example:
 
+```dart
     import 'package:dart_dice_parser/dart_dice_parser.dart';
 
     main() {
@@ -28,6 +29,7 @@ A simple usage example:
             return result.value;
         }
     }
+```
 
 ## Features and bugs
 
