@@ -2,7 +2,7 @@
 ///
 ///
 /// Usage example:
-///
+/// ```dart
 ///     int roll(String diceStr) {
 ///       var result = DiceParser().evaluate(diceStr);
 ///
@@ -15,6 +15,7 @@
 ///         return result.value;
 ///       }
 ///     }
+/// ```
 library dart_dice_parser;
 
 export 'src/dice_parser.dart';
