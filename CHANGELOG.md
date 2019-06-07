@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.4
+- make code more idiomatic
+
 ## 1.3.3
 - make log fields non-public
 

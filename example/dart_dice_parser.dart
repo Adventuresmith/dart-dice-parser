@@ -71,8 +71,7 @@ Parsing failure:
   log.fine("Evaluating: $expression => $result\n");
 
   if (stats) {
-    var n = numRolls;
-    if (numRolls == 1) n = 1000;
+    var n = numRolls == 1 ? 1000 : numRolls;
     var stats = diceParser.stats(diceStr: expression, numRolls: n);
     print(stats);
   } else {

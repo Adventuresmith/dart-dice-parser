@@ -122,7 +122,7 @@ class DiceParser {
     List<int> dropped;
     var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
     if (a is List<int>) {
-      var localA = List<int>.from(a)..sort();
+      var localA = a.toList()..sort();
       switch (op) {
         case '-H': // drop high
           results = localA.reversed.skip(resolvedB).toList();
@@ -235,7 +235,7 @@ class DiceParser {
     if (v == null) {
       return defaultVal;
     } else if (v is Iterable<int>) {
-      if (v.length == 0) {
+      if (v.isEmpty) {
         return 0;
       } else {
         return sum(v);
@@ -311,7 +311,9 @@ Error parsing dice expression
     var stats = Stats.fromData(rolls);
     var results = stats.withPrecision(precision).toJson();
     var histogram = SplayTreeMap<int, int>();
-    rolls.forEach((i) => histogram[i] = (histogram[i] ?? 0) + 1);
+    for (var r in rolls) {
+      histogram[r] = (histogram[r] ?? 0) + 1;
+    }
     results['histogram'] = histogram;
     return results;
   }
