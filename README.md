@@ -12,31 +12,33 @@ A library for parsing dice notation
   * `Ad%` -- roll A percentile dice (equivalent to `1d100`)
   * `AD66` -- roll A D66, aka `1d6*10 + 1d6` (NOTE: this _must_ use
     uppercase D, lowercase d will be interpreted as 66-sided die)
-* dropping high/low:
-  * `AdX-HN` -- roll A X-sided dice, drop N highest
-  * `AdX-LN` -- roll A X-sided dice, drop N lowest
-  * NOTE: the '-H' and '-L' operators have higher precedence than
-    the arithmetic operators, so `4d10-L2+2` is equivalent to `(4d10-L2)+2`
 
+  * exploding dice
+    * `Ad!X` -- roll A X-sided dice, explode if max is rolled (re-roll and include in results)
+      * the dice roller won't explode dice more than 1000 times.
+    * `Ad!!X` -- roll A X-sided dice, explode only once (limited explosion)
+
+* modifying the roll results:
+  * dropping dice:
+    * `AdX-HN` -- roll A X-sided dice, drop N highest
+    * `AdX-LN` -- roll A X-sided dice, drop N lowest
+    * `AdX->B` -- roll A X-sided dice, drop any results less than B
+    * `AdX-<B` -- roll A X-sided dice, drop any results greater than B
+    * `AdX-=B` -- roll A X-sided dice, drop any results equal to B
+    * NOTE: the drop operators have higher precedence than
+      the arithmetic operators, so `4d10-L2+2` is equivalent to `(4d10-L2)+2`
+  * cap/clamp:
+    * `AdXC<B` -- roll A X-sided dice, change any value less than B to B
+    * `AdXC>B` -- roll A X-sided dice, change any value greater than B to B
+* operations on dice rolls:
+  * counting:
+    * `AdX#` -- how many are in the results? (useful for `20d10-<2->8#` -- roll 20 d10, drop <2 and >8, how many are left?)
+    * `AdX#>B` -- roll A X-sided dice, count any greater than B
+    * `AdX#<B` -- roll A X-sided dice, count any less than B
+    * `AdX#=B` -- roll A X-sided dice, count any equal to B
 * addition/subtraction/multiplication and parenthesis are allowed
 * numbers must be integers, and division is is not supported.
 
-TODO:
-* exploding dice
-  * for this to work, need to pass along info about dice up to parser (to know which is max#)... or, could do
-     `3d10!=10` (explode if equal 10)
-* drop conditionally
-  * 3d10-<3 drop any less than 3
-  * 3d10->3 drop any greater than 3
-  * 3d10-=3 drop any equal 3
-* cap/clamp
-  * 3d10C<3 treat any value less than 3 as 3
-  * 3d10C>3 treat any value greater than 3 as 3
-* count
-  * 3d10# -- count how many have maximum
-  * 3d10#>6 -- count how many are greater than 6
-  * 3d10#=7 -- count how many are equal to 7
-  * 3d10#<3 -- count how many are less than 3
 
 ### Examples
 * `2d6 + 1` -- roll two six-sided dice, sum results and add one
@@ -49,6 +51,7 @@ TODO:
 * `2d20-L` -- roll 2d20, drop lowest (advantage)
 * `10d10-L3` -- roll 10d10, drop 3 lowest results
 * `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists and drop lowest 3 rolls
+* `20d10-<3->8#` -- roll 20 d10, drop any less than 3 or greater than 8 and count the result
 
 ## Usage
 
@@ -96,7 +99,39 @@ foo@bar$ pub run example/dart_dice_parser.dart  -v "4d10-H + 2d6"
 [FINER] DiceParser: [7, 7, 3]+[5, 1] => [7, 7, 3, 5, 1]
 1, 23
 
+# explode some dice
+foo@bar$ pub run example/dart_dice_parser.dart  -v "12d\!6"
+[FINE] main: Evaluating: 12d!6 => Success[1:6]: [12, d!, 6]
 
+[FINEST] DiceRoller: roll 12d6 => [2, 6, 3, 1, 1, 6, 3, 2, 2, 1, 6, 3]
+[FINEST] DiceRoller: explode 3 !
+[FINEST] DiceRoller: roll 3d6 => [2, 1, 6]
+[FINEST] DiceRoller: explode 1 !
+[FINEST] DiceRoller: roll 1d6 => [3]
+[FINEST] DiceRoller: roll 12d6 => [2, 6, 3, 1, 1, 6, 3, 2, 2, 1, 6, 3, 2, 1, 6, 3]
+[FINER] DiceParser: 12d!6 => [2, 6, 3, 1, 1, 6, 3, 2, 2, 1, 6, 3, 2, 1, 6, 3]
+1, 48
+
+# roll, explode, drop, count
+foo@bar$ pub run example/dart_dice_parser.dart  -v "(4d8)d\!4-<4#"
+[FINE] main: Evaluating: (4d8)d!4-<4# => Success[1:13]: [[[[(, [4, d, 8], )], d!, 4], -<, 4], #]
+
+[FINEST] DiceRoller: roll 4d8 => [5, 1, 7, 3]
+[FINER] DiceParser: 4d8 => [5, 1, 7, 3]
+[FINEST] DiceRoller: roll 16d4 => [2, 4, 1, 2, 2, 2, 3, 1, 1, 3, 4, 3, 2, 4, 3, 3]
+[FINEST] DiceRoller: explode 3 !
+[FINEST] DiceRoller: roll 3d4 => [4, 2, 1]
+[FINEST] DiceRoller: explode 1 !
+[FINEST] DiceRoller: roll 1d4 => [1]
+[FINEST] DiceRoller: roll 16d!4 => [2, 4, 1, 2, 2, 2, 3, 1, 1, 3, 4, 3, 2, 4, 3, 3, 4, 2, 1, 1]
+[FINER] DiceParser: [5, 1, 7, 3]d!4 => [2, 4, 1, 2, 2, 2, 3, 1, 1, 3, 4, 3, 2, 4, 3, 3, 4, 2, 1, 1]
+[FINER] DiceParser: [2, 4, 1, 2, 2, 2, 3, 1, 1, 3, 4, 3, 2, 4, 3, 3, 4, 2, 1, 1]-<4 => [4, 4, 4, 4] (dropped: [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3])
+[FINER] DiceParser: [4, 4, 4, 4]#1 => 4
+1, 4
+
+# when I roll 100d!10, how many 10's do I get? (try 10000 times and show me stats)
+foo@bar$ pub run example/dart_dice_parser.dart -s "100d\!10#=10" -n 10000
+{count: 10000, mean: 11.1, median: 11.0, max: 25, min: 1, standardDeviation: 3.5, histogram: {1: 5, 2: 15, 3: 46, 4: 97, 5: 238, 6: 451, 7: 667, 8: 826, 9: 1027, 10: 1082, 11: 1175, 12: 1069, 13: 912, 14: 736, 15: 550, 16: 398, 17: 266, 18: 184, 19: 121, 20: 70, 21: 28, 22: 17, 23: 13, 24: 6, 25: 1}}
 ```
 
 

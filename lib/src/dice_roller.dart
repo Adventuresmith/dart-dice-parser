@@ -12,11 +12,40 @@ class DiceRoller {
     _random = r ?? Random.secure();
   }
 
-  /// return result of rolling given number of nsided dice.
+  /// Roll ndice of nsides and return results as list.
   List<int> roll(int ndice, int nsides) {
     // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
     var results = [for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1];
     log.finest(() => "roll ${ndice}d$nsides => $results");
+    return results;
+  }
+
+  /// return result of rolling given number of nsided dice.
+  List<int> rollWithExplode(
+      {int ndice, int nsides, bool explode = false, int explodeLimit = 1000}) {
+    var results = <int>[];
+    var numToRoll = ndice;
+
+    var explodeCount = 0;
+    while (numToRoll > 0 && explodeCount <= explodeLimit) {
+      if (explodeCount > 0) {
+        log.finest("explode $numToRoll !");
+      }
+      var localResults = roll(numToRoll, nsides);
+      results.addAll(localResults);
+      if (!explode) {
+        break;
+      }
+      if (nsides == 1) {
+        log.info("exploding 1-sided dice not allowed");
+        break;
+      }
+
+      explodeCount++;
+      numToRoll = localResults.where((v) => v == nsides).length;
+    }
+
+    log.finest(() => "roll ${ndice}d!$nsides => $results");
     return results;
   }
 

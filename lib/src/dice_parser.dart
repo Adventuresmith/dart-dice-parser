@@ -45,7 +45,9 @@ class DiceParser {
           .map((a) => a.isNotEmpty ? int.parse(a) : null))
       // handle parens
       ..wrapper(char('(').trim(), char(')').trim(), action((l, a, r) => a));
-
+    // exploding dice need to be higher precendence (before 'd')
+    builder.group()..left(string('d!!').trim(), action(_handleStdDice));
+    builder.group()..left(string('d!').trim(), action(_handleStdDice));
     builder.group()
       // fudge dice `AdF`
       ..postfix(string('dF').trim(), action(_handleSpecialDice))
@@ -55,12 +57,26 @@ class DiceParser {
       ..postfix(string('D66').trim(), action(_handleSpecialDice))
       // `AdX`
       ..left(char('d').trim(), action(_handleStdDice));
-    // before arithmetic, but after dice grouping... handle dice re-rolls/variation
-    //   AdXHN -- roll AdX, drop N highest
-    //   AdXLN -- roll AdX, drop N lowest
+    // before arithmetic, but after dice grouping... handle dice re-rolls, mods, drops
     builder.group()
-      ..left(string('-H').trim(), action(_handleDropHighLow))
-      ..left(string('-L').trim(), action(_handleDropHighLow));
+      // cap/clamp
+      ..left(string('C<').trim(), action(_handleRollResultModifiers))
+      ..left(string('C>').trim(), action(_handleRollResultModifiers))
+      // drop
+      ..left(string('-<').trim(), action(_handleRollResultModifiers))
+      ..left(string('->').trim(), action(_handleRollResultModifiers))
+      ..left(string('-=').trim(), action(_handleRollResultModifiers))
+      ..left(string('-H').trim(), action(_handleRollResultModifiers))
+      ..left(string('-L').trim(), action(_handleRollResultModifiers));
+    builder.group()
+      // count
+      ..left(string('#>').trim(), action(_handleRollResultOperation))
+      ..left(string('#<').trim(), action(_handleRollResultOperation))
+      ..left(string('#=').trim(), action(_handleRollResultOperation));
+    builder.group()
+      // count total -- needs to be lower precedence than the other counters
+      ..postfix(string('#').trim(),
+          action((a, op) => _handleRollResultOperation(a, op, null)));
     // multiplication in different group than add/subtract to enforce order of operations
     builder.group()..left(char('*').trim(), action(_handleArith));
     builder.group()
@@ -69,7 +85,40 @@ class DiceParser {
     return builder.build().end();
   }
 
-  List<int> _handleDropHighLow(final a, final String op, final b) {
+  int _handleRollResultOperation(final a, final String op, final b) {
+    int result;
+    var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
+    if (a is List<int>) {
+      switch (op) {
+        case '#>': // count greater than
+          result = a.where((v) => v > resolvedB).length;
+          break;
+        case '#<': // count less than
+          result = a.where((v) => v < resolvedB).length;
+          break;
+        case '#=': // count equal
+          result = a.where((v) => v == resolvedB).length;
+          break;
+        case '#': // count
+          result = a.length;
+          break;
+        default:
+          // throw exception, this is a dev-time error
+          throw FormatException(
+              "unknown roll modifier: $a$op${b ?? resolvedB}");
+          break;
+      }
+    } else {
+      // log warning, this is a user-facing error
+      log.warning(() =>
+          "prefix to roll operation $op must be a dice roll results, not $a");
+      result = 0;
+    }
+    log.finer(() => "$a$op$resolvedB => $result");
+    return result;
+  }
+
+  List<int> _handleRollResultModifiers(final a, final String op, final b) {
     List<int> results;
     List<int> dropped;
     var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
@@ -84,24 +133,73 @@ class DiceParser {
           results = localA.skip(resolvedB).toList();
           dropped = localA.take(resolvedB).toList();
           break;
+        case '-<': // drop less than
+          results = localA.where((v) => v >= resolvedB).toList();
+          dropped = localA.where((v) => v < resolvedB).toList();
+          break;
+        case '->': // drop greater than
+          results = localA.where((v) => v <= resolvedB).toList();
+          dropped = localA.where((v) => v > resolvedB).toList();
+          break;
+        case '-=': // drop equal
+          results = localA.where((v) => v != resolvedB).toList();
+          dropped = localA.where((v) => v == resolvedB).toList();
+          break;
+        case 'C<': // change any value less than B to B
+          results = a.map((v) {
+            if (v < resolvedB) {
+              return resolvedB;
+            } else {
+              return v;
+            }
+          }).toList();
+          break;
+        case 'C>': // change any value greater than B to B
+          results = a.map((v) {
+            if (v > resolvedB) {
+              return resolvedB;
+            } else {
+              return v;
+            }
+          }).toList();
+          break;
         default:
-          log.warning(() => "unknown drop operator: $a$op");
-          results = a;
+          throw FormatException(
+              "unknown roll modifier: $a$op${b ?? resolvedB}");
           break;
       }
     } else {
       log.warning(() =>
-          "prefix to drop operator $op must be a dice roll results, not $a");
+          "prefix to roll modifier $op must be a dice roll results, not $a");
       results = [a];
     }
-    log.finer(() => "$a$op${b ?? resolvedB} => $results (dropped: $dropped)");
+    log.finer(() =>
+        "$a$op${b ?? resolvedB} => $results ${dropped != null ? '(dropped:' + dropped.toString() + ')' : '[]'}");
     return results;
   }
 
   List<int> _handleStdDice(final a, final String op, final x) {
     var resolvedA = _resolveToInt(a, 1);
     var resolvedX = _resolveToInt(x, 1);
-    var results = _roller.roll(resolvedA, resolvedX);
+
+    var results = <int>[];
+    switch (op) {
+      case 'd':
+        results = _roller.roll(resolvedA, resolvedX);
+        break;
+      case "d!":
+        results = _roller.rollWithExplode(
+            ndice: resolvedA, nsides: resolvedX, explode: true);
+        break;
+      case 'd!!':
+        results = _roller.rollWithExplode(
+            ndice: resolvedA,
+            nsides: resolvedX,
+            explode: true,
+            explodeLimit: 1);
+        break;
+    }
+
     log.finer(() => "${a ?? resolvedA}$op${x ?? resolvedX} => $results");
     return results;
   }

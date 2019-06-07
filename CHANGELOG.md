@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+- add drop equals/less-than/greater-than
+- add cap/clamp
+- add counting operation
+- add exploding dice
+
 ## 1.2.2
 - more logging and error handling cleanup
 
