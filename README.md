@@ -51,7 +51,7 @@ A library for parsing dice notation
 * `2d20-L` -- roll 2d20, drop lowest (advantage)
 * `10d10-L3` -- roll 10d10, drop 3 lowest results
 * `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists and drop lowest 3 rolls
-* `20d10-<3->8#` -- roll 20 d10, drop any less than 3 or greater than 8 and count the result
+* `20d10-<3->8#` -- roll 20 d10, drop any less than 3 or greater than 8 and count the number of remaining dice
 
 ## Usage
 

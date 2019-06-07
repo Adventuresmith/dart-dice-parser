@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.1
+- upgrade mockito dep
+
 ## 1.3.0
 - add drop equals/less-than/greater-than
 - add cap/clamp
