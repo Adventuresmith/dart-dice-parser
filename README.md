@@ -6,36 +6,36 @@ A library for parsing dice notation
 ## Supported syntax
 
 ### Supported notation
-* `AdX` -- roll A dice of X sides, total will be returned as value
+* `AdX` -- roll `A` dice of `X` sides, total will be returned as value
 * special dice variations:
-  * `AdF` -- roll A fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
-  * `Ad%` -- roll A percentile dice (equivalent to `1d100`)
-  * `AD66` -- roll A D66, aka `1d6*10 + 1d6` (NOTE: this _must_ use
+  * `AdF` -- roll `A` fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
+  * `Ad%` -- roll `A` percentile dice (equivalent to `1d100`)
+  * `AD66` -- roll `A` D66, aka `1d6*10 + 1d6` (NOTE: this _must_ use
     uppercase D, lowercase d will be interpreted as 66-sided die)
 
   * exploding dice
-    * `Ad!X` -- roll A X-sided dice, explode if max is rolled (re-roll and include in results)
+    * `Ad!X` -- roll `A` `X`-sided dice, explode if max is rolled (re-roll and include in results)
       * the dice roller won't explode dice more than 1000 times.
-    * `Ad!!X` -- roll A X-sided dice, explode only once (limited explosion)
+    * `Ad!!X` -- roll `A` `X`-sided dice, explode only once (limited explosion)
 
 * modifying the roll results:
   * dropping dice:
-    * `AdX-HN` -- roll A X-sided dice, drop N highest
-    * `AdX-LN` -- roll A X-sided dice, drop N lowest
-    * `AdX->B` -- roll A X-sided dice, drop any results less than B
-    * `AdX-<B` -- roll A X-sided dice, drop any results greater than B
-    * `AdX-=B` -- roll A X-sided dice, drop any results equal to B
+    * `AdX-HN` -- roll `A` `X`-sided dice, drop N highest
+    * `AdX-LN` -- roll `A` `X`-sided dice, drop N lowest
+    * `AdX->B` -- roll `A` `X`-sided dice, drop any results less than B
+    * `AdX-<B` -- roll `A` `X`-sided dice, drop any results greater than B
+    * `AdX-=B` -- roll `A` `X`-sided dice, drop any results equal to B
     * NOTE: the drop operators have higher precedence than
       the arithmetic operators, so `4d10-L2+2` is equivalent to `(4d10-L2)+2`
   * cap/clamp:
-    * `AdXC<B` -- roll A X-sided dice, change any value less than B to B
-    * `AdXC>B` -- roll A X-sided dice, change any value greater than B to B
+    * `AdXC<B` -- roll `A` `X`-sided dice, change any value less than B to B
+    * `AdXC>B` -- roll `A` `X`-sided dice, change any value greater than B to B
 * operations on dice rolls:
   * counting:
     * `AdX#` -- how many are in the results? (useful for `20d10-<2->8#` -- roll 20 d10, drop <2 and >8, how many are left?)
-    * `AdX#>B` -- roll A X-sided dice, count any greater than B
-    * `AdX#<B` -- roll A X-sided dice, count any less than B
-    * `AdX#=B` -- roll A X-sided dice, count any equal to B
+    * `AdX#>B` -- roll `A` `X`-sided dice, count any greater than B
+    * `AdX#<B` -- roll `A` `X`-sided dice, count any less than B
+    * `AdX#=B` -- roll `A` `X`-sided dice, count any equal to B
 * addition/subtraction/multiplication and parenthesis are allowed
 * numbers must be integers, and division is is not supported.
 
