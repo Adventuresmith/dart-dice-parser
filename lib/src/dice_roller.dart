@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 
 /// A dice roller for M dice of N sides
 class DiceRoller {
-  final Logger log = Logger("DiceRoller");
+  final Logger _log = Logger("DiceRoller");
   Random _random;
 
   /// Constructs a dice roller (Random can be injected)
@@ -16,7 +16,7 @@ class DiceRoller {
   List<int> roll(int ndice, int nsides) {
     // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
     var results = [for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1];
-    log.finest(() => "roll ${ndice}d$nsides => $results");
+    _log.finest(() => "roll ${ndice}d$nsides => $results");
     return results;
   }
 
@@ -29,7 +29,7 @@ class DiceRoller {
     var explodeCount = 0;
     while (numToRoll > 0 && explodeCount <= explodeLimit) {
       if (explodeCount > 0) {
-        log.finest("explode $numToRoll !");
+        _log.finest("explode $numToRoll !");
       }
       var localResults = roll(numToRoll, nsides);
       results.addAll(localResults);
@@ -37,7 +37,7 @@ class DiceRoller {
         break;
       }
       if (nsides == 1) {
-        log.info("exploding 1-sided dice not allowed");
+        _log.info("exploding 1-sided dice not allowed");
         break;
       }
 
@@ -45,7 +45,7 @@ class DiceRoller {
       numToRoll = localResults.where((v) => v == nsides).length;
     }
 
-    log.finest(() => "roll ${ndice}d!$nsides => $results");
+    _log.finest(() => "roll ${ndice}d!$nsides => $results");
     return results;
   }
 
@@ -57,7 +57,7 @@ class DiceRoller {
       for (var i = 0; i < ndice; i++)
         _fudgeVals[_random.nextInt(_fudgeVals.length)]
     ];
-    log.finest(() => "roll ${ndice}dF => $results");
+    _log.finest(() => "roll ${ndice}dF => $results");
     return results;
   }
 }

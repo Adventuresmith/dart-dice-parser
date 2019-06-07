@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.3
+- make log fields non-public
+
 ## 1.3.2
 - upgrade mockito dep
 

@@ -12,8 +12,7 @@ int sum(Iterable<int> l) => l.reduce((a, b) => a + b);
 /// A Parser/evalutator for dice notation
 ///
 class DiceParser {
-  final Logger log = Logger('DiceParser');
-  final Logger rollLogger = Logger("DiceParser.rolls");
+  final Logger _log = Logger('DiceParser');
 
   DiceRoller _roller;
   // parser w/out actions -- makes it easier to debug output rather than evaluated
@@ -110,11 +109,11 @@ class DiceParser {
       }
     } else {
       // log warning, this is a user-facing error
-      log.warning(() =>
+      _log.warning(() =>
           "prefix to roll operation $op must be a dice roll results, not $a");
       result = 0;
     }
-    log.finer(() => "$a$op$resolvedB => $result");
+    _log.finer(() => "$a$op$resolvedB => $result");
     return result;
   }
 
@@ -169,11 +168,11 @@ class DiceParser {
           break;
       }
     } else {
-      log.warning(() =>
+      _log.warning(() =>
           "prefix to roll modifier $op must be a dice roll results, not $a");
       results = [a];
     }
-    log.finer(() =>
+    _log.finer(() =>
         "$a$op${b ?? resolvedB} => $results ${dropped != null ? '(dropped:' + dropped.toString() + ')' : '[]'}");
     return results;
   }
@@ -200,7 +199,7 @@ class DiceParser {
         break;
     }
 
-    log.finer(() => "${a ?? resolvedA}$op${x ?? resolvedX} => $results");
+    _log.finer(() => "${a ?? resolvedA}$op${x ?? resolvedX} => $results");
     return results;
   }
 
@@ -224,10 +223,10 @@ class DiceParser {
         break;
       default:
         results = a;
-        log.warning("unknown dice operator: $a$op");
+        _log.warning("unknown dice operator: $a$op");
         break;
     }
-    log.finer(() => "${a ?? resolvedA}$op => $results");
+    _log.finer(() => "${a ?? resolvedA}$op => $results");
     return results;
   }
 
@@ -257,7 +256,7 @@ class DiceParser {
     } else {
       results = [resolvedA + resolvedB];
     }
-    log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $results");
+    _log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $results");
     return results;
   }
 
@@ -276,7 +275,7 @@ class DiceParser {
       default:
         result = 0;
     }
-    log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $result");
+    _log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $result");
     return result;
   }
 
