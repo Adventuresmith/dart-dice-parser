@@ -15,6 +15,7 @@ class DiceParser {
   final Logger _log = Logger('DiceParser');
 
   DiceRoller _roller;
+
   // parser w/out actions -- makes it easier to debug output rather than evaluated
   Parser _parser;
   Parser _evaluator;
@@ -316,7 +317,7 @@ Error parsing dice expression
     var stats = Stats.fromData(rolls);
     var results = stats.withPrecision(precision).toJson();
     var histogram = SplayTreeMap<int, int>();
-    for (var r in rolls) {
+    for (final r in rolls) {
       histogram[r] = (histogram[r] ?? 0) + 1;
     }
     results['histogram'] = histogram;
