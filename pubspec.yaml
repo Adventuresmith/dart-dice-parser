@@ -9,7 +9,7 @@ environment:
   sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
-  petitparser: "2.2.1" # not 2.3.0, that requires 2.3.0
+  petitparser: ">=2.2.0 <2.3.0" # not 2.3.0, that requires sdk 2.3.0
   logging: ^0.11.3+2
   stats: ^0.2.0+2
 
