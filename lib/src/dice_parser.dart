@@ -30,20 +30,22 @@ class DiceParser {
   Parser _build({attachAction = true}) {
     var action = attachAction ? (func) => func : (func) => null;
     var builder = ExpressionBuilder();
+    var root = failure().settable();
     // build groups in descending order of operations
     // * parens, ints
     // * variations of dice-expr
     // * mult
     // * add/sub
     builder.group()
+      // handle parens TODO: need petitparser 2.3.0
+      //..wrapper(char('(').trim(), char(')').trim(), action((l, a, r) => a));
+      ..primitive(char('(').trim().seq(root).seq(char(')').trim()).pick(1))
       // match ints. will return null if empty
       ..primitive(digit()
           .star()
           .flatten('integer expected') // create string result of digit*
           .trim() // trim whitespace
-          .map((a) => a.isNotEmpty ? int.parse(a) : null))
-      // handle parens
-      ..wrapper(char('(').trim(), char(')').trim(), action((l, a, r) => a));
+          .map((a) => a.isNotEmpty ? int.parse(a) : null));
     // exploding dice need to be higher precendence (before 'd')
     builder.group()..left(string('d!!').trim(), action(_handleStdDice));
     builder.group()..left(string('d!').trim(), action(_handleStdDice));
@@ -81,7 +83,10 @@ class DiceParser {
     builder.group()
       ..left(char('+').trim(), action(_handleAdd))
       ..left(char('-').trim(), action(_handleArith));
-    return builder.build().end();
+    //return builder.build().end();
+
+    root.set(builder.build());
+    return root.end();
   }
 
   int _handleRollResultOperation(final a, final String op, final b) {

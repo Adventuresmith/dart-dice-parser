@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.5
+- back off petitparser dependency -- back off to 2.2.1,
+  so that we don't have dependency on Dart 2.3.0
+  (current stable flutter is 2.3.0-dev)
+
 ## 1.3.4
 - make code more idiomatic
 
