@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.6
+- allow lowercase for `-H`, `-L`, `C>`, `C<`
+
 ## 1.3.5
 - back off petitparser dependency -- back off to 2.2.1,
   so that we don't have dependency on Dart 2.3.0

@@ -120,6 +120,11 @@ void main() {
       //
       expect(incrementingDiceParser.roll("4d6-H"), equals(6));
     });
+    test("drop high (lowercase)", () {
+      // mocked responses should return rolls of 1,2,3,4
+      //
+      expect(incrementingDiceParser.roll("4d6-h"), equals(6));
+    });
     test("drop high - 1", () {
       // equivalent to the above
       expect(incrementingDiceParser.roll("4d6-H1"), equals(6));
@@ -133,6 +138,11 @@ void main() {
       // mocked responses should return rolls of 1,2,3,4
       //
       expect(incrementingDiceParser.roll("4d6-L"), equals(9));
+    });
+    test("drop low (lowercase)", () {
+      // mocked responses should return rolls of 1,2,3,4
+      //
+      expect(incrementingDiceParser.roll("4d6-l"), equals(9));
     });
     test("drop low - 1", () {
       // mocked responses should return rolls of 1,2,3,4
@@ -179,6 +189,16 @@ void main() {
       // mocked responses should return rolls of 1,2,3,4
       //
       expect(incrementingDiceParser.roll("4d6C<3"), equals(13));
+    });
+    test("clamp >3 (lowercase)", () {
+      // mocked responses should return rolls of 1,2,3,4
+      //
+      expect(incrementingDiceParser.roll("4d6c>3"), equals(9));
+    });
+    test("clamp <3 (lowercase)", () {
+      // mocked responses should return rolls of 1,2,3,4
+      //
+      expect(incrementingDiceParser.roll("4d6c<3"), equals(13));
     });
   });
 

@@ -61,15 +61,19 @@ class DiceParser {
       ..left(char('d').trim(), action(_handleStdDice));
     // before arithmetic, but after dice grouping... handle dice re-rolls, mods, drops
     builder.group()
-      // cap/clamp
-      ..left(string('C<').trim(), action(_handleRollResultModifiers))
+      // cap/clamp  C> or C<
       ..left(string('C>').trim(), action(_handleRollResultModifiers))
+      ..left(string('C<').trim(), action(_handleRollResultModifiers))
+      ..left(string('c>').trim(), action(_handleRollResultModifiers))
+      ..left(string('c<').trim(), action(_handleRollResultModifiers))
       // drop
       ..left(string('-<').trim(), action(_handleRollResultModifiers))
       ..left(string('->').trim(), action(_handleRollResultModifiers))
       ..left(string('-=').trim(), action(_handleRollResultModifiers))
+      ..left(string('-L').trim(), action(_handleRollResultModifiers))
       ..left(string('-H').trim(), action(_handleRollResultModifiers))
-      ..left(string('-L').trim(), action(_handleRollResultModifiers));
+      ..left(string('-l').trim(), action(_handleRollResultModifiers))
+      ..left(string('-h').trim(), action(_handleRollResultModifiers));
     builder.group()
       // count
       ..left(string('#>').trim(), action(_handleRollResultOperation))
@@ -129,7 +133,7 @@ class DiceParser {
     var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
     if (a is List<int>) {
       var localA = a.toList()..sort();
-      switch (op) {
+      switch (op.toUpperCase()) {
         case '-H': // drop high
           results = localA.reversed.skip(resolvedB).toList();
           dropped = localA.reversed.take(resolvedB).toList();
