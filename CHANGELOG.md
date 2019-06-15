@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.1
+- fix return types of stats objects
+
 ## 1.4.0
 - replace use of stats library w/ implementation of welford's algorithm.
   see http://alias-i.com/lingpipe/docs/api/com/aliasi/stats/OnlineNormalEstimator.html

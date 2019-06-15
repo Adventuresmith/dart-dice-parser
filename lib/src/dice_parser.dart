@@ -349,17 +349,17 @@ Error parsing dice expression
 // double mean() { return mu; }
 // double var() { return n > 1 ? sq/n : 0.0; }
 class Statsimator {
-  num _minVal;
-  num _maxVal;
+  int _minVal;
+  int _maxVal;
   int _count = 0;
   bool _initialized = false;
-  num _mean = 0.0;
-  num _sq = 0.0;
+  double _mean = 0.0;
+  double _sq = 0.0;
 
-  final _histogram = SplayTreeMap<num, int>();
+  final _histogram = SplayTreeMap<int, int>();
 
   /// update current stats w/ new value
-  void update(num val) {
+  void update(int val) {
     _count++;
     if (!_initialized) {
       _minVal = _maxVal = val;
@@ -382,12 +382,12 @@ class Statsimator {
   /// retrieve stats as map
   Map<String, dynamic> asMap({int precision = 3}) {
     return {
-      'min': _minVal.toStringAsPrecision(precision),
-      'max': _maxVal.toStringAsPrecision(precision),
+      'min': _minVal,
+      'max': _maxVal,
       'count': _count,
       'histogram': _histogram,
-      'mean': _mean.toStringAsPrecision(precision),
-      'stddev': _stddev.toStringAsPrecision(precision),
+      'mean': double.parse(_mean.toStringAsPrecision(precision)),
+      'stddev': double.parse(_stddev.toStringAsPrecision(precision)),
     };
   }
 
