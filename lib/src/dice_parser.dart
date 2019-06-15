@@ -1,8 +1,8 @@
 import "dart:collection";
+import "dart:math";
 
 import 'package:logging/logging.dart';
 import 'package:petitparser/petitparser.dart';
-import 'package:stats/stats.dart';
 
 import 'dice_roller.dart';
 
@@ -315,21 +315,81 @@ Error parsing dice expression
   }
 
   /// Performs N rolls and outputs stats (stdev, mean, min/max, and a histogram)
-  Map<String, dynamic> stats(
-      {String diceStr, int numRolls = 1000, int precision = 3}) {
-    var rolls = rollN(diceStr, numRolls);
-    var stats = Stats.fromData(rolls);
-    var results = stats.withPrecision(precision).toJson();
-    var histogram = SplayTreeMap<int, int>();
-    for (final r in rolls) {
-      histogram[r] = (histogram[r] ?? 0) + 1;
+  Future<Map<String, dynamic>> stats(
+      {String diceStr, int numRolls = 10000, int precision = 3}) async {
+    var stats = Statsimator();
+
+    await for (final r in rollN(diceStr, numRolls)) {
+      stats.update(r);
     }
-    results['histogram'] = histogram;
-    return results;
+    return stats.asMap();
   }
 
   /// Evaluates given dice expression N times.
-  List<int> rollN(String diceStr, int num) {
-    return [for (var i = 0; i < num; i++) roll(diceStr)];
+  Stream<int> rollN(String diceStr, int num) async* {
+    for (var i = 0; i < num; i++) {
+      yield roll(diceStr);
+    }
   }
+}
+
+/// uses welford's algorithm to compute variance for stddev along
+/// with and other stats
+///
+/// long n = 0;
+// double mu = 0.0;
+// double sq = 0.0;
+//
+// void update(double x) {
+//     ++n;
+//     double muNew = mu + (x - mu)/n;
+//     sq += (x - mu) * (x - muNew)
+//     mu = muNew;
+// }
+// double mean() { return mu; }
+// double var() { return n > 1 ? sq/n : 0.0; }
+class Statsimator {
+  num _minVal;
+  num _maxVal;
+  int _count = 0;
+  bool _initialized = false;
+  num _mean = 0.0;
+  num _sq = 0.0;
+
+  final _histogram = SplayTreeMap<num, int>();
+
+  /// update current stats w/ new value
+  void update(num val) {
+    _count++;
+    if (!_initialized) {
+      _minVal = _maxVal = val;
+      _initialized = true;
+    } else {
+      _minVal = min(_minVal, val);
+      _maxVal = max(_maxVal, val);
+    }
+
+    _histogram[val] = (_histogram[val] ?? 0) + 1;
+
+    var meanNew = _mean + (val - _mean) / _count;
+    _sq += (val - _mean) * (val - meanNew);
+    _mean = meanNew;
+  }
+
+  num get _variance => _count > 1 ? _sq / _count : 0.0;
+  num get _stddev => sqrt(_variance);
+
+  /// retrieve stats as map
+  Map<String, dynamic> asMap({int precision = 3}) {
+    return {
+      'min': _minVal.toStringAsPrecision(precision),
+      'max': _maxVal.toStringAsPrecision(precision),
+      'count': _count,
+      'histogram': _histogram,
+      'mean': _mean.toStringAsPrecision(precision),
+      'stddev': _stddev.toStringAsPrecision(precision),
+    };
+  }
+
+  String get tmp => "thing";
 }

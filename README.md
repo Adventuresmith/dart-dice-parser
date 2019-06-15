@@ -22,8 +22,8 @@ A library for parsing dice notation
   * dropping dice:
     * `AdX-HN` -- roll `A` `X`-sided dice, drop N highest
     * `AdX-LN` -- roll `A` `X`-sided dice, drop N lowest
-    * `AdX->B` -- roll `A` `X`-sided dice, drop any results less than B
-    * `AdX-<B` -- roll `A` `X`-sided dice, drop any results greater than B
+    * `AdX->B` -- roll `A` `X`-sided dice, drop any results greater than B
+    * `AdX-<B` -- roll `A` `X`-sided dice, drop any results less than B
     * `AdX-=B` -- roll `A` `X`-sided dice, drop any results equal to B
     * NOTE: the drop operators have higher precedence than
       the arithmetic operators, so `4d10-L2+2` is equivalent to `(4d10-L2)+2`

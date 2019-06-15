@@ -6,7 +6,7 @@ import 'package:logging/logging.dart';
 
 final Logger log = Logger('main');
 
-void main(List<String> arguments) {
+void main(List<String> arguments) async {
   Logger.root.level = Level.INFO;
 
   Logger.root.onRecord.listen((rec) {
@@ -42,13 +42,13 @@ void main(List<String> arguments) {
     print(argParser.usage);
     exit(1);
   }
-  exit(run(
+  exit(await run(
       numRolls: int.parse(results["num"]),
       expression: results.rest.join(" "),
       stats: results["stats"]));
 }
 
-int run({int numRolls, String expression, bool stats}) {
+Future<int> run({int numRolls, String expression, bool stats}) async {
   if (expression.isEmpty) {
     print("Supply a dice expression. e.g. '2d6+1'");
     return 1;
@@ -71,15 +71,17 @@ Parsing failure:
   log.fine("Evaluating: $expression => $result\n");
 
   if (stats) {
-    var n = numRolls == 1 ? 1000 : numRolls;
-    var stats = diceParser.stats(diceStr: expression, numRolls: n);
+    var n = numRolls == 1 ? 10000 : numRolls;
+    var stats = await diceParser.stats(diceStr: expression, numRolls: n);
     print(stats);
   } else {
     // but use the evaluator via roll/rollN to actually parse and perform dice roll
-    diceParser
-        .rollN(expression, numRolls)
-        .asMap() // convert list to map so have an index
-        .forEach((i, r) => print("${i + 1}, $r"));
+
+    var i = 0;
+    await for (final r in diceParser.rollN(expression, numRolls)) {
+      i++;
+      print("${i + 1}, $r");
+    }
   }
   return 0;
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0
+- replace use of stats library w/ implementation of welford's algorithm.
+  see http://alias-i.com/lingpipe/docs/api/com/aliasi/stats/OnlineNormalEstimator.html
+- make DiceParser.rollN an async generator returning stream of results
+
 ## 1.3.6
 - allow lowercase for `-H`, `-L`, `C>`, `C<`
 
