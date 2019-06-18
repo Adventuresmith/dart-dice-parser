@@ -1,15 +1,50 @@
 # Use the latest 2.1 version of CircleCI pipeline processing engine, see https://circleci.com/docs/2.0/configuration-reference/
 version: 2.1
 
-# Use a package of configuration called an orb, see https://circleci.com/docs/2.0/orb-intro/
-orbs:
-  # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.3.1
+jobs_defaults: &defaults
+  docker:
+    - image: google/dart
+  working_directory: ~/repo
 
-# Orchestrate or schedule a set of jobs, see https://circleci.com/docs/2.0/workflows/
+jobs:
+  deps:
+    docker:
+      - image: google/dart
+    steps:
+      - checkout
+      - run:
+          name: Download dependencies
+          command: pub get
+      - save_cache:
+          paths:
+            - pubspec.lock
+            - .packages
+            - .dart_tool
+            - ~/.pub-cache
+          key: v2-pubcache-{{ checksum "pubspec.yaml" }}
+
+  test:
+    docker:
+      - image: google/dart
+    steps:
+      - checkout
+      - restore_cache:
+          key: v2-pubcache-{{ checksum "pubspec.yaml" }}
+      - run:
+          name: Lint
+          command: bash -c '[[ "$(dartfmt -n . | wc -l)" -eq "0" ]]'
+      - run:
+          name: Dartanalyze
+          command: dartanalyzer --fatal-infos --fatal-warnings .
+      - run:
+          name: Test
+          command: pub run test
+
 workflows:
-  # Name the workflow "Welcome"
-  Welcome:
-    # Run the welcome/run job in its own container
+  version: 2
+  keep-it-green:
     jobs:
-      - welcome/run
+      - deps
+      - test:
+          requires:
+            - deps
