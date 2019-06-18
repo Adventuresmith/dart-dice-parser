@@ -1,6 +1,5 @@
 # dart_dice_parser
 [![Pub Package](https://img.shields.io/pub/v/dart_dice_parser.svg)](https://pub.dartlang.org/packages/dart_dice_parser)
-
 [![CircleCI](https://circleci.com/gh/stevesea/dart-dice-parser.svg?style=svg)](https://circleci.com/gh/stevesea/dart-dice-parser)
 
 A library for parsing dice notation
