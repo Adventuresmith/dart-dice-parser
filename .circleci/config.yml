@@ -1,11 +1,6 @@
 # Use the latest 2.1 version of CircleCI pipeline processing engine, see https://circleci.com/docs/2.0/configuration-reference/
 version: 2.1
 
-jobs_defaults: &defaults
-  docker:
-    - image: google/dart
-  working_directory: ~/repo
-
 jobs:
   deps:
     docker:
@@ -35,14 +30,14 @@ jobs:
           command: bash -c '[[ "$(dartfmt -n . | wc -l)" -eq "0" ]]'
       - run:
           name: Dartanalyze
-          command: dartanalyzer --fatal-infos --fatal-warnings .
+          command: dartanalyzer  --fatal-warnings . # --fatal-infos
       - run:
           name: Test
           command: pub run test
 
 workflows:
   version: 2
-  keep-it-green:
+  build:
     jobs:
       - deps
       - test:
