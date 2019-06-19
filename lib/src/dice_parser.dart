@@ -380,16 +380,14 @@ class Statsimator {
   num get _stddev => sqrt(_variance);
 
   /// retrieve stats as map
-  Map<String, dynamic> asMap({int precision = 3}) {
-    return {
+  UnmodifiableMapView<String, dynamic> asMap({int precision = 3}) {
+    return UnmodifiableMapView({
       'min': _minVal,
       'max': _maxVal,
       'count': _count,
       'histogram': _histogram,
       'mean': double.parse(_mean.toStringAsPrecision(precision)),
       'stddev': double.parse(_stddev.toStringAsPrecision(precision)),
-    };
+    });
   }
-
-  String get tmp => "thing";
 }

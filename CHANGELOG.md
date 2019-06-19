@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.2
+- use unmodifiable view return types
+
 ## 1.4.1
 - fix return types of stats objects
 
