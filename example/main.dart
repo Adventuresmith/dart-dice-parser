@@ -80,7 +80,7 @@ Parsing failure:
     var i = 0;
     await for (final r in diceParser.rollN(expression, numRolls)) {
       i++;
-      print("${i + 1}, $r");
+      print("$i, $r");
     }
   }
   return 0;

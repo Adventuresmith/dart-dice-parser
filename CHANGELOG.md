@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.0
+- library upgrades including sdk >2.7.0
+
 ## 1.4.2
 - use unmodifiable view return types
 
