@@ -9,7 +9,7 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
-  petitparser: ^2.4.0
+  petitparser: ^2.4.0 # flutter-test -> xml depends on 2.4.0, can't upgrade to 3.x yet
   logging: ^0.11.4
 
 dev_dependencies:
