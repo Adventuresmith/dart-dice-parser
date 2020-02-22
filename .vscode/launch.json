@@ -6,10 +6,10 @@
   "configurations": [
     {
       "name": "cli",
-      "program": "example/dart_dice_parser.dart",
+      "program": "example/main.dart",
       "args": [
         "-n",
-        "3",
+        "6",
         "2d6"
       ],
       "request": "launch",
