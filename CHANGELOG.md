@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.1
+- downgrade petitparser
+
 ## 2.0.0
 - library upgrades including sdk >2.7.0
 
