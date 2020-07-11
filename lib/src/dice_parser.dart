@@ -311,7 +311,9 @@ Error parsing dice expression
     ${' ' * (result.position - 1)}^-- ${result.message}
         """, result.position);
     }
-    return _resolveToInt(result.value);
+    var res = _resolveToInt(result.value);
+    _log.fine("$diceStr => $res");
+    return res;
   }
 
   /// Performs N rolls and outputs stats (stdev, mean, min/max, and a histogram)
@@ -334,7 +336,7 @@ Error parsing dice expression
 }
 
 /// uses welford's algorithm to compute variance for stddev along
-/// with and other stats
+/// with other stats
 ///
 /// long n = 0;
 // double mu = 0.0;

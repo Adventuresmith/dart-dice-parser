@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -7,10 +8,25 @@ import 'package:logging/logging.dart';
 final Logger log = Logger('main');
 
 void main(List<String> arguments) async {
-  Logger.root.level = Level.INFO;
+  Logger.root.level = Level.FINE;
 
   Logger.root.onRecord.listen((rec) {
-    print('$rec');
+    print("$rec");
+    /*
+    if (rec.level == Level.INFO) {
+      print('${rec.message}');
+    } else if (rec.level > Level.INFO) {
+      print("${rec.level}: ${rec.message}");
+    }
+    developer.log(rec.message,
+        time: rec.time,
+        sequenceNumber: rec.sequenceNumber,
+        level: rec.level.value,
+        name: rec.loggerName,
+        zone: rec.zone,
+        error: rec.object,
+        stackTrace: rec.stackTrace);
+        */
   });
 
   var argParser = ArgParser()
@@ -25,9 +41,9 @@ void main(List<String> arguments) async {
         help: "enable verbose logging",
         defaultsTo: false, callback: (verbose) {
       if (verbose) {
-        Logger.root.level = Level.ALL;
+        Logger.root.level = Level.FINEST;
       } else {
-        Logger.root.level = Level.INFO;
+        Logger.root.level = Level.WARNING;
       }
     })
     ..addFlag("stats",
@@ -59,7 +75,7 @@ Future<int> run({int numRolls, String expression, bool stats}) async {
   // and it's helpful sometimes
   var result = diceParser.parse(expression);
   if (result.isFailure) {
-    print("""
+    log.warning("""
 Parsing failure:
     $expression
     ${' ' * (result.position - 1)}^-- ${result.message}

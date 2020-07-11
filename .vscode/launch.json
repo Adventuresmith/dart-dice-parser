@@ -5,12 +5,23 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "cli",
+      "name": "6 - 2d6",
       "program": "example/main.dart",
       "args": [
         "-n",
         "6",
-        "2d6"
+        "2d6",
+        "-v"
+      ],
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "explode",
+      "program": "example/main.dart",
+      "args": [
+        "10d!4",
+        "-v",
       ],
       "request": "launch",
       "type": "dart"

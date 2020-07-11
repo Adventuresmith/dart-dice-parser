@@ -30,7 +30,7 @@ class DiceRoller {
     var explodeCount = 0;
     while (numToRoll > 0 && explodeCount <= explodeLimit) {
       if (explodeCount > 0) {
-        _log.finest("explode $numToRoll !");
+        _log.finest(() => "explode $numToRoll !");
       }
       var localResults = roll(numToRoll, nsides);
       results.addAll(localResults);
@@ -38,7 +38,7 @@ class DiceRoller {
         break;
       }
       if (nsides == 1) {
-        _log.info("exploding 1-sided dice not allowed");
+        _log.finer("1-sided dice cannot explode");
         break;
       }
 
