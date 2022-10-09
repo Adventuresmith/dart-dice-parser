@@ -9,7 +9,7 @@ import 'dice_roller.dart';
 /// sum an Iterable of integers
 int sum(Iterable<int> l) => l.reduce((a, b) => a + b);
 
-/// A Parser/evalutator for dice notation
+/// A Parser for dice notation
 ///
 class DiceParser {
   final Logger _log = Logger('DiceParser');
@@ -21,7 +21,7 @@ class DiceParser {
   // parser w/ actions
   late Parser _evaluator;
 
-  /// Constructs a dice parser, dice roller injectible for mocking random
+  /// Constructs a dice parser, dice roller injectable for mocking random
   DiceParser(Random random) : _roller = DiceRoller(random) {
     _parser = _build(attachAction: false);
     _evaluator = _build(attachAction: true);
