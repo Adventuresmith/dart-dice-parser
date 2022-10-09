@@ -1,5 +1,5 @@
-import 'dart:developer' as developer;
 import 'dart:io';
+import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
@@ -64,12 +64,15 @@ void main(List<String> arguments) async {
       stats: results["stats"]));
 }
 
-Future<int> run({int numRolls, String expression, bool stats}) async {
+Future<int> run(
+    {required int numRolls,
+    required String expression,
+    required bool stats}) async {
   if (expression.isEmpty) {
     print("Supply a dice expression. e.g. '2d6+1'");
     return 1;
   }
-  var diceParser = DiceParser();
+  var diceParser = DiceParser(Random.secure());
 
   // use the parser here because we'll display $result on success,
   // and it's helpful sometimes

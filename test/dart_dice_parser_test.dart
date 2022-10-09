@@ -8,12 +8,13 @@ class MockRandom extends Mock implements Random {}
 
 void main() {
   // dice parser whose random always returns '1' (rolls '2')
-  DiceParser staticDiceParser;
+  late DiceParser staticDiceParser;
   // dice parser whose random returns incrementing ints from 0, 1, 2... (rolls 1,2,3...)
-  DiceParser incrementingDiceParser;
-  DiceParser explodeDiceParser;
+  late DiceParser incrementingDiceParser;
+  late DiceParser explodeDiceParser;
 
   setUp(() async {
+    var seededRandom = Random(1234);
     var staticMockRandom = MockRandom();
     var incrementingMockRandom = MockRandom();
     // NOTE: this mocks the random number generator to always return '1'
@@ -26,9 +27,8 @@ void main() {
     when(incrementingMockRandom.nextInt(argThat(inInclusiveRange(1, 1000))))
         .thenAnswer((_) => responses.removeAt(0));
 
-    staticDiceParser = DiceParser(diceRoller: DiceRoller(staticMockRandom));
-    incrementingDiceParser =
-        DiceParser(diceRoller: DiceRoller(incrementingMockRandom));
+    staticDiceParser = DiceParser(staticMockRandom);
+    incrementingDiceParser = DiceParser(incrementingMockRandom);
 
     var explodeMockRandom = MockRandom();
 
@@ -51,7 +51,7 @@ void main() {
     when(explodeMockRandom.nextInt(argThat(inInclusiveRange(1, 1000))))
         .thenAnswer((_) => explodeResponses.removeAt(0));
 
-    explodeDiceParser = DiceParser(diceRoller: DiceRoller(explodeMockRandom));
+    explodeDiceParser = DiceParser(explodeMockRandom);
   });
 
   group("arithmetic", () {

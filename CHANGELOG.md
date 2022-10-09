@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.0
+- upgrade deps & null safety
+
 ## 2.0.1
 - downgrade petitparser
 

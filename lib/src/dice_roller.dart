@@ -6,12 +6,10 @@ import 'package:logging/logging.dart';
 /// A dice roller for M dice of N sides
 class DiceRoller {
   final Logger _log = Logger("DiceRoller");
-  Random _random;
+  final Random _random;
 
   /// Constructs a dice roller (Random can be injected)
-  DiceRoller([Random r]) {
-    _random = r ?? Random.secure();
-  }
+  DiceRoller(this._random);
 
   /// Roll ndice of nsides and return results as list.
   UnmodifiableListView<int> roll(int ndice, int nsides) {
@@ -23,7 +21,10 @@ class DiceRoller {
 
   /// return result of rolling given number of nsided dice.
   UnmodifiableListView<int> rollWithExplode(
-      {int ndice, int nsides, bool explode = false, int explodeLimit = 1000}) {
+      {required int ndice,
+      required int nsides,
+      bool explode = false,
+      int explodeLimit = 1000}) {
     var results = <int>[];
     var numToRoll = ndice;
 

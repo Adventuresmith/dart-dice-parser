@@ -14,16 +14,15 @@ int sum(Iterable<int> l) => l.reduce((a, b) => a + b);
 class DiceParser {
   final Logger _log = Logger('DiceParser');
 
-  DiceRoller _roller;
+  final DiceRoller _roller;
 
   // parser w/out actions -- makes it easier to debug output rather than evaluated
-  Parser _parser;
-  Parser _evaluator;
+  late Parser _parser;
+  // parser w/ actions
+  late Parser _evaluator;
 
   /// Constructs a dice parser, dice roller injectible for mocking random
-  DiceParser({DiceRoller diceRoller}) {
-    _roller = diceRoller ?? DiceRoller();
-
+  DiceParser(Random random) : _roller = DiceRoller(random) {
     _parser = _build(attachAction: false);
     _evaluator = _build(attachAction: true);
   }
@@ -129,7 +128,7 @@ class DiceParser {
 
   List<int> _handleRollResultModifiers(final a, final String op, final b) {
     List<int> results;
-    List<int> dropped;
+    var dropped = <int>[];
     var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
     if (a is List<int>) {
       var localA = a.toList()..sort();
@@ -318,7 +317,9 @@ Error parsing dice expression
 
   /// Performs N rolls and outputs stats (stdev, mean, min/max, and a histogram)
   Future<Map<String, dynamic>> stats(
-      {String diceStr, int numRolls = 10000, int precision = 3}) async {
+      {required String diceStr,
+      int numRolls = 10000,
+      int precision = 3}) async {
     var stats = Statsimator();
 
     await for (final r in rollN(diceStr, numRolls)) {
@@ -351,8 +352,8 @@ Error parsing dice expression
 // double mean() { return mu; }
 // double var() { return n > 1 ? sq/n : 0.0; }
 class Statsimator {
-  int _minVal;
-  int _maxVal;
+  int _minVal = 0;
+  int _maxVal = 0;
   int _count = 0;
   bool _initialized = false;
   double _mean = 0.0;

@@ -12,3 +12,5 @@ doc/api/
 \.dart_tool/
 
 *.iml
+
+.DS_Store
