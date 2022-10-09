@@ -1,6 +1,8 @@
 # dart_dice_parser
 [![Pub Package](https://img.shields.io/pub/v/dart_dice_parser.svg)](https://pub.dartlang.org/packages/dart_dice_parser)
 [![CircleCI](https://circleci.com/gh/stevesea/dart-dice-parser.svg?style=svg)](https://circleci.com/gh/stevesea/dart-dice-parser)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
 
 A library for parsing dice notation
 
@@ -11,8 +13,8 @@ A library for parsing dice notation
 * special dice variations:
   * `AdF` -- roll `A` fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
   * `Ad%` -- roll `A` percentile dice (equivalent to `1d100`)
-  * `AD66` -- roll `A` D66, aka `1d6*10 + 1d6` (NOTE: this _must_ use
-    uppercase D, lowercase d will be interpreted as 66-sided die)
+  * `AD66` -- roll `A` D66, aka `1d6*10 + 1d6` (NOTE: you _must_ use
+    uppercase `D66`, lowercase `d66` will be interpreted as 66-sided die)
 
   * exploding dice
     * `Ad!X` -- roll `A` `X`-sided dice, explode if max is rolled (re-roll and include in results)
@@ -38,7 +40,8 @@ A library for parsing dice notation
     * `AdX#<B` -- roll `A` `X`-sided dice, count any less than B
     * `AdX#=B` -- roll `A` `X`-sided dice, count any equal to B
 * addition/subtraction/multiplication and parenthesis are allowed
-* numbers must be integers, and division is is not supported.
+* numbers must be integers
+* division is is not supported.
 
 
 ### Examples
