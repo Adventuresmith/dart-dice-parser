@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
@@ -72,10 +71,11 @@ Future<int> run(
     print("Supply a dice expression. e.g. '2d6+1'");
     return 1;
   }
-  var diceParser = DiceParser(Random.secure());
+  var diceParser = DiceParser();
 
   // use the parser here because we'll display $result on success,
   // and it's helpful sometimes
+  /*
   var result = diceParser.parse(expression);
   if (result.isFailure) {
     log.warning("""
@@ -88,7 +88,7 @@ Parsing failure:
 
   // use the parser to display parse results/grouping
   log.fine("Evaluating: $expression => $result\n");
-
+*/
   if (stats) {
     var n = numRolls == 1 ? 10000 : numRolls;
     var stats = await diceParser.stats(diceStr: expression, numRolls: n);

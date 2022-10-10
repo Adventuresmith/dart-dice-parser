@@ -17,24 +17,25 @@ class DiceParser {
   final DiceRoller _roller;
 
   // parser w/out actions -- makes it easier to debug output rather than evaluated
-  late Parser _parser;
+  //late Parser _parser;
   // parser w/ actions
   late Parser _evaluator;
 
   /// Constructs a dice parser, dice roller injectable for mocking random
-  DiceParser(Random random) : _roller = DiceRoller(random) {
-    _parser = _build(attachAction: false);
+  DiceParser([Random? random])
+      : _roller = DiceRoller(random ?? Random.secure()) {
     _evaluator = _build(attachAction: true);
   }
 
   Parser _build({attachAction = true}) {
+    // TODO: make this better?
     var action = attachAction ? (func) => func : (func) => null;
     var builder = ExpressionBuilder();
     var root = failure().settable();
     // build groups in descending order of operations
     // * parens, ints
     // * variations of dice-expr
-    // * mult
+    // * multiply
     // * add/sub
     builder.group()
       // handle parens TODO: need petitparser 2.3.0
@@ -45,7 +46,9 @@ class DiceParser {
           .star()
           .flatten('integer expected') // create string result of digit*
           .trim() // trim whitespace
-          .map((a) => a.isNotEmpty ? int.parse(a) : null));
+          .map((a) => a.isNotEmpty
+              ? int.parse(a)
+              : null)); // TODO: return 0 instead of null?
     // exploding dice need to be higher precendence (before 'd')
     builder.group()..left(string('d!!').trim(), action(_handleStdDice));
     builder.group()..left(string('d!').trim(), action(_handleStdDice));
@@ -93,6 +96,7 @@ class DiceParser {
     return root.end();
   }
 
+  /// callback for operations which do something w/ the roll result (count =,>,<)
   int _handleRollResultOperation(final a, final String op, final b) {
     int result;
     var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
@@ -126,9 +130,10 @@ class DiceParser {
     return result;
   }
 
+  /// callback for operations that modify the roll (drop results, clamp, etc)
   List<int> _handleRollResultModifiers(final a, final String op, final b) {
-    List<int> results;
-    var dropped = <int>[];
+    List<int>? results;
+    List<int>? dropped;
     var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
     if (a is List<int>) {
       var localA = a.toList()..sort();
@@ -186,6 +191,7 @@ class DiceParser {
     return results;
   }
 
+  /// callback for typical roll operations
   List<int> _handleStdDice(final a, final String op, final x) {
     var resolvedA = _resolveToInt(a, 1);
     var resolvedX = _resolveToInt(x, 1);
@@ -212,6 +218,7 @@ class DiceParser {
     return results;
   }
 
+  /// callback for roll of D66, d%, dF
   List<int> _handleSpecialDice(final a, final String op) {
     // if a null, assume 1; e.g. interpret 'd10' as '1d10'
     // if it's a list (i.e. a dice roll), sum the results
@@ -289,9 +296,11 @@ class DiceParser {
   }
 
   /// Parses the given expression and return Result
+  /*
   Result<dynamic> parse(String diceStr) {
     return _parser.parse(diceStr);
   }
+   */
 
   /// Parses the given dice expression return evaluate-able Result.
   Result<dynamic> evaluate(String diceStr) {
@@ -315,7 +324,7 @@ Error parsing dice expression
     return res;
   }
 
-  /// Performs N rolls and outputs stats (stdev, mean, min/max, and a histogram)
+  /// Performs N rolls and outputs stats (stddev, mean, min/max, and a histogram)
   Future<Map<String, dynamic>> stats(
       {required String diceStr,
       int numRolls = 10000,
