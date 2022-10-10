@@ -16,20 +16,15 @@ class DiceParser {
 
   final DiceRoller _roller;
 
-  // parser w/out actions -- makes it easier to debug output rather than evaluated
-  //late Parser _parser;
-  // parser w/ actions
   late Parser _evaluator;
 
   /// Constructs a dice parser, dice roller injectable for mocking random
   DiceParser([Random? random])
       : _roller = DiceRoller(random ?? Random.secure()) {
-    _evaluator = _build(attachAction: true);
+    _evaluator = _build();
   }
 
-  Parser _build({attachAction = true}) {
-    // TODO: make this better?
-    var action = attachAction ? (func) => func : (func) => null;
+  Parser _build() {
     var builder = ExpressionBuilder();
     var root = failure().settable();
     // build groups in descending order of operations
@@ -50,46 +45,47 @@ class DiceParser {
               ? int.parse(a)
               : null)); // TODO: return 0 instead of null?
     // exploding dice need to be higher precendence (before 'd')
-    builder.group()..left(string('d!!').trim(), action(_handleStdDice));
-    builder.group()..left(string('d!').trim(), action(_handleStdDice));
+    builder.group()..left(string('d!!').trim(), _handleStdDice);
+    builder.group()..left(string('d!').trim(), _handleStdDice);
     builder.group()
       // fudge dice `AdF`
-      ..postfix(string('dF').trim(), action(_handleSpecialDice))
+      ..postfix(string('dF').trim(), _handleSpecialDice)
       // percentile dice `Ad%`
-      ..postfix(string('d%').trim(), action(_handleSpecialDice))
+      ..postfix(string('d%').trim(), _handleSpecialDice)
       // D66 dice, `AD66` aka A(1d6*10+1d6)
-      ..postfix(string('D66').trim(), action(_handleSpecialDice))
+      ..postfix(string('D66').trim(), _handleSpecialDice)
       // `AdX`
-      ..left(char('d').trim(), action(_handleStdDice));
+      ..left(char('d').trim(), _handleStdDice);
     // before arithmetic, but after dice grouping... handle dice re-rolls, mods, drops
     builder.group()
       // cap/clamp  C> or C<
-      ..left(string('C>').trim(), action(_handleRollResultModifiers))
-      ..left(string('C<').trim(), action(_handleRollResultModifiers))
-      ..left(string('c>').trim(), action(_handleRollResultModifiers))
-      ..left(string('c<').trim(), action(_handleRollResultModifiers))
+      ..left(string('C>').trim(), _handleRollResultModifiers)
+      ..left(string('C<').trim(), _handleRollResultModifiers)
+      ..left(string('c>').trim(), _handleRollResultModifiers)
+      ..left(string('c<').trim(), _handleRollResultModifiers)
       // drop
-      ..left(string('-<').trim(), action(_handleRollResultModifiers))
-      ..left(string('->').trim(), action(_handleRollResultModifiers))
-      ..left(string('-=').trim(), action(_handleRollResultModifiers))
-      ..left(string('-L').trim(), action(_handleRollResultModifiers))
-      ..left(string('-H').trim(), action(_handleRollResultModifiers))
-      ..left(string('-l').trim(), action(_handleRollResultModifiers))
-      ..left(string('-h').trim(), action(_handleRollResultModifiers));
+      ..left(string('-<').trim(), _handleRollResultModifiers)
+      ..left(string('->').trim(), _handleRollResultModifiers)
+      ..left(string('-=').trim(), _handleRollResultModifiers)
+      ..left(string('-L').trim(), _handleRollResultModifiers)
+      ..left(string('-H').trim(), _handleRollResultModifiers)
+      ..left(string('-l').trim(), _handleRollResultModifiers)
+      ..left(string('-h').trim(), _handleRollResultModifiers);
     builder.group()
       // count
-      ..left(string('#>').trim(), action(_handleRollResultOperation))
-      ..left(string('#<').trim(), action(_handleRollResultOperation))
-      ..left(string('#=').trim(), action(_handleRollResultOperation));
+      ..left(string('#>').trim(), _handleRollResultOperation)
+      ..left(string('#<').trim(), _handleRollResultOperation)
+      ..left(string('#=').trim(), _handleRollResultOperation);
     builder.group()
       // count total -- needs to be lower precedence than the other counters
       ..postfix(string('#').trim(),
-          action((a, op) => _handleRollResultOperation(a, op, null)));
+          (a, op) => _handleRollResultOperation(a, '#', null));
     // multiplication in different group than add/subtract to enforce order of operations
-    builder.group()..left(char('*').trim(), action(_handleArith));
+    builder.group()..left(char('*').trim(), _handleArith);
+    // addition is handled differently -- if operands are lists, the lists will be combined
     builder.group()
-      ..left(char('+').trim(), action(_handleAdd))
-      ..left(char('-').trim(), action(_handleArith));
+      ..left(char('+').trim(), _handleAdd)
+      ..left(char('-').trim(), _handleArith);
     //return builder.build().end();
 
     root.set(builder.build());
@@ -294,13 +290,6 @@ class DiceParser {
     _log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $result");
     return result;
   }
-
-  /// Parses the given expression and return Result
-  /*
-  Result<dynamic> parse(String diceStr) {
-    return _parser.parse(diceStr);
-  }
-   */
 
   /// Parses the given dice expression return evaluate-able Result.
   Result<dynamic> evaluate(String diceStr) {

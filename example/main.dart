@@ -73,22 +73,6 @@ Future<int> run(
   }
   var diceParser = DiceParser();
 
-  // use the parser here because we'll display $result on success,
-  // and it's helpful sometimes
-  /*
-  var result = diceParser.parse(expression);
-  if (result.isFailure) {
-    log.warning("""
-Parsing failure:
-    $expression
-    ${' ' * (result.position - 1)}^-- ${result.message}
-    """);
-    return 1;
-  }
-
-  // use the parser to display parse results/grouping
-  log.fine("Evaluating: $expression => $result\n");
-*/
   if (stats) {
     var n = numRolls == 1 ? 10000 : numRolls;
     var stats = await diceParser.stats(diceStr: expression, numRolls: n);

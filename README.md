@@ -4,7 +4,7 @@
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 
-A library for parsing dice notation
+A dart library for parsing dice notation (e.g. "2d6+4"), supports advantage/disadvantage, exploding die, and many other variations.
 
 ## Supported syntax
 
