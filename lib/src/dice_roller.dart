@@ -9,7 +9,7 @@ class DiceRoller {
   final Random _random;
 
   /// Constructs a dice roller (Random can be injected)
-  DiceRoller(this._random);
+  DiceRoller([Random? r]) : _random = r ?? Random.secure();
 
   /// Roll ndice of nsides and return results as list.
   UnmodifiableListView<int> roll(int ndice, int nsides) {
