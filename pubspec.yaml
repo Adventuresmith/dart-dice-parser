@@ -14,3 +14,4 @@ dev_dependencies:
   test: ^1.21.6
   mocktail: ^0.3.0
   args: ^2.3.1
+  junitreport: ^2.0.2

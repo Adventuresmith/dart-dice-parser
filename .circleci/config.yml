@@ -32,9 +32,16 @@ jobs:
           name: Dartanalyze
           command: dart analyze  --fatal-warnings . # --fatal-infos
       - run:
-          name: Test
-          command: dart pub run test
-
+          name: Create folder for test results
+          command: mkdir -p test-results/dart-tests
+      - run:
+          name: Run tests
+          command: dart run test --reporter json > test-report.jsonl
+      - run:
+          name: Process test report
+          command: dart run junitreport:tojunit --input test-report.jsonl --output test-results/dart-tests/test-report.xml
+      - store_test_results:
+          path: test-results
 workflows:
   version: 2
   build:
