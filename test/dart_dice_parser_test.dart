@@ -236,6 +236,9 @@ void main() {
       expect(staticDiceParser.roll("10d(2*3)"), equals(20));
     });
 
+    test("zero dice rolled", () {
+      expect(staticDiceParser.roll("0d6"), equals(0));
+    });
     test("nsides in parens (throws because negative)", () {
       expect(() => staticDiceParser.roll("10d(1-5)"), throwsRangeError);
     });

@@ -78,12 +78,10 @@ Future<int> run(
     var stats = await diceParser.stats(diceStr: expression, numRolls: n);
     print(stats);
   } else {
-    // but use the evaluator via roll/rollN to actually parse and perform dice roll
-
     var i = 0;
     await for (final r in diceParser.rollN(expression, numRolls)) {
       i++;
-      print("$i, $r");
+      print("$i: $r");
     }
   }
   return 0;

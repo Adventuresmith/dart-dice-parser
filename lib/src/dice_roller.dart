@@ -3,13 +3,14 @@ import 'dart:math';
 
 import 'package:logging/logging.dart';
 
-/// A dice roller for M dice of N sides
+/// A dice roller for M dice of N sides (e.g. `2d6`).
+/// Also handles fudge die, and exploding die.
 class DiceRoller {
   final Logger _log = Logger("DiceRoller");
   final Random _random;
 
-  /// minimum dice to roll
-  static const int minDice = 1;
+  /// minimum dice to roll (0)
+  static const int minDice = 0;
 
   /// maximum dice to allow to be rolled (10k)
   static const int maxDice = 10000;

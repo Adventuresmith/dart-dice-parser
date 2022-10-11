@@ -298,20 +298,16 @@ class DiceParser {
   /// Evaluates the input dice expression and returns evaluated result.
   ///
   /// throws FormatException if unable to parse expression
+  /// throws RangeError if dice expression is invalid (e.g. a zero-sided die)
   int roll(String diceStr) {
-    try {
-      var result = evaluate(diceStr);
-      if (result.isFailure) {
-        throw FormatException(
-            "Error parsing dice expression", diceStr, result.position);
-      }
-      var res = _resolveToInt(result.value);
-      _log.fine("$diceStr => $res");
-      return res;
-    } on RangeError catch (e) {
-      _log.warning(e.message);
-      rethrow;
+    var result = evaluate(diceStr);
+    if (result.isFailure) {
+      throw FormatException(
+          "Error parsing dice expression", diceStr, result.position);
     }
+    var res = _resolveToInt(result.value);
+    _log.fine("$diceStr => $res");
+    return res;
   }
 
   /// Performs N rolls and outputs stats (stddev, mean, min/max, and a histogram)
@@ -327,7 +323,7 @@ class DiceParser {
     return stats.asMap();
   }
 
-  /// Evaluates given dice expression N times.
+  /// Evaluates given dice expression N times. Results returned as stream.
   Stream<int> rollN(String diceStr, int num) async* {
     for (var i = 0; i < num; i++) {
       yield roll(diceStr);
@@ -384,12 +380,12 @@ class Statsimator {
   /// retrieve stats as map
   UnmodifiableMapView<String, dynamic> asMap({int precision = 3}) {
     return UnmodifiableMapView({
+      'mean': double.parse(_mean.toStringAsPrecision(precision)),
+      'stddev': double.parse(_stddev.toStringAsPrecision(precision)),
       'min': _minVal,
       'max': _maxVal,
       'count': _count,
       'histogram': _histogram,
-      'mean': double.parse(_mean.toStringAsPrecision(precision)),
-      'stddev': double.parse(_stddev.toStringAsPrecision(precision)),
     });
   }
 }
