@@ -8,11 +8,28 @@ class DiceRoller {
   final Logger _log = Logger("DiceRoller");
   final Random _random;
 
+  /// minimum dice to roll
+  static const int minDice = 1;
+
+  /// maximum dice to allow to be rolled (10k)
+  static const int maxDice = 10000;
+
+  /// minimum sides of dice (1)
+  static const int minSides = 1;
+
+  /// maximum sides of dice (1k)
+  static const int maxSides = 1000;
+
+  /// default limit to # of times dice rolls can explode (1k)
+  static const int defaultExplodeLimit = 100;
+
   /// Constructs a dice roller (Random can be injected)
   DiceRoller([Random? r]) : _random = r ?? Random.secure();
 
   /// Roll ndice of nsides and return results as list.
   UnmodifiableListView<int> roll(int ndice, int nsides) {
+    RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
+    RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
     // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
     var results = [for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1];
     _log.finest(() => "roll ${ndice}d$nsides => $results");
@@ -24,7 +41,10 @@ class DiceRoller {
       {required int ndice,
       required int nsides,
       bool explode = false,
-      int explodeLimit = 1000}) {
+      int explodeLimit = defaultExplodeLimit}) {
+    RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
+    RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
+
     var results = <int>[];
     var numToRoll = ndice;
 
@@ -55,6 +75,7 @@ class DiceRoller {
 
   /// Roll N fudge dice, return results
   UnmodifiableListView<int> rollFudge(int ndice) {
+    RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     var results = [
       for (var i = 0; i < ndice; i++)
         _fudgeVals[_random.nextInt(_fudgeVals.length)]

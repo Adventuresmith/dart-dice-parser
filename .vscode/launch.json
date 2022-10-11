@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "6 - 2d6",
-      "program": "example/main.dart",
+      "program": "bin/dice_parser.dart",
       "args": [
         "-n",
         "6",
@@ -18,7 +18,7 @@
     },
     {
       "name": "explode",
-      "program": "example/main.dart",
+      "program": "bin/dice_parser.dart",
       "args": [
         "10d!4",
         "-v",

@@ -33,9 +33,8 @@ class DiceParser {
     // * multiply
     // * add/sub
     builder.group()
-      // handle parens TODO: need petitparser 2.3.0
-      //..wrapper(char('(').trim(), char(')').trim(), action((l, a, r) => a));
-      ..primitive(char('(').trim().seq(root).seq(char(')').trim()).pick(1))
+      // handle parens
+      ..wrapper(char('(').trim(), char(')').trim(), (l, value, r) => value)
       // match ints. will return null if empty
       ..primitive(digit()
           .star()
@@ -300,17 +299,19 @@ class DiceParser {
   ///
   /// throws FormatException if unable to parse expression
   int roll(String diceStr) {
-    var result = evaluate(diceStr);
-    if (result.isFailure) {
-      throw FormatException("""
-Error parsing dice expression
-    $diceStr
-    ${' ' * (result.position - 1)}^-- ${result.message}
-        """, result.position);
+    try {
+      var result = evaluate(diceStr);
+      if (result.isFailure) {
+        throw FormatException(
+            "Error parsing dice expression", diceStr, result.position);
+      }
+      var res = _resolveToInt(result.value);
+      _log.fine("$diceStr => $res");
+      return res;
+    } on RangeError catch (e) {
+      _log.warning(e.message);
+      rethrow;
     }
-    var res = _resolveToInt(result.value);
-    _log.fine("$diceStr => $res");
-    return res;
   }
 
   /// Performs N rolls and outputs stats (stddev, mean, min/max, and a histogram)
