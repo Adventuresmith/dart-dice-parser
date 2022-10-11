@@ -113,7 +113,6 @@ class DiceParser {
           // throw exception, this is a dev-time error
           throw FormatException(
               "unknown roll modifier: $a$op${b ?? resolvedB}");
-          break;
       }
     } else {
       // log warning, this is a user-facing error
@@ -174,7 +173,6 @@ class DiceParser {
         default:
           throw FormatException(
               "unknown roll modifier: $a$op${b ?? resolvedB}");
-          break;
       }
     } else {
       _log.warning(() =>

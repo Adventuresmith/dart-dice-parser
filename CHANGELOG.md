@@ -1,3 +1,5 @@
+# 3.0.1
+- minor analysis cleanup (dead code)
 
 # 3.0.0
 - upgrade deps & null safety
