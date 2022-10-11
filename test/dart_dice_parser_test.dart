@@ -14,8 +14,8 @@ void main() {
   setUp(() async {
     // first 100 seeded rolls for d6
     // [6, 2, 1, 5, 3, 5, 1, 4, 6, 5, 6, 4, 2, 4, 2, 3, 5, 1, 1, 2, 4, 1, 6, 2, 2, 5, 6, 3, 1, 3, 6, 1, 2, 3, 6, 2, 1, 1, 1, 3, 1, 2, 3, 3, 6, 2, 5, 4, 3, 4, 1, 5, 4, 4, 2, 6, 5, 4, 6, 2, 3, 1, 4, 5, 3, 2, 2, 6, 6, 4, 4, 2, 6, 2, 5, 3, 3, 4, 4, 2, 2, 4, 3, 2, 6, 6, 4, 6, 4, 4, 3, 1, 4, 2, 2, 4, 3, 3, 1, 3]
-    var seededRandom = Random(1234);
-    var staticMockRandom = MockRandom();
+    final seededRandom = Random(1234);
+    final staticMockRandom = MockRandom();
     // NOTE: this mocks the random number generator to always return '1'
     //    -- that means the dice-roll is '2' (since rolls are 1-based)
     when(
@@ -28,28 +28,23 @@ void main() {
 
   group("arithmetic", () {
     test("addition", () {
-      var input = "1 + 20";
-      expect(staticDiceParser.roll(input), equals(21));
+      expect(staticDiceParser.roll("1 + 20"), equals(21));
     });
 
     test("subtraction", () {
-      var input = "1 - 20";
-      expect(staticDiceParser.roll(input), equals(-19));
+      expect(staticDiceParser.roll("1 - 20"), equals(-19));
     });
 
     test("multi", () {
-      var input = "3 * 2";
-      expect(staticDiceParser.roll(input), equals(6));
+      expect(staticDiceParser.roll("3 * 2"), equals(6));
     });
 
     test("parens", () {
-      var input = "(5 + 6) * 2";
-      expect(staticDiceParser.roll(input), equals(22));
+      expect(staticDiceParser.roll("(5 + 6) * 2"), equals(22));
     });
 
     test("order of operations", () {
-      var input = "5 + 6 * 2";
-      expect(staticDiceParser.roll(input), equals(17));
+      expect(staticDiceParser.roll("5 + 6 * 2"), equals(17));
     });
   });
 
@@ -276,8 +271,7 @@ void main() {
     });
 
     test("invalid dice str", () {
-      var input = "1d5 + x2";
-      expect(() => staticDiceParser.roll(input), throwsFormatException);
+      expect(() => staticDiceParser.roll("1d5 + x2"), throwsFormatException);
     });
   });
 }

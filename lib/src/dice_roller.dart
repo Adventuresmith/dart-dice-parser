@@ -32,21 +32,24 @@ class DiceRoller {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
     // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
-    var results = [for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1];
+    final results = [
+      for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1
+    ];
     _log.finest(() => "roll ${ndice}d$nsides => $results");
     return UnmodifiableListView(results);
   }
 
   /// return result of rolling given number of nsided dice.
-  UnmodifiableListView<int> rollWithExplode(
-      {required int ndice,
-      required int nsides,
-      bool explode = false,
-      int explodeLimit = defaultExplodeLimit}) {
+  UnmodifiableListView<int> rollWithExplode({
+    required int ndice,
+    required int nsides,
+    bool explode = false,
+    int explodeLimit = defaultExplodeLimit,
+  }) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
 
-    var results = <int>[];
+    final results = <int>[];
     var numToRoll = ndice;
 
     var explodeCount = 0;
@@ -54,7 +57,7 @@ class DiceRoller {
       if (explodeCount > 0) {
         _log.finest(() => "explode $numToRoll !");
       }
-      var localResults = roll(numToRoll, nsides);
+      final localResults = roll(numToRoll, nsides);
       results.addAll(localResults);
       if (!explode) {
         break;
@@ -77,7 +80,7 @@ class DiceRoller {
   /// Roll N fudge dice, return results
   UnmodifiableListView<int> rollFudge(int ndice) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
-    var results = [
+    final results = [
       for (var i = 0; i < ndice; i++)
         _fudgeVals[_random.nextInt(_fudgeVals.length)]
     ];

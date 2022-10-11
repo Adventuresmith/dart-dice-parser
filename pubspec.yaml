@@ -1,17 +1,18 @@
 name: dart_dice_parser
-description: A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, exploding die, and many other variations.
-version: 3.0.2
+description: A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, exploding die, and other variations.
+version: 3.0.3
 homepage: https://github.com/stevesea/dart-dice-parser
 
 environment:
   sdk: '>=2.16.0 <3.0.0'
 
 dependencies:
-  petitparser: ^5.0.0
   logging: ^1.1.0
+  petitparser: ^5.0.0
 
 dev_dependencies:
-  test: ^1.21.6
-  mocktail: ^0.3.0
   args: ^2.3.1
   junitreport: ^2.0.2
+  lint: ^1.0.0
+  mocktail: ^0.3.0
+  test: ^1.21.6

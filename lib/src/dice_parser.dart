@@ -1,10 +1,9 @@
 import "dart:collection";
 import "dart:math";
 
+import 'package:dart_dice_parser/src/dice_roller.dart';
 import 'package:logging/logging.dart';
 import 'package:petitparser/petitparser.dart';
-
-import 'dice_roller.dart';
 
 /// sum an Iterable of integers
 int sum(Iterable<int> l) => l.reduce((a, b) => a + b);
@@ -25,8 +24,8 @@ class DiceParser {
   }
 
   Parser _build() {
-    var builder = ExpressionBuilder();
-    var root = failure().settable();
+    final builder = ExpressionBuilder();
+    final root = failure().settable();
     // build groups in descending order of operations
     // * parens, ints
     // * variations of dice-expr
@@ -36,16 +35,16 @@ class DiceParser {
       // handle parens
       ..wrapper(char('(').trim(), char(')').trim(), (l, value, r) => value)
       // match ints. will return null if empty
-      ..primitive(digit()
-          .star()
-          .flatten('integer expected') // create string result of digit*
-          .trim() // trim whitespace
-          .map((a) => a.isNotEmpty
-              ? int.parse(a)
-              : null)); // TODO: return 0 instead of null?
+      ..primitive(
+        digit()
+            .star()
+            .flatten('integer expected') // create string result of digit*
+            .trim() // trim whitespace
+            .map((a) => a.isNotEmpty ? int.parse(a) : null),
+      ); // TODO: return 0 instead of null?
     // exploding dice need to be higher precendence (before 'd')
-    builder.group()..left(string('d!!').trim(), _handleStdDice);
-    builder.group()..left(string('d!').trim(), _handleStdDice);
+    builder.group().left(string('d!!').trim(), _handleStdDice);
+    builder.group().left(string('d!').trim(), _handleStdDice);
     builder.group()
       // fudge dice `AdF`
       ..postfix(string('dF').trim(), _handleSpecialDice)
@@ -75,12 +74,15 @@ class DiceParser {
       ..left(string('#>').trim(), _handleRollResultOperation)
       ..left(string('#<').trim(), _handleRollResultOperation)
       ..left(string('#=').trim(), _handleRollResultOperation);
-    builder.group()
-      // count total -- needs to be lower precedence than the other counters
-      ..postfix(string('#').trim(),
-          (a, op) => _handleRollResultOperation(a, '#', null));
+    builder
+        .group()
+        // count total -- needs to be lower precedence than the other counters
+        .postfix(
+          string('#').trim(),
+          (a, op) => _handleRollResultOperation(a, '#', null),
+        );
     // multiplication in different group than add/subtract to enforce order of operations
-    builder.group()..left(char('*').trim(), _handleArith);
+    builder.group().left(char('*').trim(), _handleArith);
     // addition is handled differently -- if operands are lists, the lists will be combined
     builder.group()
       ..left(char('+').trim(), _handleAdd)
@@ -92,9 +94,9 @@ class DiceParser {
   }
 
   /// callback for operations which do something w/ the roll result (count =,>,<)
-  int _handleRollResultOperation(final a, final String op, final b) {
+  int _handleRollResultOperation(a, String op, b) {
     int result;
-    var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
+    final resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
     if (a is List<int>) {
       switch (op) {
         case '#>': // count greater than
@@ -112,12 +114,15 @@ class DiceParser {
         default:
           // throw exception, this is a dev-time error
           throw FormatException(
-              "unknown roll modifier: $a$op${b ?? resolvedB}");
+            "unknown roll modifier: $a$op${b ?? resolvedB}",
+          );
       }
     } else {
       // log warning, this is a user-facing error
-      _log.warning(() =>
-          "prefix to roll operation $op must be a dice roll results, not $a");
+      _log.warning(
+        () =>
+            "prefix to roll operation $op must be a dice roll results, not $a",
+      );
       result = 0;
     }
     _log.finer(() => "$a$op$resolvedB => $result");
@@ -125,12 +130,12 @@ class DiceParser {
   }
 
   /// callback for operations that modify the roll (drop results, clamp, etc)
-  List<int> _handleRollResultModifiers(final a, final String op, final b) {
+  List<int> _handleRollResultModifiers(a, String op, b) {
     List<int>? results;
     List<int>? dropped;
-    var resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
+    final resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
     if (a is List<int>) {
-      var localA = a.toList()..sort();
+      final localA = a.toList()..sort();
       switch (op.toUpperCase()) {
         case '-H': // drop high
           results = localA.reversed.skip(resolvedB).toList();
@@ -172,22 +177,27 @@ class DiceParser {
           break;
         default:
           throw FormatException(
-              "unknown roll modifier: $a$op${b ?? resolvedB}");
+            "unknown roll modifier: $a$op${b ?? resolvedB}",
+          );
       }
-    } else {
-      _log.warning(() =>
-          "prefix to roll modifier $op must be a dice roll results, not $a");
+    } else if (a is int) {
       results = [a];
+    } else {
+      throw FormatException(
+        "prefix to roll modifier $op must be a dice roll results, not $a",
+      );
     }
-    _log.finer(() =>
-        "$a$op${b ?? resolvedB} => $results ${dropped != null ? '(dropped:' + dropped.toString() + ')' : '[]'}");
+    _log.finer(
+      () =>
+          "$a$op${b ?? resolvedB} => $results ${dropped != null ? '(dropped:$dropped)' : '[]'}",
+    );
     return results;
   }
 
   /// callback for typical roll operations
-  List<int> _handleStdDice(final a, final String op, final x) {
-    var resolvedA = _resolveToInt(a, 1);
-    var resolvedX = _resolveToInt(x, 1);
+  List<int> _handleStdDice(a, String op, x) {
+    final resolvedA = _resolveToInt(a, 1);
+    final resolvedX = _resolveToInt(x, 1);
 
     var results = <int>[];
     switch (op) {
@@ -196,14 +206,18 @@ class DiceParser {
         break;
       case "d!":
         results = _roller.rollWithExplode(
-            ndice: resolvedA, nsides: resolvedX, explode: true);
+          ndice: resolvedA,
+          nsides: resolvedX,
+          explode: true,
+        );
         break;
       case 'd!!':
         results = _roller.rollWithExplode(
-            ndice: resolvedA,
-            nsides: resolvedX,
-            explode: true,
-            explodeLimit: 1);
+          ndice: resolvedA,
+          nsides: resolvedX,
+          explode: true,
+          explodeLimit: 1,
+        );
         break;
     }
 
@@ -212,10 +226,10 @@ class DiceParser {
   }
 
   /// callback for roll of D66, d%, dF
-  List<int> _handleSpecialDice(final a, final String op) {
+  List<int> _handleSpecialDice(a, String op) {
     // if a null, assume 1; e.g. interpret 'd10' as '1d10'
     // if it's a list (i.e. a dice roll), sum the results
-    var resolvedA = _resolveToInt(a, 1);
+    final resolvedA = _resolveToInt(a, 1);
     var results = <int>[];
     switch (op) {
       case 'D66':
@@ -231,16 +245,14 @@ class DiceParser {
         results = _roller.rollFudge(resolvedA);
         break;
       default:
-        results = a;
-        _log.warning("unknown dice operator: $a$op");
-        break;
+        throw FormatException("Unknown dice operator $a$op");
     }
     _log.finer(() => "${a ?? resolvedA}$op => $results");
     return results;
   }
 
   /// Return variable as in -- if null: return default, if List: sum
-  int _resolveToInt(final v, [final defaultVal = 0]) {
+  int _resolveToInt(v, [int defaultVal = 0]) {
     if (v == null) {
       return defaultVal;
     } else if (v is Iterable<int>) {
@@ -249,20 +261,25 @@ class DiceParser {
       } else {
         return sum(v);
       }
-    } else {
+    } else if (v is int) {
       return v;
+    } else {
+      throw ArgumentError(
+        "Invalid argument type for resolveInt: $v (${v.runtimeType})",
+      );
     }
   }
 
   /// Handles addition. If both params are lists, return aggregate. Otherwise, return [sum]
-  List<int> _handleAdd(final a, final String op, final b) {
-    var resolvedA = _resolveToInt(a);
-    var resolvedB = _resolveToInt(b);
+  List<int> _handleAdd(a, String op, b) {
+    final resolvedA = _resolveToInt(a);
+    final resolvedB = _resolveToInt(b);
     var results = <int>[];
     if (a is List<int> && b is List<int>) {
       results.addAll(a);
       results.addAll(b);
     } else {
+      // have to return sum wrapped in list, since return type of this method is List<int>
       results = [resolvedA + resolvedB];
     }
     _log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $results");
@@ -270,9 +287,9 @@ class DiceParser {
   }
 
   /// Handles arithmetic operations -- mult, sub
-  int _handleArith(final a, final String op, final b) {
-    var resolvedA = _resolveToInt(a);
-    var resolvedB = _resolveToInt(b);
+  int _handleArith(a, String op, b) {
+    final resolvedA = _resolveToInt(a);
+    final resolvedB = _resolveToInt(b);
     int result;
     switch (op) {
       case '-':
@@ -298,22 +315,26 @@ class DiceParser {
   /// throws FormatException if unable to parse expression
   /// throws RangeError if dice expression is invalid (e.g. a zero-sided die)
   int roll(String diceStr) {
-    var result = evaluate(diceStr);
+    final result = evaluate(diceStr);
     if (result.isFailure) {
       throw FormatException(
-          "Error parsing dice expression", diceStr, result.position);
+        "Error parsing dice expression",
+        diceStr,
+        result.position,
+      );
     }
-    var res = _resolveToInt(result.value);
+    final res = _resolveToInt(result.value);
     _log.fine("$diceStr => $res");
     return res;
   }
 
   /// Performs N rolls and outputs stats (stddev, mean, min/max, and a histogram)
-  Future<Map<String, dynamic>> stats(
-      {required String diceStr,
-      int numRolls = 10000,
-      int precision = 3}) async {
-    var stats = Statsimator();
+  Future<Map<String, dynamic>> stats({
+    required String diceStr,
+    int numRolls = 10000,
+    int precision = 3,
+  }) async {
+    final stats = Statsimator();
 
     await for (final r in rollN(diceStr, numRolls)) {
       stats.update(r);
@@ -367,7 +388,7 @@ class Statsimator {
 
     _histogram[val] = (_histogram[val] ?? 0) + 1;
 
-    var meanNew = _mean + (val - _mean) / _count;
+    final meanNew = _mean + (val - _mean) / _count;
     _sq += (val - _mean) * (val - meanNew);
     _mean = meanNew;
   }

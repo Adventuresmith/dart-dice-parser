@@ -1,3 +1,6 @@
+# 3.0.3
+- update linter and fix analysis 
+
 # 3.0.2
 - fix circleci build
 

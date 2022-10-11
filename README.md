@@ -4,7 +4,7 @@
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 
-A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, exploding die, and many other variations.
+A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, exploding die, and other variations.
 
 # Examples
 * `2d6 + 1` -- roll two six-sided dice, sum results and add one

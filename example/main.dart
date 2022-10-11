@@ -28,54 +28,63 @@ void main(List<String> arguments) async {
         */
   });
 
-  var argParser = ArgParser()
+  final argParser = ArgParser()
     ..addOption(
       "num",
       abbr: "n",
       help: "number of times to roll the expression",
       defaultsTo: "1",
     )
-    ..addFlag("verbose",
-        abbr: "v",
-        help: "enable verbose logging",
-        defaultsTo: false, callback: (verbose) {
-      if (verbose) {
-        Logger.root.level = Level.FINEST;
-      } else {
-        Logger.root.level = Level.WARNING;
-      }
-    })
-    ..addFlag("stats",
-        abbr: "s",
-        help: "output dice stats. assumes n=1000 unless overridden",
-        defaultsTo: false)
+    ..addFlag(
+      "verbose",
+      abbr: "v",
+      help: "enable verbose logging",
+      defaultsTo: false,
+      callback: (verbose) {
+        if (verbose) {
+          Logger.root.level = Level.FINEST;
+        } else {
+          Logger.root.level = Level.WARNING;
+        }
+      },
+    )
+    ..addFlag(
+      "stats",
+      abbr: "s",
+      help: "output dice stats. assumes n=10000 unless overridden",
+      defaultsTo: false,
+    )
     ..addFlag("help", abbr: "h", defaultsTo: false);
 
-  var results = argParser.parse(arguments);
-  if (results["help"]) {
+  final results = argParser.parse(arguments);
+  if (results["help"] as bool) {
     print("Usage:");
     print(argParser.usage);
     exit(1);
   }
-  exit(await run(
-      numRolls: int.parse(results["num"]),
+  exit(
+    await run(
+      numRolls: int.parse(results["num"] as String),
       expression: results.rest.join(" "),
-      stats: results["stats"]));
+      stats: results["stats"] as bool,
+    ),
+  );
 }
 
-Future<int> run(
-    {required int numRolls,
-    required String expression,
-    required bool stats}) async {
+Future<int> run({
+  required int numRolls,
+  required String expression,
+  required bool stats,
+}) async {
   if (expression.isEmpty) {
     print("Supply a dice expression. e.g. '2d6+1'");
     return 1;
   }
-  var diceParser = DiceParser();
+  final diceParser = DiceParser();
 
   if (stats) {
-    var n = numRolls == 1 ? 10000 : numRolls;
-    var stats = await diceParser.stats(diceStr: expression, numRolls: n);
+    final n = numRolls == 1 ? 10000 : numRolls;
+    final stats = await diceParser.stats(diceStr: expression, numRolls: n);
     print(stats);
   } else {
     var i = 0;
