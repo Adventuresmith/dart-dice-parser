@@ -1,3 +1,6 @@
+# 3.0.4
+- cleanup README
+
 # 3.0.3
 - update linter and fix analysis 
 

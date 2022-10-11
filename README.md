@@ -19,7 +19,7 @@ A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disa
 * `10d10-L3` -- roll 10d10, drop 3 lowest results
 * `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists, and drop lowest 3 results
 * `20d10-<3->8#` -- roll 20 d10, drop any less than 3 or greater than 8 and count the number of remaining dice
-* `2d6 * 2` -- roll 2d6, multiply result by 3
+* `2d6 * 3` -- roll 2d6, multiply result by 3
 
 # Supported notation
 * `AdX` -- roll `A` dice of `X` sides, total will be returned as value
@@ -53,11 +53,17 @@ A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disa
     * `AdX#<B` -- roll `A` `X`-sided dice, count any less than B
     * `AdX#=B` -- roll `A` `X`-sided dice, count any equal to B
 * addition/subtraction/multiplication and parenthesis are allowed
+  * Addition of integers is the usual sum. 
+    * `4+5` will be nine
+    * `2d6 + 1`
+  * Addition of roll results combines the results (use parens to ensure the order of operations is as you expect)
+    * `(5d6+5d10)-L2` -- roll 5d6 and 5d10, and from aggregate results drop the lowest 2.
+    * `5d6+5d10-L2` -- roll 5d6 and 5d10, and from only the 5d10 results drop the lowest 2.
 * numbers must be integers
 * division is is not supported.
 
 
-## Usage
+# Usage
 
 A simple usage example:
 
@@ -72,7 +78,7 @@ A simple usage example:
 
 ```
 
-### CLI Usage
+## CLI Usage
 
 ```console
 foo@bar$ dart run example/main.dart '3d6'
@@ -93,7 +99,7 @@ foo@bar$ dart run example/main.dart -s '3d6'
 ```
 
 
-## Features and bugs
+# Features and bugs
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
