@@ -1,3 +1,6 @@
+# 3.0.2
+- fix circleci build
+
 # 3.0.1
 - minor analysis cleanup (dead code)
 

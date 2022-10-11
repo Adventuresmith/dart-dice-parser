@@ -4,12 +4,12 @@ version: 2.1
 jobs:
   deps:
     docker:
-      - image: google/dart
+      - image: dart:stable
     steps:
       - checkout
       - run:
           name: Download dependencies
-          command: pub get
+          command: dart pub get
       - save_cache:
           paths:
             - pubspec.lock
@@ -20,7 +20,7 @@ jobs:
 
   test:
     docker:
-      - image: google/dart
+      - image: dart:stable
     steps:
       - checkout
       - restore_cache:
@@ -30,10 +30,10 @@ jobs:
           command: bash -c '[[ "$(dartfmt -n . | wc -l)" -eq "0" ]]'
       - run:
           name: Dartanalyze
-          command: dartanalyzer  --fatal-warnings . # --fatal-infos
+          command: dart analyze  --fatal-warnings . # --fatal-infos
       - run:
           name: Test
-          command: pub run test
+          command: dart pub run test
 
 workflows:
   version: 2
