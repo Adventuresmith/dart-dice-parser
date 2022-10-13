@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
@@ -29,7 +28,7 @@ class DiceRoller {
   DiceRoller([Random? r]) : _random = r ?? Random.secure();
 
   /// Roll ndice of nsides and return results as list.
-  UnmodifiableListView<int> roll(int ndice, int nsides) {
+  List<int> roll(int ndice, int nsides) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
     // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
@@ -37,11 +36,11 @@ class DiceRoller {
       for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1
     ];
     _log.finest(() => "roll ${ndice}d$nsides => $results");
-    return UnmodifiableListView(results);
+    return results;
   }
 
   /// return result of rolling given number of nsided dice.
-  UnmodifiableListView<int> rollWithExplode({
+  List<int> rollWithExplode({
     required int ndice,
     required int nsides,
     bool explode = false,
@@ -73,19 +72,19 @@ class DiceRoller {
     }
 
     _log.finest(() => "roll ${ndice}d!$nsides => $results");
-    return UnmodifiableListView(results);
+    return results;
   }
 
   static const _fudgeVals = [-1, -1, 0, 0, 1, 1];
 
   /// Roll N fudge dice, return results
-  UnmodifiableListView<int> rollFudge(int ndice) {
+  List<int> rollFudge(int ndice) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     final results = [
       for (var i = 0; i < ndice; i++)
         _fudgeVals[_random.nextInt(_fudgeVals.length)]
     ];
     _log.finest(() => "roll ${ndice}dF => $results");
-    return UnmodifiableListView(results);
+    return results;
   }
 }

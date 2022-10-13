@@ -5,9 +5,6 @@ import 'package:dart_dice_parser/src/dice_roller.dart';
 import 'package:logging/logging.dart';
 import 'package:petitparser/petitparser.dart';
 
-/// sum an Iterable of integers
-int sum(Iterable<int> l) => l.reduce((a, b) => a + b);
-
 /// A Parser for dice notation
 ///
 class DiceParser {
@@ -128,7 +125,7 @@ class DiceParser {
   }
 
   /// callback for operations that modify the roll (drop results, clamp, etc)
-  UnmodifiableListView<int> _handleRollResultModifiers(a, String op, b) {
+  List<int> _handleRollResultModifiers(a, String op, b) {
     var results = <int>[];
     var dropped = <int>[];
     var sortedA = <int>[];
@@ -186,15 +183,15 @@ class DiceParser {
     _log.finer(
       () => "$a$op$resolvedB => $results (dropped:$dropped)",
     );
-    return UnmodifiableListView(results);
+    return results;
   }
 
   /// callback for typical roll operations
-  UnmodifiableListView<int> _handleStdDice(a, String op, x) {
+  List<int> _handleStdDice(a, String op, x) {
     final resolvedA = _resolveToInt(a, 1);
     final resolvedX = _resolveToInt(x, 1);
 
-    Iterable<int> results;
+    List<int> results;
     switch (op) {
       case 'd':
         results = _roller.roll(resolvedA, resolvedX);
@@ -219,11 +216,11 @@ class DiceParser {
     }
 
     _log.finer(() => "$resolvedA$op$resolvedX => $results");
-    return UnmodifiableListView(results);
+    return results;
   }
 
   /// callback for roll of D66, d%, dF
-  UnmodifiableListView<int> _handleSpecialDice(a, String op) {
+  List<int> _handleSpecialDice(a, String op) {
     // if a null, assume 1; e.g. interpret 'd10' as '1d10'
     // if it's a list (i.e. a dice roll), sum the results
     final resolvedA = _resolveToInt(a, 1);
@@ -245,17 +242,14 @@ class DiceParser {
         throw FormatException("Unknown dice operator $a$op");
     }
     _log.finer(() => "$resolvedA$op => $results");
-    return UnmodifiableListView(results);
+    return results;
   }
 
-  /// if v is int, return v. if v is list, sum v. anything else, return defaultVal
+  /// if v is int, return v. if v is list, sum v.
+  /// anything else, return defaultVal
   int _resolveToInt(v, [int defaultVal = 0]) {
     if (v is Iterable<int>) {
-      if (v.isEmpty) {
-        return 0;
-      } else {
-        return sum(v);
-      }
+      return v.fold(0, (lhs, rhs) => lhs + rhs);
     } else if (v is int) {
       return v;
     } else {
@@ -264,7 +258,7 @@ class DiceParser {
   }
 
   /// Handles addition -- either lhs or rhs can be lists, or ints.
-  UnmodifiableListView<int> _handleAdd(a, String op, b) {
+  List<int> _handleAdd(a, String op, b) {
     final results = <int>[];
     if (a is Iterable<int>) {
       results.addAll(a);
@@ -278,11 +272,11 @@ class DiceParser {
       results.add(b);
     }
     _log.finer(() => "$a$op$b => $results");
-    return UnmodifiableListView(results);
+    return results;
   }
 
   /// Handles arithmetic operations -- multiplication
-  UnmodifiableListView<int> _handleMult(a, String op, b) {
+  List<int> _handleMult(a, String op, b) {
     final results = <int>[];
     if (a is Iterable<int> && b is int) {
       results.addAll(a.map((val) => val * b));
@@ -292,7 +286,7 @@ class DiceParser {
       results.add(_resolveToInt(a) * _resolveToInt(b));
     }
     _log.finer(() => "$a$op$b => $results");
-    return UnmodifiableListView(results);
+    return results;
   }
 
   /// Parses the given dice expression return evaluate-able Result.
@@ -388,14 +382,14 @@ class Statsimator {
   num get _stddev => sqrt(_variance);
 
   /// retrieve stats as map
-  UnmodifiableMapView<String, dynamic> asMap({int precision = 3}) {
-    return UnmodifiableMapView({
+  Map<String, dynamic> asMap({int precision = 3}) {
+    return {
       'mean': double.parse(_mean.toStringAsPrecision(precision)),
       'stddev': double.parse(_stddev.toStringAsPrecision(precision)),
       'min': _minVal,
       'max': _maxVal,
       'count': _count,
       'histogram': _histogram,
-    });
+    };
   }
 }

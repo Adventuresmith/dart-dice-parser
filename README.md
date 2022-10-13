@@ -71,14 +71,13 @@ A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disa
 A simple usage example:
 
 ```dart
-    import 'package:dart_dice_parser/dart_dice_parser.dart';
+import 'package:dart_dice_parser/dart_dice_parser.dart';
 
-    main() {
-      var diceExpression = "2d6 + 1 + 3d10";
+void main() {
+  const diceExpression = "2d6 + 1 + 3d10";
 
-      print("$diceExpression : ${DiceParser().roll(diceExpression)}");
-    }
-
+  print("$diceExpression : ${DiceParser().roll(diceExpression)}");
+}
 ```
 
 ## CLI Usage
