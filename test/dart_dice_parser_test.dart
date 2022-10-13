@@ -31,10 +31,6 @@ void main() {
       expect(staticDiceParser.roll("1 + 20"), equals(21));
     });
 
-    test("subtraction", () {
-      expect(staticDiceParser.roll("1 - 20"), equals(-19));
-    });
-
     test("multi", () {
       expect(staticDiceParser.roll("3 * 2"), equals(6));
     });
@@ -132,8 +128,8 @@ void main() {
       // [6,2] + [1,5,3] = [6,2,1,5,3]-L3 => [6,5] = 9
       expect(seededDiceParser.roll("(2d6+3d6)-L3"), equals(11));
     });
-    test("drop on int has no effect", () {
-      expect(seededDiceParser.roll("4-L3"), equals(4));
+    test("drop on int drops", () {
+      expect(seededDiceParser.roll("4-L3"), equals(0));
     });
     test("can drop more than rolled", () {
       expect(seededDiceParser.roll("3d6-H4"), equals(0));
@@ -177,16 +173,41 @@ void main() {
       expect(seededDiceParser.roll("4d6c<3"), equals(17));
     });
   });
+  group("addition combines", () {
+    test("addition combines results (drop is higher order than plus)", () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      expect(seededDiceParser.roll("3d6+1d6-L1"), equals(9));
+    });
+    test("addition combines results - parens", () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      expect(seededDiceParser.roll("(2d6+2d6)-L1"), equals(13));
+    });
+    test("addition combines results", () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      expect(seededDiceParser.roll("(2d6+1)-L1"), equals(8));
+    });
+  });
 
+  group("mult variations", () {
+    test("int mult on rhs", () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      expect(seededDiceParser.roll("2d6*2"), equals(16));
+    });
+    test("int mult on lhs", () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      expect(seededDiceParser.roll("2*2d6"), equals(16));
+    });
+    test("dropped multiplied results", () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      expect(seededDiceParser.roll("(2d6*2)-L"), equals(12));
+    });
+  });
   group("missing ints", () {
     test("empty string returns zero", () {
       expect(staticDiceParser.roll(""), equals(0));
     });
     test("empty arith returns zero - add", () {
       expect(staticDiceParser.roll("+"), equals(0));
-    });
-    test("empty arith returns zero - sub", () {
-      expect(staticDiceParser.roll("-"), equals(0));
     });
     test("empty arith returns zero - mult", () {
       expect(staticDiceParser.roll("*"), equals(0));
@@ -233,12 +254,6 @@ void main() {
 
     test("zero dice rolled", () {
       expect(staticDiceParser.roll("0d6"), equals(0));
-    });
-    test("nsides in parens (throws because negative)", () {
-      expect(() => staticDiceParser.roll("10d(1-5)"), throwsRangeError);
-    });
-    test("ndice in parens (throws because negative)", () {
-      expect(() => staticDiceParser.roll("(1-5)d6"), throwsRangeError);
     });
 
     test("dice expr as sides", () {

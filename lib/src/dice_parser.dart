@@ -42,7 +42,7 @@ class DiceParser {
             .trim() // trim whitespace
             .map((a) => a.isNotEmpty ? int.parse(a) : null),
       ); // TODO: return 0 instead of null?
-    // exploding dice need to be higher precendence (before 'd')
+    // exploding dice need to be higher precedence (before 'd')
     builder.group().left(string('d!!').trim(), _handleStdDice);
     builder.group().left(string('d!').trim(), _handleStdDice);
     builder.group()
@@ -81,12 +81,10 @@ class DiceParser {
           string('#').trim(),
           (a, op) => _handleRollResultOperation(a, '#', null),
         );
-    // multiplication in different group than add/subtract to enforce order of operations
-    builder.group().left(char('*').trim(), _handleArith);
+    // multiplication in different group than add to enforce order of operations
+    builder.group().left(char('*').trim(), _handleMult);
     // addition is handled differently -- if operands are lists, the lists will be combined
-    builder.group()
-      ..left(char('+').trim(), _handleAdd)
-      ..left(char('-').trim(), _handleArith);
+    builder.group().left(char('+').trim(), _handleAdd);
     //return builder.build().end();
 
     root.set(builder.build());
@@ -130,76 +128,73 @@ class DiceParser {
   }
 
   /// callback for operations that modify the roll (drop results, clamp, etc)
-  List<int> _handleRollResultModifiers(a, String op, b) {
-    List<int>? results;
-    List<int>? dropped;
+  UnmodifiableListView<int> _handleRollResultModifiers(a, String op, b) {
+    var results = <int>[];
+    var dropped = <int>[];
+    var sortedA = <int>[];
+
     final resolvedB = _resolveToInt(b, 1); // if b missing, assume '1'
-    if (a is List<int>) {
-      final localA = a.toList()..sort();
-      switch (op.toUpperCase()) {
-        case '-H': // drop high
-          results = localA.reversed.skip(resolvedB).toList();
-          dropped = localA.reversed.take(resolvedB).toList();
-          break;
-        case '-L': // drop low
-          results = localA.skip(resolvedB).toList();
-          dropped = localA.take(resolvedB).toList();
-          break;
-        case '-<': // drop less than
-          results = localA.where((v) => v >= resolvedB).toList();
-          dropped = localA.where((v) => v < resolvedB).toList();
-          break;
-        case '->': // drop greater than
-          results = localA.where((v) => v <= resolvedB).toList();
-          dropped = localA.where((v) => v > resolvedB).toList();
-          break;
-        case '-=': // drop equal
-          results = localA.where((v) => v != resolvedB).toList();
-          dropped = localA.where((v) => v == resolvedB).toList();
-          break;
-        case 'C<': // change any value less than B to B
-          results = a.map((v) {
-            if (v < resolvedB) {
-              return resolvedB;
-            } else {
-              return v;
-            }
-          }).toList();
-          break;
-        case 'C>': // change any value greater than B to B
-          results = a.map((v) {
-            if (v > resolvedB) {
-              return resolvedB;
-            } else {
-              return v;
-            }
-          }).toList();
-          break;
-        default:
-          throw FormatException(
-            "unknown roll modifier: $a$op${b ?? resolvedB}",
-          );
-      }
-    } else if (a is int) {
-      results = [a];
-    } else {
-      throw FormatException(
-        "prefix to roll modifier $op must be a dice roll results, not $a",
-      );
+    if (a is int) {
+      sortedA.add(a);
+    } else if (a is Iterable<int>) {
+      sortedA = a.toList()..sort();
+    }
+    switch (op.toUpperCase()) {
+      case '-H': // drop high
+        results = sortedA.reversed.skip(resolvedB).toList();
+        dropped = sortedA.reversed.take(resolvedB).toList();
+        break;
+      case '-L': // drop low
+        results = sortedA.skip(resolvedB).toList();
+        dropped = sortedA.take(resolvedB).toList();
+        break;
+      case '-<': // drop less than
+        results = sortedA.where((v) => v >= resolvedB).toList();
+        dropped = sortedA.where((v) => v < resolvedB).toList();
+        break;
+      case '->': // drop greater than
+        results = sortedA.where((v) => v <= resolvedB).toList();
+        dropped = sortedA.where((v) => v > resolvedB).toList();
+        break;
+      case '-=': // drop equal
+        results = sortedA.where((v) => v != resolvedB).toList();
+        dropped = sortedA.where((v) => v == resolvedB).toList();
+        break;
+      case 'C<': // change any value less than B to B
+        results = sortedA.map((v) {
+          if (v < resolvedB) {
+            return resolvedB;
+          } else {
+            return v;
+          }
+        }).toList();
+        break;
+      case 'C>': // change any value greater than B to B
+        results = sortedA.map((v) {
+          if (v > resolvedB) {
+            return resolvedB;
+          } else {
+            return v;
+          }
+        }).toList();
+        break;
+      default:
+        throw FormatException(
+          "$a$op$b: unknown roll modifier $op",
+        );
     }
     _log.finer(
-      () =>
-          "$a$op${b ?? resolvedB} => $results ${dropped != null ? '(dropped:$dropped)' : '[]'}",
+      () => "$a$op$resolvedB => $results (dropped:$dropped)",
     );
-    return results;
+    return UnmodifiableListView(results);
   }
 
   /// callback for typical roll operations
-  List<int> _handleStdDice(a, String op, x) {
+  UnmodifiableListView<int> _handleStdDice(a, String op, x) {
     final resolvedA = _resolveToInt(a, 1);
     final resolvedX = _resolveToInt(x, 1);
 
-    var results = <int>[];
+    Iterable<int> results;
     switch (op) {
       case 'd':
         results = _roller.roll(resolvedA, resolvedX);
@@ -219,14 +214,16 @@ class DiceParser {
           explodeLimit: 1,
         );
         break;
+      default:
+        throw FormatException("Unknown dice type $a$op$x");
     }
 
-    _log.finer(() => "${a ?? resolvedA}$op${x ?? resolvedX} => $results");
-    return results;
+    _log.finer(() => "$resolvedA$op$resolvedX => $results");
+    return UnmodifiableListView(results);
   }
 
   /// callback for roll of D66, d%, dF
-  List<int> _handleSpecialDice(a, String op) {
+  UnmodifiableListView<int> _handleSpecialDice(a, String op) {
     // if a null, assume 1; e.g. interpret 'd10' as '1d10'
     // if it's a list (i.e. a dice roll), sum the results
     final resolvedA = _resolveToInt(a, 1);
@@ -247,15 +244,13 @@ class DiceParser {
       default:
         throw FormatException("Unknown dice operator $a$op");
     }
-    _log.finer(() => "${a ?? resolvedA}$op => $results");
-    return results;
+    _log.finer(() => "$resolvedA$op => $results");
+    return UnmodifiableListView(results);
   }
 
-  /// Return variable as in -- if null: return default, if List: sum
+  /// if v is int, return v. if v is list, sum v. anything else, return defaultVal
   int _resolveToInt(v, [int defaultVal = 0]) {
-    if (v == null) {
-      return defaultVal;
-    } else if (v is Iterable<int>) {
+    if (v is Iterable<int>) {
       if (v.isEmpty) {
         return 0;
       } else {
@@ -264,45 +259,40 @@ class DiceParser {
     } else if (v is int) {
       return v;
     } else {
-      throw ArgumentError(
-        "Invalid argument type for resolveInt: $v (${v.runtimeType})",
-      );
+      return defaultVal;
     }
   }
 
-  /// Handles addition. If both params are lists, return aggregate. Otherwise, return [sum]
-  List<int> _handleAdd(a, String op, b) {
-    final resolvedA = _resolveToInt(a);
-    final resolvedB = _resolveToInt(b);
-    var results = <int>[];
-    if (a is List<int> && b is List<int>) {
+  /// Handles addition -- either lhs or rhs can be lists, or ints.
+  UnmodifiableListView<int> _handleAdd(a, String op, b) {
+    final results = <int>[];
+    if (a is Iterable<int>) {
       results.addAll(a);
-      results.addAll(b);
-    } else {
-      // have to return sum wrapped in list, since return type of this method is List<int>
-      results = [resolvedA + resolvedB];
+    } else if (a is int) {
+      results.add(a);
     }
-    _log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $results");
-    return results;
+
+    if (b is Iterable<int>) {
+      results.addAll(b);
+    } else if (b is int) {
+      results.add(b);
+    }
+    _log.finer(() => "$a$op$b => $results");
+    return UnmodifiableListView(results);
   }
 
-  /// Handles arithmetic operations -- mult, sub
-  int _handleArith(a, String op, b) {
-    final resolvedA = _resolveToInt(a);
-    final resolvedB = _resolveToInt(b);
-    int result;
-    switch (op) {
-      case '-':
-        result = resolvedA - resolvedB;
-        break;
-      case '*':
-        result = resolvedA * resolvedB;
-        break;
-      default:
-        result = 0;
+  /// Handles arithmetic operations -- multiplication
+  UnmodifiableListView<int> _handleMult(a, String op, b) {
+    final results = <int>[];
+    if (a is Iterable<int> && b is int) {
+      results.addAll(a.map((val) => val * b));
+    } else if (a is int && b is Iterable<int>) {
+      results.addAll(b.map((val) => val * a));
+    } else {
+      results.add(_resolveToInt(a) * _resolveToInt(b));
     }
-    _log.finer(() => "${a ?? resolvedA}$op${b ?? resolvedB} => $result");
-    return result;
+    _log.finer(() => "$a$op$b => $results");
+    return UnmodifiableListView(results);
   }
 
   /// Parses the given dice expression return evaluate-able Result.
@@ -324,7 +314,8 @@ class DiceParser {
       );
     }
     final res = _resolveToInt(result.value);
-    _log.fine("$diceStr => $res");
+    _log.finer(() => "sum(${result.value}) => $res");
+    _log.fine(() => "$diceStr => $res");
     return res;
   }
 
@@ -342,7 +333,7 @@ class DiceParser {
     return stats.asMap();
   }
 
-  /// Evaluates given dice expression N times. Results returned as stream.
+  /// Lazy iterable of rolling given dice expression N times. Results returned as stream.
   Stream<int> rollN(String diceStr, int num) async* {
     for (var i = 0; i < num; i++) {
       yield roll(diceStr);
@@ -350,7 +341,7 @@ class DiceParser {
   }
 }
 
-/// uses welford's algorithm to compute variance for stddev along
+/// uses Welford's algorithm to compute variance for stddev along
 /// with other stats
 ///
 /// long n = 0;

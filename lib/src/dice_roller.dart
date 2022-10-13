@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:logging/logging.dart';
 
 /// A dice roller for M dice of N sides (e.g. `2d6`).
+/// A roll returns a list of ints
 /// Also handles fudge die, and exploding die.
 class DiceRoller {
   final Logger _log = Logger("DiceRoller");

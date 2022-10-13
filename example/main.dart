@@ -39,7 +39,6 @@ void main(List<String> arguments) async {
       "verbose",
       abbr: "v",
       help: "enable verbose logging",
-      defaultsTo: false,
       callback: (verbose) {
         if (verbose) {
           Logger.root.level = Level.FINEST;
@@ -52,9 +51,8 @@ void main(List<String> arguments) async {
       "stats",
       abbr: "s",
       help: "output dice stats. assumes n=10000 unless overridden",
-      defaultsTo: false,
     )
-    ..addFlag("help", abbr: "h", defaultsTo: false);
+    ..addFlag("help", abbr: "h");
 
   final results = argParser.parse(arguments);
   if (results["help"] as bool) {

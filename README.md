@@ -52,15 +52,18 @@ A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disa
     * `AdX#>B` -- roll `A` `X`-sided dice, count any greater than B
     * `AdX#<B` -- roll `A` `X`-sided dice, count any less than B
     * `AdX#=B` -- roll `A` `X`-sided dice, count any equal to B
-* addition/subtraction/multiplication and parenthesis are allowed
-  * Addition of integers is the usual sum. 
-    * `4+5` will be nine
-    * `2d6 + 1`
-  * Addition of roll results combines the results (use parens to ensure the order of operations is as you expect)
-    * `(5d6+5d10)-L2` -- roll 5d6 and 5d10, and from aggregate results drop the lowest 2.
-    * `5d6+5d10-L2` -- roll 5d6 and 5d10, and from only the 5d10 results drop the lowest 2.
-* numbers must be integers
-* division is is not supported.
+* arithmetic operations
+  * parenthesis for order of operations
+  * addition is a little special -- could be a sum of ints, or it can be used to aggregate results of multiple dice rolls
+    * Addition of integers is the usual sum
+      * `4+5` 
+      * `2d6 + 1`
+    * Addition of roll results combines the results (use parens to ensure the order of operations is as you expect)
+      * `(5d6+5d10)-L2` -- roll 5d6 and 5d10, and from aggregate results drop the lowest 2.
+      * `5d6+5d10-L2` -- roll 5d6 and 5d10, and from only the 5d10 results drop the lowest 2. equivalent to `5d6+(5d10-L2)`
+  * `*` for multiplication
+  * numbers must be integers
+  * subtraction and division are not supported.
 
 
 # Usage

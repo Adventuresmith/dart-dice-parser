@@ -5,11 +5,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "6 - 2d6",
-      "program": "bin/dice_parser.dart",
+      "name": "n5 - 2d6",
+      "program": "example/main.dart",
       "args": [
         "-n",
-        "6",
+        "5",
         "2d6",
         "-v"
       ],
@@ -18,7 +18,7 @@
     },
     {
       "name": "explode",
-      "program": "bin/dice_parser.dart",
+      "program": "example/main.dart",
       "args": [
         "10d!4",
         "-v",
