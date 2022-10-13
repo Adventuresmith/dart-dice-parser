@@ -41,7 +41,7 @@ class DiceParser {
             .flatten('integer expected') // create string result of digit*
             .trim() // trim whitespace
             .map((a) => a.isNotEmpty ? int.parse(a) : null),
-      ); // TODO: return 0 instead of null?
+      );
     // exploding dice need to be higher precedence (before 'd')
     builder.group().left(string('d!!').trim(), _handleStdDice);
     builder.group().left(string('d!').trim(), _handleStdDice);
