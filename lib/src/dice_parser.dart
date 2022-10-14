@@ -5,20 +5,17 @@ import 'package:dart_dice_parser/src/dice_roller.dart';
 import 'package:logging/logging.dart';
 import 'package:petitparser/petitparser.dart';
 
-/// A Parser for dice notation
-///
+/// A Parser for dice notation "2d6"
 class DiceParser {
-  final Logger _log = Logger('DiceParser');
-
-  final DiceRoller _roller;
-
-  late Parser _evaluator;
-
   /// Constructs a dice parser, dice roller injectable for mocking random
   DiceParser([Random? random])
       : _roller = DiceRoller(random ?? Random.secure()) {
     _evaluator = _build();
   }
+  final Logger _log = Logger('DiceParser');
+
+  final DiceRoller _roller;
+  late Parser _evaluator;
 
   Parser _build() {
     final builder = ExpressionBuilder();
@@ -27,14 +24,14 @@ class DiceParser {
     // * parens, ints
     // * variations of dice-expr
     // * multiply
-    // * add/sub
+    // * add
     builder.group()
       // handle parens
       ..wrapper(char('(').trim(), char(')').trim(), (l, value, r) => value)
       // match ints. will return null if empty
       ..primitive(
         digit()
-            .star()
+            .star() // allow empty
             .flatten('integer expected') // create string result of digit*
             .trim() // trim whitespace
             .map((a) => a.isNotEmpty ? int.parse(a) : null),

@@ -6,6 +6,9 @@ import 'package:logging/logging.dart';
 /// A roll returns a list of ints
 /// Also handles fudge die, and exploding die.
 class DiceRoller {
+  /// Constructs a dice roller (Random can be injected)
+  DiceRoller([Random? r]) : _random = r ?? Random.secure();
+
   final Logger _log = Logger("DiceRoller");
   final Random _random;
 
@@ -24,18 +27,15 @@ class DiceRoller {
   /// default limit to # of times dice rolls can explode (1k)
   static const int defaultExplodeLimit = 100;
 
-  /// Constructs a dice roller (Random can be injected)
-  DiceRoller([Random? r]) : _random = r ?? Random.secure();
-
   /// Roll ndice of nsides and return results as list.
-  List<int> roll(int ndice, int nsides) {
+  List<int> roll(int ndice, int nsides, [String msg = '']) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
     // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
     final results = [
       for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1
     ];
-    _log.finest(() => "roll ${ndice}d$nsides => $results");
+    _log.finest(() => "roll ${ndice}d$nsides => $results $msg");
     return results;
   }
 
@@ -54,10 +54,7 @@ class DiceRoller {
 
     var explodeCount = 0;
     while (numToRoll > 0 && explodeCount <= explodeLimit) {
-      if (explodeCount > 0) {
-        _log.finest(() => "explode $numToRoll !");
-      }
-      final localResults = roll(numToRoll, nsides);
+      final localResults = roll(numToRoll, nsides, "(explode #$explodeCount)");
       results.addAll(localResults);
       if (!explode) {
         break;
@@ -71,7 +68,7 @@ class DiceRoller {
       numToRoll = localResults.where((v) => v == nsides).length;
     }
 
-    _log.finest(() => "roll ${ndice}d!$nsides => $results");
+    _log.finest(() => "roll ${ndice}d!$nsides => $results (explode complete)");
     return results;
   }
 

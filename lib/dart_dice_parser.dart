@@ -18,6 +18,6 @@
 /// ```
 library dart_dice_parser;
 
+export 'src/ast.dart';
 export 'src/dice_parser.dart';
-
 export 'src/dice_roller.dart';
