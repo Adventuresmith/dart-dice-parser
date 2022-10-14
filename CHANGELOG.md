@@ -1,3 +1,6 @@
+# 4.0.0
+- cleanup petitparser usage -- generate AST so that parsing the dice expression can be separate from rolling dice.
+
 # 3.1.0
 - remove subtraction
 - clean up add/mult -- don't collapse lists to ints
