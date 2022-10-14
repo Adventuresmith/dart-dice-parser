@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
 import 'package:logging/logging.dart';
@@ -12,10 +14,19 @@ void main() {
 
   //print("$diceExpression : ${DiceParser().roll(diceExpression)}");
 
-  final roller = diceParserFactory.parse('10d!6').value;
+  const input = '4d6-H';
+  final parsed = diceParserFactory.parse(input);
 
-  for (var i = 0; i < 2; i++) {
-    final res = roller();
-    Logger('main').info("$i : $res = ${res.sum}");
+  if (parsed.isSuccess) {
+    final roller = parsed.value;
+    for (var i = 0; i < 2; i++) {
+      final res = roller();
+      Logger('main').info("$i : $res = ${res.sum}");
+    }
+  } else {
+    Logger('main').severe(input);
+    Logger('main')
+        .severe('${' ' * (parsed.position - 1)}^-- ${parsed.message}');
+    exit(1);
   }
 }
