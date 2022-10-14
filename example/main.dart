@@ -4,19 +4,22 @@ import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
 import 'package:logging/logging.dart';
 
-final Logger log = Logger('main');
-
 void main(List<String> arguments) async {
-  Logger.root.level = Level.FINE;
+  Logger.root.level = Level.INFO;
 
   Logger.root.onRecord.listen((rec) {
-    print("$rec");
-    /*
-    if (rec.level == Level.INFO) {
-      print('${rec.message}');
-    } else if (rec.level > Level.INFO) {
-      print("${rec.level}: ${rec.message}");
+    if (rec.level > Level.INFO) {
+      stderr.writeln(
+        '[${rec.level.name.padLeft(7)}] ${rec.loggerName.padLeft(12)}: ${rec.message}',
+      );
+    } else if (rec.level < Level.INFO) {
+      stdout.writeln(
+        '[${rec.level.name.padLeft(7)}] ${rec.loggerName.padLeft(12)}: ${rec.message}',
+      );
+    } else {
+      stdout.writeln(rec.message);
     }
+    /*
     developer.log(rec.message,
         time: rec.time,
         sequenceNumber: rec.sequenceNumber,
@@ -25,7 +28,8 @@ void main(List<String> arguments) async {
         zone: rec.zone,
         error: rec.object,
         stackTrace: rec.stackTrace);
-        */
+
+     */
   });
 
   final argParser = ArgParser()
@@ -56,8 +60,8 @@ void main(List<String> arguments) async {
 
   final results = argParser.parse(arguments);
   if (results["help"] as bool) {
-    print("Usage:");
-    print(argParser.usage);
+    stderr.writeln("Usage:");
+    stderr.writeln(argParser.usage);
     exit(1);
   }
   exit(
@@ -74,8 +78,9 @@ Future<int> run({
   required String expression,
   required bool stats,
 }) async {
+  final log = Logger('run');
   if (expression.isEmpty) {
-    print("Supply a dice expression. e.g. '2d6+1'");
+    log.severe("Supply a dice expression. e.g. '2d6+1'");
     return 1;
   }
   final diceParser = DiceParser();
@@ -83,12 +88,12 @@ Future<int> run({
   if (stats) {
     final n = numRolls == 1 ? 10000 : numRolls;
     final stats = await diceParser.stats(diceStr: expression, numRolls: n);
-    print(stats);
+    log.info(stats);
   } else {
     var i = 0;
     await for (final r in diceParser.rollN(expression, numRolls)) {
       i++;
-      print("$i: $r");
+      log.info("$i: $r");
     }
   }
   return 0;

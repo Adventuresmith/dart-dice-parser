@@ -25,6 +25,13 @@
       ],
       "request": "launch",
       "type": "dart"
+    },
+    {
+      "name": "simple",
+      "program": "example/simple.dart",
+      "args": [],
+      "request": "launch",
+      "type": "dart"
     }
   ]
 }
