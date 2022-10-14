@@ -14,10 +14,10 @@ mixin DiceExprMixin {
 class Value with DiceExprMixin {
   Value(this.value);
 
-  final int value;
+  final String value;
 
   @override
-  List<int> call() => [value];
+  List<int> call() => value.isEmpty ? [0] : [int.parse(value)];
 
   @override
   String toString() => '{$value}';
@@ -59,8 +59,8 @@ class MultiplyOp extends Binary {
 
   @override
   List<int> op() {
-    final lhs = resolveToInt(left());
-    final rhs = resolveToInt(right());
+    final lhs = resolveToInt(left);
+    final rhs = resolveToInt(right);
     return [lhs * rhs];
   }
 }
@@ -90,7 +90,7 @@ class CountOp extends Binary {
   @override
   List<int> op() {
     final lhs = left();
-    final rhs = resolveToInt(right(), 1); // if missing, assume '1'
+    final rhs = resolveToInt(right, 1); // if missing, assume '1'
     switch (name) {
       case "#>": // how many results on lhs are greater than rhs?
         return [lhs.where((v) => v > rhs).length];
@@ -110,7 +110,7 @@ class DropOp extends Binary {
   @override
   List<int> op() {
     final lhs = left();
-    final rhs = resolveToInt(right(), 1); // if missing, assume '1'
+    final rhs = resolveToInt(right, 1); // if missing, assume '1'
     var results = <int>[];
     var dropped = <int>[];
     switch (name.toUpperCase()) {
@@ -149,7 +149,7 @@ class ClampOp extends Binary {
   @override
   List<int> op() {
     final lhs = left();
-    final rhs = resolveToInt(right(), 1); // if missing, assume '1'
+    final rhs = resolveToInt(right, 1); // if missing, assume '1'
     switch (name.toUpperCase()) {
       case "C>": // change any value greater than rhs to rhs
         return lhs.map((v) {
@@ -190,7 +190,7 @@ class FudgeDice extends UnaryDice {
 
   @override
   List<int> op() {
-    final ndice = resolveToInt(left(), 1);
+    final ndice = resolveToInt(left, 1);
     return roller.rollFudge(ndice);
   }
 }
@@ -200,7 +200,7 @@ class PercentDice extends UnaryDice {
 
   @override
   List<int> op() {
-    final ndice = resolveToInt(left(), 1);
+    final ndice = resolveToInt(left, 1);
     return roller.roll(ndice, 100);
   }
 }
@@ -210,7 +210,7 @@ class D66Dice extends UnaryDice {
 
   @override
   List<int> op() {
-    final ndice = resolveToInt(left(), 1);
+    final ndice = resolveToInt(left, 1);
     return [
       for (var i = 0; i < ndice; i++)
         roller.roll(1, 6)[0] * 10 + roller.roll(1, 6)[0]
@@ -223,8 +223,8 @@ class StdDice extends BinaryDice {
 
   @override
   List<int> op() {
-    final ndice = resolveToInt(left(), 1);
-    final nsides = resolveToInt(right(), 1);
+    final ndice = resolveToInt(left, 1);
+    final nsides = resolveToInt(right, 1);
     return roller.roll(ndice, nsides);
   }
 }
@@ -241,8 +241,8 @@ class ExplodeDice extends BinaryDice {
 
   @override
   List<int> op() {
-    final ndice = resolveToInt(left(), 1);
-    final nsides = resolveToInt(right(), 1);
+    final ndice = resolveToInt(left, 1);
+    final nsides = resolveToInt(right, 1);
     return roller.rollWithExplode(
       ndice: ndice,
       nsides: nsides,
@@ -252,28 +252,23 @@ class ExplodeDice extends BinaryDice {
   }
 }
 
-/// if v is int, return v. if v is list, sum v.
-/// anything else, return defaultVal
-// TODO: do we need this method at all? In new structure, everything's a int-list
-int resolveToInt(dynamic v, [int defaultVal = 0]) {
-  if (v is Iterable<int>) {
-    return v.sum;
-  } else if (v is int) {
-    return v;
-  } else {
-    return defaultVal;
+/// if input is a Value and empty, return defaultVal.
+/// Otherwise, evaluate the expression and return sum.
+int resolveToInt(DiceExprMixin expr, [int defaultVal = 0]) {
+  if (expr is Value) {
+    if (expr.value.isEmpty) {
+      return defaultVal;
+    }
   }
+  return expr().sum;
 }
-
-DiceExprMixin _createValue(String value) =>
-    Value(value.isNotEmpty ? int.parse(value) : 0);
 
 final diceParserFactory = () {
   final roller = DiceRoller();
   final builder = ExpressionBuilder<DiceExprMixin>();
   builder.group()
     ..primitive(
-      digit().star().flatten('integer expected').trim().map(_createValue),
+      digit().star().flatten('integer expected').trim().map((v) => Value(v)),
     )
     ..wrapper(
       char('(').trim(),
