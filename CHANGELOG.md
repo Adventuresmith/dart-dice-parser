@@ -1,3 +1,6 @@
+# 4.0.1
+- add github actions 
+
 # 4.0.0
 - cleanup petitparser usage -- generate AST so that parsing the dice expression can be separate from rolling dice.
 
