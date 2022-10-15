@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:dart_dice_parser/src/dice_expression.dart';
 import 'package:dart_dice_parser/src/dice_roller.dart';
+import 'package:dart_dice_parser/src/utils.dart';
 
 /// A value expression. The token we read from input will be a String,
 /// an empty string will return empty set.
@@ -17,7 +18,7 @@ class Value extends DiceExpression {
 }
 
 /// All our operations will inherit from this class.
-abstract class DiceOp extends DiceExpression {
+abstract class DiceOp extends DiceExpression with LoggingMixin {
   /// each child class should override this to implement their operation
   List<int> op();
 

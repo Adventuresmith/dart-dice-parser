@@ -4,12 +4,14 @@ import 'package:collection/collection.dart';
 import 'package:dart_dice_parser/src/dice_roller.dart';
 import 'package:dart_dice_parser/src/parser.dart';
 import 'package:dart_dice_parser/src/stats.dart';
-import 'package:dart_dice_parser/src/utils.dart';
+import 'package:logging/logging.dart';
 
 final _defaultParserBuilder = parserBuilder(DiceRoller());
 
 /// An abstract expression that can be evaluated.
-abstract class DiceExpression with LoggingMixin {
+abstract class DiceExpression {
+  static final _log = Logger('roll');
+
   /// parse the given input into a DiceExpression
   /// throws FormatException if invalid
   static DiceExpression create(String input, [Random? random]) {
@@ -34,7 +36,7 @@ abstract class DiceExpression with LoggingMixin {
   int roll() {
     final result = this();
     final sum = result.sum;
-    logger.fine(() => "$this => $result => $sum");
+    _log.fine(() => "$this => $result => $sum");
     return sum;
   }
 

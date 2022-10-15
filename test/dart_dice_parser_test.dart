@@ -149,5 +149,19 @@ void main() {
         throwsFormatException,
       );
     });
+
+    test("rollN test", () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      final dice = DiceExpression.create('2d6', seededRandom);
+
+      expect(
+        dice.rollN(2),
+        emitsInOrder([
+          8,
+          6,
+          emitsDone,
+        ]),
+      );
+    });
   });
 }
