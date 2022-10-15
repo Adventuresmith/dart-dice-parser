@@ -11,7 +11,7 @@ final _defaultParserBuilder = parserBuilder(DiceRoller());
 /// An abstract expression that can be evaluated.
 abstract class DiceExpression with LoggingMixin {
   /// parse the given input into a DiceExpression
-  /// throws format exception if invalid
+  /// throws FormatException if invalid
   static DiceExpression create(String input, [Random? random]) {
     final builder = random == null
         ? _defaultParserBuilder

@@ -8,6 +8,23 @@
 A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, exploding die, and other variations.
 
 ## Examples
+
+A simple usage example:
+
+```dart
+
+import 'package:dart_dice_parser/dart_dice_parser.dart';
+
+void main() {
+  // create a roller for D20 advantage (roll 2d20, drop lowest)
+  final dice = DiceExpression.create('2d20-L');
+  
+  // each roll returns different results.
+  final result1 = dice.roll();
+  final result2 = dice.roll();
+}
+```
+
 * `2d6 + 1` -- roll two six-sided dice, sum results and add one
 * `2d(2*10) + 3d100` -- roll 2 twenty-sided dice, sum results,
   add that to sum of 3 100-sided die
@@ -65,27 +82,7 @@ A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disa
   * `*` for multiplication
   * numbers must be integers
   * subtraction and division are not supported.
-
-
-## Usage
-
-A simple usage example:
-
-```dart
-import 'dart:io';
-
-import 'package:dart_dice_parser/dart_dice_parser.dart';
-
-void main() {
-  const input = '2d20-L'; // D20 advantage -- roll 2d20, drop lowest
-  final diceExpr = DiceExpression.create(input);
-
-  for (var i = 0; i < 2; i++) {
-    final int result = diceExpr.roll();
-    stdout.writeln("$i : $result");
-  }
-}
-```
+  
 
 ### CLI Usage
 
