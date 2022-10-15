@@ -7,34 +7,31 @@ import 'package:test/test.dart';
 class MockRandom extends Mock implements Random {}
 
 void main() {
-  // dice parser whose random always returns '1' (aka roll will always be '2')
-  late DiceExpressionFactory staticFactory;
-
-  late DiceExpressionFactory seededFactory;
+  late Random staticMockRandom;
+  late Random seededRandom;
 
   setUp(() async {
     // first 100 seeded rolls for d6
     // [6, 2, 1, 5, 3, 5, 1, 4, 6, 5, 6, 4, 2, 4, 2, 3, 5, 1, 1, 2, 4, 1, 6, 2, 2, 5, 6, 3, 1, 3, 6, 1, 2, 3, 6, 2, 1, 1, 1, 3, 1, 2, 3, 3, 6, 2, 5, 4, 3, 4, 1, 5, 4, 4, 2, 6, 5, 4, 6, 2, 3, 1, 4, 5, 3, 2, 2, 6, 6, 4, 4, 2, 6, 2, 5, 3, 3, 4, 4, 2, 2, 4, 3, 2, 6, 6, 4, 6, 4, 4, 3, 1, 4, 2, 2, 4, 3, 3, 1, 3]
-    final seededRandom = Random(1234);
-    final staticMockRandom = MockRandom();
+    seededRandom = Random(1234);
+    staticMockRandom = MockRandom();
     // NOTE: this mocks the random number generator to always return '1'
     //    -- that means the dice-roll is '2' (since rolls are 1-based)
     when(
       () => staticMockRandom.nextInt(any()),
     ).thenReturn(1);
-
-    staticFactory = DiceExpressionFactory(staticMockRandom);
-    seededFactory = DiceExpressionFactory(seededRandom);
   });
   void staticRandTest(String name, String input, int expected) {
     test("$name - $input", () {
-      expect(staticFactory.create(input).roll(), equals(expected));
+      expect(DiceExpression.create(input, staticMockRandom).roll(),
+          equals(expected));
     });
   }
 
   void seededRandTest(String name, String input, int expected) {
     test("$name - $input", () {
-      expect(seededFactory.create(input).roll(), equals(expected));
+      expect(
+          DiceExpression.create(input, seededRandom).roll(), equals(expected));
     });
   }
 
@@ -141,7 +138,9 @@ void main() {
 
     test("invalid dice str", () {
       expect(
-          () => seededFactory.create("1d5 + x2").roll(), throwsFormatException);
+        () => DiceExpression.create("1d5 + x2", staticMockRandom).roll(),
+        throwsFormatException,
+      );
     });
   });
 }

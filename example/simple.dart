@@ -12,8 +12,8 @@ void main() {
     );
   });
 
-  const input = '2d20-L';
-  final diceExpr = DiceExpressionFactory().create(input);
+  const input = '2d20-L'; // D20 advantage -- roll 2d20, drop lowest
+  final diceExpr = DiceExpression.create(input);
 
   for (var i = 0; i < 2; i++) {
     final int result = diceExpr.roll();

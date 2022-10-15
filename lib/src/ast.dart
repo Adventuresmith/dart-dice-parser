@@ -25,7 +25,7 @@ abstract class DiceOp extends DiceExpression {
   @override
   List<int> call() {
     final results = op();
-    log.finer(() => "$this => $results");
+    logger.finer(() => "$this => $results");
     return results;
   }
 }
@@ -147,7 +147,7 @@ class DropOp extends Binary {
         throw FormatException("unknown roll modifier '$name' in $this");
     }
 
-    log.finer(() => "$this => $results (dropped: $dropped)");
+    logger.finer(() => "$this => $results (dropped: $dropped)");
     return results;
   }
 }

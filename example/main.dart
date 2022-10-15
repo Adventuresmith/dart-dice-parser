@@ -61,7 +61,7 @@ void main(List<String> arguments) async {
     exit(1);
   }
 
-  final diceExpr = DiceExpressionFactory().create(input);
+  final diceExpr = DiceExpression.create(input);
 
   exit(
     await run(
