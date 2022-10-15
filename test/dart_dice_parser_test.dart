@@ -23,15 +23,19 @@ void main() {
   });
   void staticRandTest(String name, String input, int expected) {
     test("$name - $input", () {
-      expect(DiceExpression.create(input, staticMockRandom).roll(),
-          equals(expected));
+      expect(
+        DiceExpression.create(input, staticMockRandom).roll(),
+        equals(expected),
+      );
     });
   }
 
   void seededRandTest(String name, String input, int expected) {
     test("$name - $input", () {
       expect(
-          DiceExpression.create(input, seededRandom).roll(), equals(expected));
+        DiceExpression.create(input, seededRandom).roll(),
+        equals(expected),
+      );
     });
   }
 
@@ -83,8 +87,11 @@ void main() {
   });
   group("addition combines", () {
     // mocked responses should return rolls of 6, 2, 1, 5
-    seededRandTest("addition combines results (drop is higher order than plus)",
-        "3d6+1d6-L1", 9);
+    seededRandTest(
+      "addition combines results (drop is higher order than plus)",
+      "3d6+1d6-L1",
+      9,
+    );
     seededRandTest("addition combines results - parens", "(2d6+2d6)-L1", 13);
     seededRandTest("addition combines results", "(2d6+1)-L1", 8);
   });
