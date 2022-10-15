@@ -18,6 +18,5 @@
 /// ```
 library dart_dice_parser;
 
-export 'src/dice_parser.dart';
 export 'src/dice_roller.dart';
 export 'src/parser.dart';

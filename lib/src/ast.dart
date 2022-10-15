@@ -1,12 +1,43 @@
 import 'package:collection/collection.dart';
-import 'package:dart_dice_parser/dart_dice_parser.dart';
 import 'package:dart_dice_parser/src/dice_roller.dart';
+import 'package:dart_dice_parser/src/stats.dart';
 import 'package:dart_dice_parser/src/utils.dart';
+import 'package:logging/logging.dart';
+
+final Logger _log = Logger("diceexpr");
 
 /// An abstract expression that can be evaluated.
 mixin DiceExpression {
   /// each operation is callable (when we call the parsed string, this is the method that'll be used)
   List<int> call();
+
+  /// rolls the dice expression
+  int roll() {
+    final result = this();
+    final sum = result.sum;
+    _log.fine(() => "$this => $result => $sum");
+    return sum;
+  }
+
+  /// Lazy iterable of rolling N times. Results returned as stream.
+  Stream<int> rollN(int num) async* {
+    for (var i = 0; i < num; i++) {
+      yield roll();
+    }
+  }
+
+  /// Performs N rolls and outputs stats (stddev, mean, min/max, and a histogram)
+  Future<Map<String, dynamic>> stats({
+    int num = 10000,
+    int precision = 3,
+  }) async {
+    final stats = StatsCollector();
+
+    await for (final r in rollN(num)) {
+      stats.update(r);
+    }
+    return stats.asMap();
+  }
 }
 
 /// A value expression. The token we read from input will be a String,

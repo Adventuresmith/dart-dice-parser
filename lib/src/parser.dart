@@ -1,43 +1,8 @@
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:dart_dice_parser/src/ast.dart';
 import 'package:dart_dice_parser/src/dice_roller.dart';
-import 'package:dart_dice_parser/src/stats.dart';
-import 'package:logging/logging.dart';
 import 'package:petitparser/petitparser.dart';
-
-final Logger _log = Logger("parser");
-
-extension DiceExpressionExtension on DiceExpression {
-  /// rolls the dice expression
-  int roll() {
-    final result = this();
-    final sum = result.sum;
-    _log.fine(() => "$this => $result => $sum");
-    return sum;
-  }
-
-  /// Lazy iterable of rolling N times. Results returned as stream.
-  Stream<int> rollN(int num) async* {
-    for (var i = 0; i < num; i++) {
-      yield roll();
-    }
-  }
-
-  /// Performs N rolls and outputs stats (stddev, mean, min/max, and a histogram)
-  Future<Map<String, dynamic>> stats({
-    int num = 10000,
-    int precision = 3,
-  }) async {
-    final stats = StatsCollector();
-
-    await for (final r in rollN(num)) {
-      stats.update(r);
-    }
-    return stats.asMap();
-  }
-}
 
 class DiceExpressionFactory {
   DiceExpressionFactory([Random? random]) : roller = DiceRoller(random);

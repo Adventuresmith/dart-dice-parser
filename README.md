@@ -6,7 +6,7 @@
 
 A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, exploding die, and other variations.
 
-# Examples
+## Examples
 * `2d6 + 1` -- roll two six-sided dice, sum results and add one
 * `2d(2*10) + 3d100` -- roll 2 twenty-sided dice, sum results,
   add that to sum of 3 100-sided die
@@ -21,7 +21,7 @@ A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disa
 * `20d10-<3->8#` -- roll 20 d10, drop any less than 3 or greater than 8 and count the number of remaining dice
 * `2d6 * 3` -- roll 2d6, multiply result by 3
 
-# Supported notation
+## Supported notation
 * `AdX` -- roll `A` dice of `X` sides, total will be returned as value
 * special dice variations:
   * `AdF` -- roll `A` fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
@@ -66,7 +66,7 @@ A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disa
   * subtraction and division are not supported.
 
 
-# Usage
+## Usage
 
 A simple usage example:
 
@@ -98,7 +98,7 @@ void main() {
 
 ```
 
-## CLI Usage
+### CLI Usage
 
 ```console
 ❯ dart example/main.dart '3d6'
