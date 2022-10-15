@@ -1,6 +1,6 @@
 # dart_dice_parser
 [![Pub Package](https://img.shields.io/pub/v/dart_dice_parser.svg)](https://pub.dartlang.org/packages/dart_dice_parser)
-[![CircleCI](https://circleci.com/gh/stevesea/dart-dice-parser.svg?style=svg)](https://circleci.com/gh/stevesea/dart-dice-parser)
+[![Dart](https://github.com/stevesea/dart-dice-parser/actions/workflows/dart.yml/badge.svg)](https://github.com/stevesea/dart-dice-parser/actions/workflows/dart.yml)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 
