@@ -1,3 +1,6 @@
+# 4.0.5
+- remove unused dev dependency
+
 # 4.0.4
 - fix typo in unit test
 
