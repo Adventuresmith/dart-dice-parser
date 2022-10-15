@@ -18,8 +18,8 @@ void main() {
   final dice = DiceExpression.create('2d20-L');
   
   // each roll returns different results.
-  final result1 = dice.roll();
-  final result2 = dice.roll();
+  final int result1 = dice.roll();
+  final int result2 = dice.roll();
 }
 ```
 
