@@ -165,19 +165,31 @@ void main() {
     });
 
     test("stats test", () async {
-      final dice = DiceExpression.create('1d6', seededRandom);
+      final dice = DiceExpression.create('2d6', seededRandom);
 
-      final stats = await dice.stats(num: 4);
+      final stats = await dice.stats(num: 100);
 
       expect(
         stats,
         equals({
-          'mean': 3.5,
-          'stddev': 2.06,
-          'min': 1,
-          'max': 6,
-          'count': 4,
-          'histogram': {1: 1, 2: 1, 5: 1, 6: 1}
+          'mean': 6.65,
+          'stddev': 2.35,
+          'min': 2,
+          'max': 12,
+          'count': 100,
+          'histogram': {
+            2: 3,
+            3: 6,
+            4: 12,
+            5: 10,
+            6: 20,
+            7: 10,
+            8: 18,
+            9: 9,
+            10: 7,
+            11: 2,
+            12: 3
+          }
         }),
       );
     });
