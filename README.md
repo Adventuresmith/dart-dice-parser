@@ -71,33 +71,54 @@ A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disa
 A simple usage example:
 
 ```dart
+import 'dart:io';
+import 'dart:math';
+
 import 'package:dart_dice_parser/dart_dice_parser.dart';
+import 'package:logging/logging.dart';
 
 void main() {
-  const diceExpression = "2d6 + 1 + 3d10";
+  Logger.root.level = Level.FINEST;
 
-  print("$diceExpression : ${DiceParser().roll(diceExpression)}");
+  Logger.root.onRecord.listen((rec) {
+    stdout.writeln(
+      '[${rec.level.name.padLeft(7)}] ${rec.loggerName.padLeft(12)}: ${rec.message}',
+    );
+  });
+
+  const input = '3d6';
+  final factory = DiceExpressionFactory(Random.secure());
+  final diceExpr = factory.create(input);
+
+  for (var i = 0; i < 2; i++) {
+    final int result = diceExpr.roll();
+    stdout.writeln("$i : $result");
+  }
 }
+
 ```
 
 ## CLI Usage
 
 ```console
-foo@bar$ dart run example/main.dart '3d6'
-1: 9
+❯ dart example/main.dart '3d6'
+1: 10
+
 
 # run N number of rolls
-foo@bar$ dart run example/main.dart -n 6 '3d6'
+❯ dart example/main.dart -n6 '3d6'
 1: 6
-2: 8
-3: 15
-4: 15
-5: 8
-6: 10
+2: 9
+3: 11
+4: 7
+5: 12
+6: 12
 
-# show stats
-foo@bar$ dart run example/main.dart -s '3d6'
-{min: 3, max: 18, count: 10000, histogram: {3: 41, 4: 151, 5: 275, 6: 473, 7: 700, 8: 991, 9: 1182, 10: 1292, 11: 1270, 12: 1084, 13: 924, 14: 678, 15: 472, 16: 274, 17: 151, 18: 42}, mean: 10.5, stddev: 2.96}
+# show statistics for a roll
+❯ dart example/main.dart -s '3d6'
+{mean: 10.5, stddev: 2.94, min: 3, max: 18, count: 10000, histogram: {3: 41, 4: 133, 5: 265, 6: 479, 7: 695, 8: 1030, 9: 1211, 10: 1233, 11: 1236, 12: 1164, 13: 938, 14: 658, 15: 446, 16: 278, 17: 157, 18: 36}}
+
+
 ```
 
 

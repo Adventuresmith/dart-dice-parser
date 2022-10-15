@@ -2,17 +2,16 @@ import 'package:collection/collection.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
 import 'package:dart_dice_parser/src/dice_roller.dart';
 import 'package:dart_dice_parser/src/utils.dart';
-import 'package:petitparser/petitparser.dart';
 
 /// An abstract expression that can be evaluated.
-mixin DiceExprMixin {
+mixin DiceExpression {
   /// each operation is callable (when we call the parsed string, this is the method that'll be used)
   List<int> call();
 }
 
 /// A value expression. The token we read from input will be a String,
 /// an empty string will return empty set.
-class Value with DiceExprMixin {
+class Value with DiceExpression {
   Value(this.value);
 
   final String value;
@@ -25,7 +24,7 @@ class Value with DiceExprMixin {
 }
 
 /// All our operations will inherit from this class.
-abstract class DiceOp with DiceExprMixin, LoggingMixin {
+abstract class DiceOp with DiceExpression, LoggingMixin {
   /// each child class should override this to implement their operation
   List<int> op();
 
@@ -42,7 +41,7 @@ abstract class DiceOp with DiceExprMixin, LoggingMixin {
 abstract class Unary extends DiceOp {
   Unary(this.name, this.left);
   final String name;
-  final DiceExprMixin left;
+  final DiceExpression left;
 
   @override
   String toString() => '{$left$name}';
@@ -52,8 +51,8 @@ abstract class Unary extends DiceOp {
 abstract class Binary extends DiceOp {
   Binary(this.name, this.left, this.right);
   final String name;
-  final DiceExprMixin left;
-  final DiceExprMixin right;
+  final DiceExpression left;
+  final DiceExpression right;
 
   @override
   String toString() => '{$left$name$right}';
@@ -277,7 +276,7 @@ class ExplodeDice extends BinaryDice {
 
 /// if input is a Value and empty, return defaultVal.
 /// Otherwise, evaluate the expression and return sum.
-int resolveToInt(DiceExprMixin expr, [int defaultVal = 0]) {
+int resolveToInt(DiceExpression expr, [int defaultVal = 0]) {
   if (expr is Value) {
     if (expr.value.isEmpty) {
       return defaultVal;
@@ -285,59 +284,3 @@ int resolveToInt(DiceExprMixin expr, [int defaultVal = 0]) {
   }
   return expr().sum;
 }
-
-final diceParserFactory = () {
-  final roller = DiceRoller();
-  final builder = ExpressionBuilder<DiceExprMixin>();
-  builder.group()
-    ..primitive(
-      digit().star().flatten('integer expected').trim().map((v) => Value(v)),
-    )
-    ..wrapper(
-      char('(').trim(),
-      char(')').trim(),
-      (left, value, right) => value,
-    );
-  // d!! needs higher precedence than d!
-  builder.group().left(
-        string('d!!').trim(),
-        (a, op, b) => ExplodeDice('d!!', a, b, roller, 1),
-      );
-  builder.group()
-    ..postfix(string('dF').trim(), (a, operator) => FudgeDice('dF', a, roller))
-    ..postfix(
-      string('D66').trim(),
-      (a, operator) => D66Dice('D66', a, roller),
-    )
-    ..postfix(
-      string('d%').trim(),
-      (a, operator) => PercentDice('d%', a, roller),
-    )
-    ..left(string('d!').trim(), (a, op, b) => ExplodeDice('d!', a, b, roller));
-  builder
-      .group()
-      .left(char('d').trim(), (a, op, b) => StdDice('d', a, b, roller));
-  builder.group()
-    // cap/clamp
-    ..left(string('C>').trim(), (a, op, b) => ClampOp('C>', a, b))
-    ..left(string('c>').trim(), (a, op, b) => ClampOp('C>', a, b))
-    ..left(string('C<').trim(), (a, op, b) => ClampOp('C<', a, b))
-    ..left(string('c<').trim(), (a, op, b) => ClampOp('C<', a, b))
-    // drop
-    ..left(string('->').trim(), (a, op, b) => DropOp('->', a, b))
-    ..left(string('-<').trim(), (a, op, b) => DropOp('-<', a, b))
-    ..left(string('-=').trim(), (a, op, b) => DropOp('-=', a, b))
-    ..left(string('-L').trim(), (a, op, b) => DropOp('-L', a, b))
-    ..left(string('-l').trim(), (a, op, b) => DropOp('-L', a, b))
-    ..left(string('-H').trim(), (a, op, b) => DropOp('-H', a, b))
-    ..left(string('-h').trim(), (a, op, b) => DropOp('-H', a, b));
-  builder.group()
-    // count
-    ..left(string('#>').trim(), (a, op, b) => CountOp('#>', a, b))
-    ..left(string('#<').trim(), (a, op, b) => CountOp('#<', a, b))
-    ..left(string('#=').trim(), (a, op, b) => CountOp('#<', a, b));
-  builder.group().postfix(char('#').trim(), (a, op) => CountResults('#', a));
-  builder.group().left(char('*').trim(), (a, op, b) => MultiplyOp('*', a, b));
-  builder.group().left(char('+').trim(), (a, op, b) => AddOp('+', a, b));
-  return builder.build().end();
-}();

@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
+import 'package:dart_dice_parser/src/ast.dart';
 import 'package:logging/logging.dart';
 
 void main(List<String> arguments) async {
-  Logger.root.level = Level.INFO;
+  final log = Logger('main');
+  Logger.root.level = Level.FINE;
 
   Logger.root.onRecord.listen((rec) {
     if (rec.level > Level.INFO) {
@@ -47,7 +49,7 @@ void main(List<String> arguments) async {
         if (verbose) {
           Logger.root.level = Level.FINEST;
         } else {
-          Logger.root.level = Level.WARNING;
+          Logger.root.level = Level.INFO;
         }
       },
     )
@@ -64,10 +66,20 @@ void main(List<String> arguments) async {
     stderr.writeln(argParser.usage);
     exit(1);
   }
+
+  final factory = DiceExpressionFactory();
+  final input = results.rest.join(" ");
+  if (input.isEmpty) {
+    log.severe("Supply a dice expression. e.g. '2d6+1'");
+    exit(1);
+  }
+
+  final diceExpr = factory.create(input);
+
   exit(
     await run(
+      expression: diceExpr,
       numRolls: int.parse(results["num"] as String),
-      expression: results.rest.join(" "),
       stats: results["stats"] as bool,
     ),
   );
@@ -75,23 +87,17 @@ void main(List<String> arguments) async {
 
 Future<int> run({
   required int numRolls,
-  required String expression,
+  required DiceExpression expression,
   required bool stats,
 }) async {
   final log = Logger('run');
-  if (expression.isEmpty) {
-    log.severe("Supply a dice expression. e.g. '2d6+1'");
-    return 1;
-  }
-  final diceParser = DiceParser();
 
   if (stats) {
-    final n = numRolls == 1 ? 10000 : numRolls;
-    final stats = await diceParser.stats(diceStr: expression, numRolls: n);
+    final stats = await expression.stats(num: numRolls == 1 ? 10000 : numRolls);
     log.info(stats);
   } else {
     var i = 0;
-    await for (final r in diceParser.rollN(expression, numRolls)) {
+    await for (final r in expression.rollN(numRolls)) {
       i++;
       log.info("$i: $r");
     }

@@ -6,7 +6,7 @@
 - clean up add/mult -- don't collapse lists to ints
   - `[1,4,5] + 2` => `[1,4,5,2]`
   - `[1,4,5] * 2` => `[2,8,10]`
-- remove subtraction -- like division, too many odd error cases
+- remove subtraction -- like division, too many corner cases
 - clean up error handling -- throw less often, less complex if/else statements.
 
 # 3.0.3
