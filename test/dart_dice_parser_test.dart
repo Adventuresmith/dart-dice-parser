@@ -163,5 +163,23 @@ void main() {
         ]),
       );
     });
+
+    test("stats test", () async {
+      final dice = DiceExpression.create('1d6', seededRandom);
+
+      final stats = await dice.stats(num: 4);
+
+      expect(
+        stats,
+        equals({
+          'mean': 3.5,
+          'stddev': 2.06,
+          'min': 1,
+          'max': 6,
+          'count': 4,
+          'histogram': {1: 1, 2: 1, 5: 1, 6: 1}
+        }),
+      );
+    });
   });
 }
