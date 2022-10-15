@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
-import 'package:dart_dice_parser/src/ast.dart';
 import 'package:logging/logging.dart';
 
 void main(List<String> arguments) async {
@@ -21,17 +20,6 @@ void main(List<String> arguments) async {
     } else {
       stdout.writeln(rec.message);
     }
-    /*
-    developer.log(rec.message,
-        time: rec.time,
-        sequenceNumber: rec.sequenceNumber,
-        level: rec.level.value,
-        name: rec.loggerName,
-        zone: rec.zone,
-        error: rec.object,
-        stackTrace: rec.stackTrace);
-
-     */
   });
 
   final argParser = ArgParser()
@@ -56,7 +44,7 @@ void main(List<String> arguments) async {
     ..addFlag(
       "stats",
       abbr: "s",
-      help: "output dice stats. assumes n=10000 unless overridden",
+      help: "output dice stats. assumes n=500 unless overridden",
     )
     ..addFlag("help", abbr: "h");
 
@@ -67,14 +55,13 @@ void main(List<String> arguments) async {
     exit(1);
   }
 
-  final factory = DiceExpressionFactory();
   final input = results.rest.join(" ");
   if (input.isEmpty) {
     log.severe("Supply a dice expression. e.g. '2d6+1'");
     exit(1);
   }
 
-  final diceExpr = factory.create(input);
+  final diceExpr = DiceExpressionFactory().create(input);
 
   exit(
     await run(
@@ -93,7 +80,7 @@ Future<int> run({
   final log = Logger('run');
 
   if (stats) {
-    final stats = await expression.stats(num: numRolls == 1 ? 10000 : numRolls);
+    final stats = await expression.stats(num: numRolls == 1 ? 500 : numRolls);
     log.info(stats);
   } else {
     var i = 0;

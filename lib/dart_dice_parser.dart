@@ -4,19 +4,17 @@
 /// Usage example:
 /// ```dart
 ///     int roll(String diceStr) {
-///       var result = DiceParser().evaluate(diceStr);
+///       final factory = DiceExpressionFactory(Random.secure());
 ///
-///       if (result.isFailure) {
-///         print("Failure:");
-///         print('\t${expression}');
-///         print('\t${' ' * (result.position - 1)}^-- ${result.message}');
-///         return 1;
-///       } else {
-///         return result.value;
-///       }
+///       final diceExpr = factory.create('3d6');
+///
+///       final result1 = diceExpr.roll()
+///       final result2 = diceExpr.roll()
+///
 ///     }
 /// ```
 library dart_dice_parser;
 
+export 'src/dice_expression.dart';
 export 'src/dice_roller.dart';
 export 'src/parser.dart';

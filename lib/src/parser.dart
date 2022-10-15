@@ -1,9 +1,11 @@
 import 'dart:math';
 
 import 'package:dart_dice_parser/src/ast.dart';
+import 'package:dart_dice_parser/src/dice_expression.dart';
 import 'package:dart_dice_parser/src/dice_roller.dart';
 import 'package:petitparser/petitparser.dart';
 
+/// class for creating dice expressions from input.
 class DiceExpressionFactory {
   DiceExpressionFactory([Random? random]) : roller = DiceRoller(random);
   final DiceRoller roller;
@@ -14,7 +16,10 @@ class DiceExpressionFactory {
     final result = _parserBuilder().parse(input);
     if (result.isFailure) {
       throw FormatException(
-          "Error parsing dice expression", input, result.position);
+        "Error parsing dice expression",
+        input,
+        result.position,
+      );
     }
     return result.value;
   }
@@ -37,7 +42,9 @@ class DiceExpressionFactory {
         );
     builder.group()
       ..postfix(
-          string('dF').trim(), (a, operator) => FudgeDice('dF', a, roller))
+        string('dF').trim(),
+        (a, operator) => FudgeDice('dF', a, roller),
+      )
       ..postfix(
         string('D66').trim(),
         (a, operator) => D66Dice('D66', a, roller),
@@ -47,7 +54,9 @@ class DiceExpressionFactory {
         (a, operator) => PercentDice('d%', a, roller),
       )
       ..left(
-          string('d!').trim(), (a, op, b) => ExplodeDice('d!', a, b, roller));
+        string('d!').trim(),
+        (a, op, b) => ExplodeDice('d!', a, b, roller),
+      );
     builder
         .group()
         .left(char('d').trim(), (a, op, b) => StdDice('d', a, b, roller));
