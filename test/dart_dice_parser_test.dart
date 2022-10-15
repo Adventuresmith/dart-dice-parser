@@ -52,7 +52,7 @@ void main() {
   group("counting operations", () {
     // mocked responses should return rolls of 6, 2, 1, 5
     seededRandTest("count >", "4d6#>3", 2);
-    seededRandTest("count <", "4d6#>1", 3);
+    seededRandTest("count <", "4d6#<6", 3);
     seededRandTest("count =", "4d6#=1", 1);
     seededRandTest("count > (missing from result)", "4d6#>6", 0);
     seededRandTest("count #", "4d6#", 4);

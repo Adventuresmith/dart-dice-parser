@@ -1,3 +1,6 @@
+# 4.0.4
+- fix typo in unit test
+
 # 4.0.3
 - increase test coverage -- test rollN and stats.
 
