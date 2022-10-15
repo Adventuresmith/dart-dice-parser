@@ -104,7 +104,7 @@ class CountOp extends Binary {
       case "#<": // how many results on lhs are less than rhs?
         return [lhs.where((v) => v < target).length];
       case "#=": // how many results on lhs are equal to rhs?
-        return [lhs.where((v) => v > target).length];
+        return [lhs.where((v) => v == target).length];
       default:
         throw FormatException("unknown roll modifier '$name' in $this");
     }

@@ -104,7 +104,7 @@ class DiceExpressionFactory {
       // count
       ..left(string('#>').trim(), (a, op, b) => CountOp('#>', a, b))
       ..left(string('#<').trim(), (a, op, b) => CountOp('#<', a, b))
-      ..left(string('#=').trim(), (a, op, b) => CountOp('#<', a, b));
+      ..left(string('#=').trim(), (a, op, b) => CountOp('#=', a, b));
     builder.group().postfix(char('#').trim(), (a, op) => CountResults('#', a));
     builder.group().left(char('*').trim(), (a, op, b) => MultiplyOp('*', a, b));
     builder.group().left(char('+').trim(), (a, op, b) => AddOp('+', a, b));
