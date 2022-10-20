@@ -1,3 +1,6 @@
+# 4.0.6
+- allow subtraction
+
 # 4.0.5
 - remove unused dev dependency
 

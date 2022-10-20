@@ -74,6 +74,18 @@ class AddOp extends Binary {
   }
 }
 
+/// subtraction operation
+class SubOp extends Binary {
+  SubOp(super.name, super.left, super.right);
+
+  @override
+  List<int> op() {
+    final lhs = resolveToInt(left);
+    final rhs = resolveToInt(right);
+    return [lhs - rhs];
+  }
+}
+
 /// perform lhs operation, and count results.
 class CountResults extends Unary {
   CountResults(super.name, super.left);

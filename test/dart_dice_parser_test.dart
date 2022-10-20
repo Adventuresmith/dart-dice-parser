@@ -44,9 +44,14 @@ void main() {
     staticRandTest("multi", "3*2", 6);
     staticRandTest("parens", "(5+6)*2", 22);
     staticRandTest("order of operations", "5+6*2", 17);
+    staticRandTest("subtraction", "5-6", -1);
+    staticRandTest("subtraction", "5-6", -1);
   });
-  group("debug", () {
-    seededRandTest("count =", "4d6#=1", 1);
+
+  group("dice and arith", () {
+    seededRandTest("dice", "4d6", 14);
+    seededRandTest("dice+", "4d6+2", 16);
+    seededRandTest("dice*", "4d6*2", 28);
   });
 
   group("counting operations", () {
@@ -58,6 +63,7 @@ void main() {
     seededRandTest("count #", "4d6#", 4);
     seededRandTest("count # after drop", "4d6-<2#", 3);
   });
+
   group("roll modifiers - drop, clamp, etc", () {
     // mocked responses should return rolls of 6, 2, 1, 5
     seededRandTest("drop high", "4d6-H", 8);
@@ -85,6 +91,7 @@ void main() {
     // [6,2] + [1,5,3] = [6,2,1,5,3]-L3 => [6,5] = 9
     seededRandTest("drop low on aggregated dice", "(2d6+3d6)-L3", 11);
   });
+
   group("addition combines", () {
     // mocked responses should return rolls of 6, 2, 1, 5
     seededRandTest(
@@ -103,6 +110,7 @@ void main() {
     // mult collapses into single result, so dropping will wind up w/ zero return
     seededRandTest("dropped multiplied results", "(2d6*2)-L", 0);
   });
+
   group("missing ints", () {
     staticRandTest("empty string returns zero", "", 0);
     staticRandTest("empty arith returns zero - add", "+", 0);

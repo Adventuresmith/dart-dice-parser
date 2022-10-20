@@ -66,7 +66,8 @@ Other examples:
     * `AdXC>B` -- roll `A` `X`-sided dice, change any value greater than B to B
 * operations on dice rolls:
   * counting:
-    * `AdX#` -- how many results? (useful for `20d10-<2->8#` -- roll 20 d10, drop <2 and >8, how many are left?)
+    * `AdX#` -- how many results? 
+      * For example, you might use this to count # of dice above a target. `5d10-<6` -- roll 5 d10, drop any 5 or under, count results
     * `AdX#>B` -- roll `A` `X`-sided dice, count any greater than B
     * `AdX#<B` -- roll `A` `X`-sided dice, count any less than B
     * `AdX#=B` -- roll `A` `X`-sided dice, count any equal to B
@@ -80,8 +81,9 @@ Other examples:
       * `(5d6+5d10)-L2` -- roll 5d6 and 5d10, and from aggregate results drop the lowest 2.
       * `5d6+5d10-L2` -- roll 5d6 and 5d10, and from only the 5d10 results drop the lowest 2. equivalent to `5d6+(5d10-L2)`
   * `*` for multiplication
+  * `-` for subtraction
   * numbers must be integers
-  * subtraction and division are not supported.
+  * division is not supported.
   
 
 ### CLI Usage
