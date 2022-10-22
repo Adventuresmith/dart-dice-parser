@@ -1,5 +1,7 @@
 # ???
 - cleanup examples
+- add syntax for `>=` and `<=` for counts, drop, clamp
+- remove redundancy in parser defintion
 
 # 4.0.6
 - allow subtraction

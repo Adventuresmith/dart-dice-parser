@@ -105,6 +105,10 @@ class CountOp extends Binary {
     final lhs = left();
     final target = resolveToInt(right, 1); // if missing, assume '1'
     switch (name) {
+      case "#>=": // how many results on lhs are greater than or equal to rhs?
+        return [lhs.where((v) => v >= target).length];
+      case "#<=": // how many results on lhs are less than or equal to rhs?
+        return [lhs.where((v) => v <= target).length];
       case "#>": // how many results on lhs are greater than rhs?
         return [lhs.where((v) => v > target).length];
       case "#<": // how many results on lhs are less than rhs?
@@ -130,31 +134,39 @@ class DropOp extends Binary {
   @override
   List<int> op() {
     final lhs = left();
-    final numToDrop = resolveToInt(right, 1); // if missing, assume '1'
+    final dropTarget = resolveToInt(right, 1); // if missing, assume '1'
     var results = <int>[];
     var dropped = <int>[];
     switch (name.toUpperCase()) {
-      case '-<': // drop less than
-        results = lhs.where((v) => v >= numToDrop).toList();
-        dropped = lhs.where((v) => v < numToDrop).toList();
+      case '-<': // drop <
+        results = lhs.where((v) => v >= dropTarget).toList();
+        dropped = lhs.where((v) => v < dropTarget).toList();
         break;
-      case '->': // drop greater than
-        results = lhs.where((v) => v <= numToDrop).toList();
-        dropped = lhs.where((v) => v > numToDrop).toList();
+      case '-<=': // drop <=
+        results = lhs.where((v) => v > dropTarget).toList();
+        dropped = lhs.where((v) => v <= dropTarget).toList();
         break;
-      case '-=': // drop equal
-        results = lhs.where((v) => v != numToDrop).toList();
-        dropped = lhs.where((v) => v == numToDrop).toList();
+      case '->': // drop >
+        results = lhs.where((v) => v <= dropTarget).toList();
+        dropped = lhs.where((v) => v > dropTarget).toList();
+        break;
+      case '->=': // drop >=
+        results = lhs.where((v) => v < dropTarget).toList();
+        dropped = lhs.where((v) => v >= dropTarget).toList();
+        break;
+      case '-=': // drop =
+        results = lhs.where((v) => v != dropTarget).toList();
+        dropped = lhs.where((v) => v == dropTarget).toList();
         break;
       case '-H': // drop high
         final sorted = lhs..sort();
-        results = sorted.reversed.skip(numToDrop).toList();
-        dropped = sorted.reversed.take(numToDrop).toList();
+        results = sorted.reversed.skip(dropTarget).toList();
+        dropped = sorted.reversed.take(dropTarget).toList();
         break;
       case '-L': // drop low
         final sorted = lhs..sort();
-        results = sorted.skip(numToDrop).toList();
-        dropped = sorted.take(numToDrop).toList();
+        results = sorted.skip(dropTarget).toList();
+        dropped = sorted.take(dropTarget).toList();
         break;
       default:
         throw FormatException("unknown roll modifier '$name' in $this");
@@ -174,7 +186,23 @@ class ClampOp extends Binary {
     final lhs = left();
     final clampTarget = resolveToInt(right, 1); // if missing, assume '1'
     switch (name.toUpperCase()) {
-      case "C>": // change any value greater than rhs to rhs
+      case "C>=": // change any value >= rhs to rhs
+        return lhs.map((v) {
+          if (v >= clampTarget) {
+            return clampTarget;
+          } else {
+            return v;
+          }
+        }).toList();
+      case "C<=": // change any value <= rhs to rhs
+        return lhs.map((v) {
+          if (v <= clampTarget) {
+            return clampTarget;
+          } else {
+            return v;
+          }
+        }).toList();
+      case "C>": // change any value > rhs to rhs
         return lhs.map((v) {
           if (v > clampTarget) {
             return clampTarget;
@@ -182,7 +210,7 @@ class ClampOp extends Binary {
             return v;
           }
         }).toList();
-      case "C<": // change any value less than rhs to rhs
+      case "C<": // change any value < rhs to rhs
         return lhs.map((v) {
           if (v < clampTarget) {
             return clampTarget;

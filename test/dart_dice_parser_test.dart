@@ -59,6 +59,8 @@ void main() {
     seededRandTest("count >", "4d6#>3", 2);
     seededRandTest("count <", "4d6#<6", 3);
     seededRandTest("count =", "4d6#=1", 1);
+    seededRandTest("count <=", "4d6#<=2", 2);
+    seededRandTest("count >=", "4d6#>=6", 1);
     seededRandTest("count > (missing from result)", "4d6#>6", 0);
     seededRandTest("count #", "4d6#", 4);
     seededRandTest("count # after drop", "4d6-<2#", 3);
@@ -78,14 +80,18 @@ void main() {
     seededRandTest("dropping an int drops all", "4-L3", 0);
     seededRandTest("can drop more than rolled", "3d6-H4", 0);
     seededRandTest("can drop more than rolled", "3d6-l4", 0);
-    seededRandTest("drop >3", "4d6->3", 3);
-    seededRandTest("drop <3", "4d6-<3", 11);
-    seededRandTest("drop =2", "4d6-=2", 12);
-    seededRandTest("drop =4 (not in results)", "4d6-=4", 14);
-    seededRandTest("clamp > 3", "4d6C>3", 9);
-    seededRandTest("clamp < 3", "4d6C<3", 17);
-    seededRandTest("clamp > 3 lowercase", "4d6c>3", 9);
-    seededRandTest("clamp < 3 lowercase", "4d6c<3", 17);
+    seededRandTest("drop", "4d6->3", 3);
+    seededRandTest("drop", "4d6-<3", 11);
+    seededRandTest("drop", "4d6->=2", 1);
+    seededRandTest("drop", "4d6-<=2", 11);
+    seededRandTest("drop", "4d6-=2", 12);
+    seededRandTest("drop (not in results)", "4d6-=4", 14);
+    seededRandTest("clamp", "4d6C>3", 9);
+    seededRandTest("clamp", "4d6C<3", 17);
+    seededRandTest("clamp", "4d6c>3", 9);
+    seededRandTest("clamp", "4d6c<3", 17);
+    seededRandTest("clamp", "4d6c>=2", 7);
+    seededRandTest("clamp", "4d6c<=2", 15);
 
     // mocked responses should return rolls of 6, 2, 1, 5, 3
     // [6,2] + [1,5,3] = [6,2,1,5,3]-L3 => [6,5] = 9

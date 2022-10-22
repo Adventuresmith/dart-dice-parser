@@ -58,20 +58,26 @@ Other examples:
   * dropping dice:
     * `AdX-HN` -- roll `A` `X`-sided dice, drop N highest
     * `AdX-LN` -- roll `A` `X`-sided dice, drop N lowest
-    * `AdX->B` -- roll `A` `X`-sided dice, drop any results greater than B
-    * `AdX-<B` -- roll `A` `X`-sided dice, drop any results less than B
+    * `AdX->B` -- roll `A` `X`-sided dice, drop any results > B
+    * `AdX-<B` -- roll `A` `X`-sided dice, drop any results < B
+    * `AdX->=B` -- roll `A` `X`-sided dice, drop any results >= B
+    * `AdX-<=B` -- roll `A` `X`-sided dice, drop any results <= B
     * `AdX-=B` -- roll `A` `X`-sided dice, drop any results equal to B
     * NOTE: the drop operators have higher precedence than
       the arithmetic operators; `4d10-L2+2` is equivalent to `(4d10-L2)+2`
   * cap/clamp:
-    * `AdXC<B` -- roll `A` `X`-sided dice, change any value less than B to B
-    * `AdXC>B` -- roll `A` `X`-sided dice, change any value greater than B to B
+    * `AdXC<B` -- roll `A` `X`-sided dice, change any value < B to B
+    * `AdXC>B` -- roll `A` `X`-sided dice, change any value > B to B
+    * `AdXC<=B` -- roll `A` `X`-sided dice, change any value <= B to B
+    * `AdXC>=B` -- roll `A` `X`-sided dice, change any value >= B to B
 * operations on dice rolls:
   * counting:
     * `AdX#` -- how many results? 
       * For example, you might use this to count # of dice above a target. `5d10-<6` -- roll 5 d10, drop any 5 or under, count results
     * `AdX#>B` -- roll `A` `X`-sided dice, count any greater than B
     * `AdX#<B` -- roll `A` `X`-sided dice, count any less than B
+    * `AdX#>=B` -- roll `A` `X`-sided dice, count any greater than or equal to B
+    * `AdX#<=B` -- roll `A` `X`-sided dice, count any less than or equal to B
     * `AdX#=B` -- roll `A` `X`-sided dice, count any equal to B
 * arithmetic operations
   * parenthesis for order of operations

@@ -38,37 +38,39 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
       (a, op, b) => ExplodeDice(op.toString(), a, b, roller),
     );
   builder.group().left(
-      char('d').trim(), (a, op, b) => StdDice(op.toString(), a, b, roller));
+        char('d').trim(),
+        (a, op, b) => StdDice(op.toString(), a, b, roller),
+      );
   builder.group()
-    // cap/clamp
-    ..left(string('C>').trim(),
-        (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b))
-    ..left(string('c>').trim(),
-        (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b))
-    ..left(string('C<').trim(),
-        (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b))
-    ..left(string('c<').trim(),
-        (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b))
-    // drop
-    ..left(string('->').trim(),
-        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
-    ..left(string('-<').trim(),
-        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
-    ..left(string('-=').trim(),
-        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
-    ..left(string('-L').trim(),
-        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
-    ..left(string('-l').trim(),
-        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
-    ..left(string('-H').trim(),
-        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
-    ..left(string('-h').trim(),
-        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b));
+    // cap/clamp >=,<=
+    ..left(
+      (pattern('cC') & pattern('<>') & char('=')).flatten().trim(),
+      (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b),
+    )
+    // drop >=,<=
+    ..left(
+      (char('-') & pattern('><') & char('=')).flatten().trim(),
+      (a, op, b) => DropOp(op.toString().toUpperCase(), a, b),
+    );
   builder.group()
-    // count
-    ..left(string('#>').trim(), (a, op, b) => CountOp(op.toString(), a, b))
-    ..left(string('#<').trim(), (a, op, b) => CountOp(op.toString(), a, b))
-    ..left(string('#=').trim(), (a, op, b) => CountOp(op.toString(), a, b));
+    // cap/clamp >,<
+    ..left(
+      (pattern('cC') & pattern('<>')).flatten().trim(),
+      (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b),
+    )
+    // drop <,<,=,L,H
+    ..left(
+      (char('-') & pattern('><=LlHh')).flatten().trim(),
+      (a, op, b) => DropOp(op.toString().toUpperCase(), a, b),
+    );
+  // count >=, <=
+  builder.group().left(
+        (char('#') & pattern('<>') & char('=')).flatten().trim(),
+        (a, op, b) => CountOp(op.toString(), a, b),
+      );
+  // count >, <, =
+  builder.group().left((char('#') & pattern('<>=')).flatten().trim(),
+      (a, op, b) => CountOp(op.toString(), a, b));
   builder
       .group()
       .postfix(char('#').trim(), (a, op) => CountResults(op.toString(), a));

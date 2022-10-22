@@ -78,9 +78,7 @@ Future<int> run({
     final stats = await expression.stats(num: numRolls == 1 ? 500 : numRolls);
     stdout.writeln(stats);
   } else {
-    var i = 0;
     await for (final r in expression.rollN(numRolls)) {
-      i++;
       stdout.writeln("$r");
     }
   }
