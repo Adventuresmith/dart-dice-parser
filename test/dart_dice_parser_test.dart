@@ -148,6 +148,9 @@ void main() {
     // 3rd roll: 4 (explodes 0) (total 4)
     seededRandTest("exploding dice", "9d!6", 48);
 
+    // 1-sided dice cannot explode (is just a roll of 2 dice, )
+    staticRandTest("exploding dice 1-sided no-op", "2d1", 4);
+
     // explode, then count 6's
     seededRandTest("exploding dice and count", "9d!6#=6", 3);
     // explode, then drop less-than-6, then count (should be identical to above)
@@ -161,6 +164,18 @@ void main() {
       final dice = DiceExpression.create('2d6', seededRandom);
       expect(dice.roll(), 8);
       expect(dice.roll(), 6);
+    });
+
+    test("create dice with real random", () {
+      final dice = DiceExpression.create('10d100');
+      final result1 = dice.roll();
+      // result will never be zero -- this test is verifying creating the expr & doing roll
+      expect(result1, isNot(0));
+    });
+
+    test("string method returns expr", () {
+      final dice = DiceExpression.create('2d6# + 5d!6', seededRandom);
+      expect(dice.toString(), '2d6#+5d!6');
     });
 
     test("invalid dice str", () {
