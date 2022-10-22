@@ -1,4 +1,4 @@
-# ???
+# 4.1.0
 - cleanup examples
 - add syntax for `>=` and `<=` for counts, drop, clamp
 - remove redundancy in parser defintion
