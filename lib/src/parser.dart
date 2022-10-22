@@ -17,51 +17,66 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   // d!! needs higher precedence than d!
   builder.group().left(
         string('d!!').trim(),
-        (a, op, b) => ExplodeDice('d!!', a, b, roller, 1),
+        (a, op, b) => ExplodeDice(op.toString(), a, b, roller, 1),
       );
+  // special dice handling need to have higher precedence than 'd'
   builder.group()
     ..postfix(
       string('dF').trim(),
-      (a, operator) => FudgeDice('dF', a, roller),
+      (a, op) => FudgeDice(op.toString(), a, roller),
     )
     ..postfix(
       string('D66').trim(),
-      (a, operator) => D66Dice('D66', a, roller),
+      (a, op) => D66Dice(op.toString(), a, roller),
     )
     ..postfix(
       string('d%').trim(),
-      (a, operator) => PercentDice('d%', a, roller),
+      (a, op) => PercentDice(op.toString(), a, roller),
     )
     ..left(
       string('d!').trim(),
-      (a, op, b) => ExplodeDice('d!', a, b, roller),
+      (a, op, b) => ExplodeDice(op.toString(), a, b, roller),
     );
-  builder
-      .group()
-      .left(char('d').trim(), (a, op, b) => StdDice('d', a, b, roller));
+  builder.group().left(
+      char('d').trim(), (a, op, b) => StdDice(op.toString(), a, b, roller));
   builder.group()
     // cap/clamp
-    ..left(string('C>').trim(), (a, op, b) => ClampOp('C>', a, b))
-    ..left(string('c>').trim(), (a, op, b) => ClampOp('C>', a, b))
-    ..left(string('C<').trim(), (a, op, b) => ClampOp('C<', a, b))
-    ..left(string('c<').trim(), (a, op, b) => ClampOp('C<', a, b))
+    ..left(string('C>').trim(),
+        (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b))
+    ..left(string('c>').trim(),
+        (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b))
+    ..left(string('C<').trim(),
+        (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b))
+    ..left(string('c<').trim(),
+        (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b))
     // drop
-    ..left(string('->').trim(), (a, op, b) => DropOp('->', a, b))
-    ..left(string('-<').trim(), (a, op, b) => DropOp('-<', a, b))
-    ..left(string('-=').trim(), (a, op, b) => DropOp('-=', a, b))
-    ..left(string('-L').trim(), (a, op, b) => DropOp('-L', a, b))
-    ..left(string('-l').trim(), (a, op, b) => DropOp('-L', a, b))
-    ..left(string('-H').trim(), (a, op, b) => DropOp('-H', a, b))
-    ..left(string('-h').trim(), (a, op, b) => DropOp('-H', a, b));
+    ..left(string('->').trim(),
+        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
+    ..left(string('-<').trim(),
+        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
+    ..left(string('-=').trim(),
+        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
+    ..left(string('-L').trim(),
+        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
+    ..left(string('-l').trim(),
+        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
+    ..left(string('-H').trim(),
+        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b))
+    ..left(string('-h').trim(),
+        (a, op, b) => DropOp(op.toString().toUpperCase(), a, b));
   builder.group()
     // count
-    ..left(string('#>').trim(), (a, op, b) => CountOp('#>', a, b))
-    ..left(string('#<').trim(), (a, op, b) => CountOp('#<', a, b))
-    ..left(string('#=').trim(), (a, op, b) => CountOp('#=', a, b));
-  builder.group().postfix(char('#').trim(), (a, op) => CountResults('#', a));
-  builder.group().left(char('*').trim(), (a, op, b) => MultiplyOp('*', a, b));
+    ..left(string('#>').trim(), (a, op, b) => CountOp(op.toString(), a, b))
+    ..left(string('#<').trim(), (a, op, b) => CountOp(op.toString(), a, b))
+    ..left(string('#=').trim(), (a, op, b) => CountOp(op.toString(), a, b));
+  builder
+      .group()
+      .postfix(char('#').trim(), (a, op) => CountResults(op.toString(), a));
+  builder
+      .group()
+      .left(char('*').trim(), (a, op, b) => MultiplyOp(op.toString(), a, b));
   builder.group()
-    ..left(char('+').trim(), (a, op, b) => AddOp('+', a, b))
-    ..left(char('-').trim(), (a, op, b) => SubOp('-', a, b));
+    ..left(char('+').trim(), (a, op, b) => AddOp(op.toString(), a, b))
+    ..left(char('-').trim(), (a, op, b) => SubOp(op.toString(), a, b));
   return builder.build().end();
 }

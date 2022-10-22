@@ -30,7 +30,7 @@ class DiceRoller {
   List<int> roll(int ndice, int nsides, [String msg = '']) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
-    // nextInt is zero-inclusive, add 1 so it starts at 1 like dice
+    // nextInt is zero-inclusive; add 1 so result will be in range 1-nsides
     final results = [
       for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1
     ];

@@ -81,7 +81,7 @@ Future<int> run({
     var i = 0;
     await for (final r in expression.rollN(numRolls)) {
       i++;
-      stdout.writeln("$i: $r");
+      stdout.writeln("$r");
     }
   }
   return 0;

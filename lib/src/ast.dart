@@ -14,7 +14,7 @@ class Value extends DiceExpression {
   List<int> call() => value.isEmpty ? [] : [int.parse(value)];
 
   @override
-  String toString() => '{$value}';
+  String toString() => value;
 }
 
 /// All our operations will inherit from this class.
@@ -38,7 +38,7 @@ abstract class Unary extends DiceOp {
   final DiceExpression left;
 
   @override
-  String toString() => '{$left$name}';
+  String toString() => '$left$name';
 }
 
 /// base class for binary operations
@@ -49,7 +49,7 @@ abstract class Binary extends DiceOp {
   final DiceExpression right;
 
   @override
-  String toString() => '{$left$name$right}';
+  String toString() => '$left$name$right';
 }
 
 /// multiply operation (flattens results)
