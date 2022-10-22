@@ -5,20 +5,17 @@ import 'package:dart_dice_parser/dart_dice_parser.dart';
 import 'package:logging/logging.dart';
 
 void main(List<String> arguments) async {
-  final log = Logger('main');
-  Logger.root.level = Level.FINE;
+  Logger.root.level = Level.INFO;
 
   Logger.root.onRecord.listen((rec) {
     if (rec.level > Level.INFO) {
       stderr.writeln(
         '[${rec.level.name.padLeft(7)}] ${rec.loggerName.padLeft(12)}: ${rec.message}',
       );
-    } else if (rec.level < Level.INFO) {
+    } else {
       stdout.writeln(
         '[${rec.level.name.padLeft(7)}] ${rec.loggerName.padLeft(12)}: ${rec.message}',
       );
-    } else {
-      stdout.writeln(rec.message);
     }
   });
 
@@ -57,7 +54,7 @@ void main(List<String> arguments) async {
 
   final input = results.rest.join(" ");
   if (input.isEmpty) {
-    log.severe("Supply a dice expression. e.g. '2d6+1'");
+    stderr.writeln("Supply a dice expression. e.g. '2d6+1'");
     exit(1);
   }
 
@@ -77,16 +74,14 @@ Future<int> run({
   required DiceExpression expression,
   required bool stats,
 }) async {
-  final log = Logger('run');
-
   if (stats) {
     final stats = await expression.stats(num: numRolls == 1 ? 500 : numRolls);
-    log.info(stats);
+    stdout.writeln(stats);
   } else {
     var i = 0;
     await for (final r in expression.rollN(numRolls)) {
       i++;
-      log.info("$i: $r");
+      stdout.writeln("$i: $r");
     }
   }
   return 0;

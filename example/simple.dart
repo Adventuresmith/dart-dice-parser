@@ -12,11 +12,12 @@ void main() {
     );
   });
 
-  const input = '2d20-L'; // D20 advantage -- roll 2d20, drop lowest
-  final diceExpr = DiceExpression.create(input);
+  // create a roller for D20 advantage (roll 2d20, drop lowest)
+  final dice = DiceExpression.create('2d20-L');
 
-  for (var i = 0; i < 2; i++) {
-    final int result = diceExpr.roll();
-    stdout.writeln("$i : $result");
-  }
+  // each roll returns different results.
+  final int result1 = dice.roll();
+  stdout.writeln("Result1: $result1");
+  final int result2 = dice.roll();
+  stdout.writeln("Result2: $result2");
 }

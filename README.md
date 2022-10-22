@@ -16,10 +16,12 @@ import 'package:dart_dice_parser/dart_dice_parser.dart';
 void main() {
   // create a roller for D20 advantage (roll 2d20, drop lowest)
   final dice = DiceExpression.create('2d20-L');
-  
+
   // each roll returns different results.
   final int result1 = dice.roll();
+  stdout.writeln("Result1: $result1");
   final int result2 = dice.roll();
+  stdout.writeln("Result2: $result2");
 }
 ```
 
