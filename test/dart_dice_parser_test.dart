@@ -151,6 +151,12 @@ void main() {
     // 2nd roll: 5,6 (a six, but shouldn't explode) (total 11)
     seededRandTest("limited exploding dice", "9d!!6", 44);
 
+    test("multiple rolls is multiple results", () {
+      final dice = DiceExpression.create('2d6', seededRandom);
+      expect(dice.roll(), 8);
+      expect(dice.roll(), 6);
+    });
+
     test("invalid dice str", () {
       expect(
         () => DiceExpression.create("1d5 + x2", staticMockRandom).roll(),
