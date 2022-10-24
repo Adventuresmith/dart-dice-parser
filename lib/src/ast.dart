@@ -1,17 +1,23 @@
 import 'package:collection/collection.dart';
 import 'package:dart_dice_parser/src/dice_expression.dart';
 import 'package:dart_dice_parser/src/dice_roller.dart';
+import 'package:dart_dice_parser/src/results.dart';
 import 'package:dart_dice_parser/src/utils.dart';
 
 /// A value expression. The token we read from input will be a String,
-/// an empty string will return empty set.
+/// it must parse as an int, and an empty string will return empty set.
 class Value extends DiceExpression {
-  Value(this.value);
+  Value(this.value)
+      : _results = RollResult(
+          name: value,
+          value: value.isEmpty ? 0 : int.parse(value),
+        );
 
   final String value;
+  final RollResult _results;
 
   @override
-  List<int> call() => value.isEmpty ? [] : [int.parse(value)];
+  RollResult call() => _results;
 
   @override
   String toString() => value;
@@ -20,12 +26,12 @@ class Value extends DiceExpression {
 /// All our operations will inherit from this class.
 abstract class DiceOp extends DiceExpression with LoggingMixin {
   /// each child class should override this to implement their operation
-  List<int> op();
+  RollResult eval();
 
   /// all children can share this call operator -- and it'll let us be consistent w/ regard to logging
   @override
-  List<int> call() {
-    final results = op();
+  RollResult call() {
+    final results = eval();
     logger.finer(() => "$this => $results");
     return results;
   }
@@ -38,7 +44,7 @@ abstract class Unary extends DiceOp {
   final DiceExpression left;
 
   @override
-  String toString() => '$left$name';
+  String toString() => '($left)$name';
 }
 
 /// base class for binary operations
@@ -49,7 +55,7 @@ abstract class Binary extends DiceOp {
   final DiceExpression right;
 
   @override
-  String toString() => '$left$name$right';
+  String toString() => '($left$name$right)';
 }
 
 /// multiply operation (flattens results)
@@ -57,10 +63,13 @@ class MultiplyOp extends Binary {
   MultiplyOp(super.name, super.left, super.right);
 
   @override
-  List<int> op() {
+  RollResult eval() {
     final lhs = resolveToInt(left);
     final rhs = resolveToInt(right);
-    return [lhs * rhs];
+    return RollResult(
+      name: name,
+      value: lhs * rhs,
+    );
   }
 }
 
@@ -69,8 +78,8 @@ class AddOp extends Binary {
   AddOp(super.name, super.left, super.right);
 
   @override
-  List<int> op() {
-    return left() + right(); // concat the two results together
+  RollResult eval() {
+    return left() + right();
   }
 }
 
@@ -79,20 +88,13 @@ class SubOp extends Binary {
   SubOp(super.name, super.left, super.right);
 
   @override
-  List<int> op() {
+  RollResult eval() {
     final lhs = resolveToInt(left);
     final rhs = resolveToInt(right);
-    return [lhs - rhs];
-  }
-}
-
-/// perform lhs operation, and count results.
-class CountResults extends Unary {
-  CountResults(super.name, super.left);
-
-  @override
-  List<int> op() {
-    return [left().length];
+    return RollResult(
+      name: name,
+      value: lhs - rhs,
+    );
   }
 }
 
@@ -101,23 +103,43 @@ class CountOp extends Binary {
   CountOp(super.name, super.left, super.right);
 
   @override
-  List<int> op() {
+  RollResult eval() {
     final lhs = left();
+    List<int> rolls;
+    if (lhs is DiceRollResult) {
+      rolls = lhs.rolls;
+    } else if (lhs is FudgeRollResult) {
+      rolls = lhs.rolls;
+    } else {
+      throw ArgumentError(
+        "Invalid operation ($left)$name -- cannot count arithmetic result",
+      );
+    }
     final target = resolveToInt(right, 1); // if missing, assume '1'
+    final int retval;
     switch (name) {
       case "#>=": // how many results on lhs are greater than or equal to rhs?
-        return [lhs.where((v) => v >= target).length];
+        retval = rolls.where((v) => v >= target).length;
+        break;
       case "#<=": // how many results on lhs are less than or equal to rhs?
-        return [lhs.where((v) => v <= target).length];
+        retval = rolls.where((v) => v <= target).length;
+        break;
       case "#>": // how many results on lhs are greater than rhs?
-        return [lhs.where((v) => v > target).length];
+        retval = rolls.where((v) => v > target).length;
+        break;
       case "#<": // how many results on lhs are less than rhs?
-        return [lhs.where((v) => v < target).length];
+        retval = rolls.where((v) => v < target).length;
+        break;
       case "#=": // how many results on lhs are equal to rhs?
-        return [lhs.where((v) => v == target).length];
+        retval = rolls.where((v) => v == target).length;
+        break;
+      case "#": //how many are in there?
+        retval = rolls.length;
+        break;
       default:
         throw FormatException("unknown roll modifier '$name' in $this");
     }
+    return RollResult(name: name, value: retval);
   }
 }
 
@@ -127,53 +149,120 @@ class DropOp extends Binary {
 
   // override call so we can log from within the op method -- that way, we can have single log line that shows results & dropped
   @override
-  List<int> call() {
-    return op();
+  RollResult call() {
+    return eval();
   }
 
   @override
-  List<int> op() {
+  RollResult eval() {
     final lhs = left();
+    List<int> rolls;
+    if (lhs is DiceRollResult) {
+      rolls = lhs.rolls;
+    } else {
+      throw ArgumentError(
+        "Invalid operation ($left)$name -- can only drop standard dice rolls",
+      );
+    }
     final dropTarget = resolveToInt(right, 1); // if missing, assume '1'
     var results = <int>[];
     var dropped = <int>[];
     switch (name.toUpperCase()) {
       case '-<': // drop <
-        results = lhs.where((v) => v >= dropTarget).toList();
-        dropped = lhs.where((v) => v < dropTarget).toList();
+        results = rolls.where((v) => v >= dropTarget).toList();
+        dropped = rolls.where((v) => v < dropTarget).toList();
         break;
       case '-<=': // drop <=
-        results = lhs.where((v) => v > dropTarget).toList();
-        dropped = lhs.where((v) => v <= dropTarget).toList();
+        results = rolls.where((v) => v > dropTarget).toList();
+        dropped = rolls.where((v) => v <= dropTarget).toList();
         break;
       case '->': // drop >
-        results = lhs.where((v) => v <= dropTarget).toList();
-        dropped = lhs.where((v) => v > dropTarget).toList();
+        results = rolls.where((v) => v <= dropTarget).toList();
+        dropped = rolls.where((v) => v > dropTarget).toList();
         break;
       case '->=': // drop >=
-        results = lhs.where((v) => v < dropTarget).toList();
-        dropped = lhs.where((v) => v >= dropTarget).toList();
+        results = rolls.where((v) => v < dropTarget).toList();
+        dropped = rolls.where((v) => v >= dropTarget).toList();
         break;
       case '-=': // drop =
-        results = lhs.where((v) => v != dropTarget).toList();
-        dropped = lhs.where((v) => v == dropTarget).toList();
-        break;
-      case '-H': // drop high
-        final sorted = lhs..sort();
-        results = sorted.reversed.skip(dropTarget).toList();
-        dropped = sorted.reversed.take(dropTarget).toList();
-        break;
-      case '-L': // drop low
-        final sorted = lhs..sort();
-        results = sorted.skip(dropTarget).toList();
-        dropped = sorted.take(dropTarget).toList();
+        results = rolls.where((v) => v != dropTarget).toList();
+        dropped = rolls.where((v) => v == dropTarget).toList();
         break;
       default:
         throw FormatException("unknown roll modifier '$name' in $this");
     }
 
+    ResultStream().publish("dropped: $dropped");
     logger.finer(() => "$this => $results (dropped: $dropped)");
-    return results;
+    return DiceRollResult(
+      name: name,
+      value: results.sum,
+      ndice: lhs.ndice,
+      nsides: lhs.nsides,
+      rolls: results,
+    );
+  }
+}
+
+/// drop operations -- drop high/low, or drop <,>,= rhs
+class DropHighLowOp extends Binary {
+  DropHighLowOp(super.name, super.left, super.right);
+
+  // override call so we can log from within the op method -- that way, we can have single log line that shows results & dropped
+  @override
+  RollResult call() {
+    return eval();
+  }
+
+  @override
+  RollResult eval() {
+    final lhs = left();
+    List<int> rolls;
+    if (lhs is DiceRollResult) {
+      rolls = lhs.rolls;
+    } else {
+      throw ArgumentError(
+        "Invalid operation ($left)$name -- can only drop standard dice rolls",
+      );
+    }
+    final sorted = rolls..sort();
+    final numToDrop = resolveToInt(right, 1); // if missing, assume '1'
+    var results = <int>[];
+    var dropped = <int>[];
+    switch (name.toUpperCase()) {
+      case '-H': // drop high
+        results = sorted.reversed.skip(numToDrop).toList();
+        dropped = sorted.reversed.take(numToDrop).toList();
+        break;
+      case '-L': // drop low
+        results = sorted.skip(numToDrop).toList();
+        dropped = sorted.take(numToDrop).toList();
+        break;
+      case 'KL':
+        results = sorted.take(numToDrop).toList();
+        dropped = sorted.skip(numToDrop).toList();
+        break;
+      case 'KH':
+        results = sorted.reversed.take(numToDrop).toList();
+        dropped = sorted.reversed.skip(numToDrop).toList();
+        break;
+      case 'K':
+        results = sorted.reversed.take(numToDrop).toList();
+        dropped = sorted.reversed.skip(numToDrop).toList();
+        break;
+      default:
+        throw FormatException("unknown roll modifier '$name' in $this");
+    }
+
+    ResultStream().publish("dropped: $dropped");
+    logger.finer(() => "$this => $results (dropped: $dropped)");
+    return DiceRollResult(
+      name: name,
+      value: results.sum,
+      ndice: lhs.ndice,
+      nsides: lhs.nsides,
+      rolls: results,
+    );
   }
 }
 
@@ -182,45 +271,66 @@ class ClampOp extends Binary {
   ClampOp(super.name, super.left, super.right);
 
   @override
-  List<int> op() {
+  RollResult eval() {
     final lhs = left();
+    List<int> rolls;
+    if (lhs is DiceRollResult) {
+      rolls = lhs.rolls;
+    } else {
+      throw ArgumentError(
+        "Invalid operation ($left)$name -- cannot clamp $left",
+      );
+    }
     final clampTarget = resolveToInt(right, 1); // if missing, assume '1'
+    List<int> results;
     switch (name.toUpperCase()) {
+      // TODO: does <=,<= make any sense?
       case "C>=": // change any value >= rhs to rhs
-        return lhs.map((v) {
+        results = rolls.map((v) {
           if (v >= clampTarget) {
             return clampTarget;
           } else {
             return v;
           }
         }).toList();
+        break;
       case "C<=": // change any value <= rhs to rhs
-        return lhs.map((v) {
+        results = rolls.map((v) {
           if (v <= clampTarget) {
             return clampTarget;
           } else {
             return v;
           }
         }).toList();
+        break;
       case "C>": // change any value > rhs to rhs
-        return lhs.map((v) {
+        results = rolls.map((v) {
           if (v > clampTarget) {
             return clampTarget;
           } else {
             return v;
           }
         }).toList();
+        break;
       case "C<": // change any value < rhs to rhs
-        return lhs.map((v) {
+        results = rolls.map((v) {
           if (v < clampTarget) {
             return clampTarget;
           } else {
             return v;
           }
         }).toList();
+        break;
       default:
         throw FormatException("unknown roll modifier '$name' in $this");
     }
+    return DiceRollResult(
+      name: name,
+      value: results.sum,
+      ndice: lhs.ndice,
+      nsides: lhs.nsides,
+      rolls: results,
+    );
   }
 }
 
@@ -241,7 +351,7 @@ class FudgeDice extends UnaryDice {
   FudgeDice(super.name, super.left, super.roller);
 
   @override
-  List<int> op() {
+  RollResult eval() {
     final ndice = resolveToInt(left, 1);
     return roller.rollFudge(ndice);
   }
@@ -252,7 +362,7 @@ class PercentDice extends UnaryDice {
   PercentDice(super.name, super.left, super.roller);
 
   @override
-  List<int> op() {
+  RollResult eval() {
     final ndice = resolveToInt(left, 1);
     return roller.roll(ndice, 100);
   }
@@ -263,12 +373,20 @@ class D66Dice extends UnaryDice {
   D66Dice(super.name, super.left, super.roller);
 
   @override
-  List<int> op() {
+  RollResult eval() {
     final ndice = resolveToInt(left, 1);
-    return [
+    final results = [
       for (var i = 0; i < ndice; i++)
-        roller.roll(1, 6)[0] * 10 + roller.roll(1, 6)[0]
+        roller.roll(1, 6).value * 10 + roller.roll(1, 6).value
     ];
+    // TODO: 'D66' is not 'd66', how to resolve?
+    return DiceRollResult(
+      name: name,
+      value: results.sum,
+      ndice: ndice,
+      nsides: 66,
+      rolls: results,
+    );
   }
 }
 
@@ -277,34 +395,118 @@ class StdDice extends BinaryDice {
   StdDice(super.name, super.left, super.right, super.roller);
 
   @override
-  List<int> op() {
+  RollResult eval() {
     final ndice = resolveToInt(left, 1);
     final nsides = resolveToInt(right, 1);
+
+    RangeError.checkValueInInterval(
+      ndice,
+      DiceRoller.minDice,
+      DiceRoller.maxDice,
+      '$this: ndice=$ndice',
+    );
+    RangeError.checkValueInInterval(
+      nsides,
+      DiceRoller.minSides,
+      DiceRoller.maxSides,
+      '$this: nsides=$nsides',
+    );
     return roller.roll(ndice, nsides);
   }
 }
 
-/// roll N dice of Y sides, and explode results (re-roll)
-class ExplodeDice extends BinaryDice {
-  ExplodeDice(
+class CompoundingDice extends UnaryDice {
+  CompoundingDice(
     super.name,
     super.left,
-    super.right,
-    super.roller, [
-    this.explodeLimit = DiceRoller.defaultExplodeLimit,
-  ]);
-  int explodeLimit;
+    super.roller, {
+    this.compoundLimit = 100,
+  });
+  final int compoundLimit;
 
   @override
-  List<int> op() {
-    final ndice = resolveToInt(left, 1);
-    final nsides = resolveToInt(right, 1);
-    return roller.rollWithExplode(
-      ndice: ndice,
-      nsides: nsides,
-      explode: true,
-      explodeLimit: explodeLimit,
-    );
+  RollResult eval() {
+    final lhs = left();
+    if (lhs is DiceRollResult) {
+      final results = <int>[];
+      final nsides = lhs.nsides;
+
+      lhs.rolls.forEachIndexed((i, v) {
+        if (v == nsides) {
+          int sum = v;
+          int rerolled;
+          int numCompounded = 0;
+          do {
+            rerolled = roller
+                .roll(1, nsides, "(compound ind $i,  #$numCompounded)")
+                .value;
+            sum += rerolled;
+            numCompounded++;
+          } while (rerolled == nsides && numCompounded < compoundLimit);
+          results.add(sum);
+        } else {
+          results.add(v);
+        }
+      });
+
+      return DiceRollResult(
+        name: "$left$name",
+        value: results.sum,
+        ndice: lhs.ndice,
+        nsides: lhs.nsides,
+        rolls: results,
+        allowAdditionalOps: false,
+      );
+    } else if (lhs is FudgeRollResult) {
+      throw ArgumentError("($left)$name - cannot explode fudge dice");
+    } else {
+      throw ArgumentError("($left)$name - cannot explode arithmetic result");
+    }
+  }
+}
+
+class ExplodingDice extends UnaryDice {
+  ExplodingDice(
+    super.name,
+    super.left,
+    super.roller, {
+    this.explodeLimit = 100,
+  });
+
+  final int explodeLimit;
+
+  @override
+  RollResult eval() {
+    final lhs = left();
+    if (lhs is DiceRollResult) {
+      final accumulated = <int>[];
+      final nsides = lhs.nsides;
+
+      accumulated.addAll(lhs.rolls);
+      var numToRoll = lhs.rolls.where((v) => v == nsides).length;
+      var explodeCount = 0;
+      while (numToRoll > 0 && explodeCount <= explodeLimit) {
+        final results = roller.roll(
+          numToRoll,
+          nsides,
+          "(explode #${explodeCount + 1})",
+        );
+        accumulated.addAll(results.rolls);
+        numToRoll = results.rolls.where((v) => v == nsides).length;
+        explodeCount++;
+      }
+      return DiceRollResult(
+        name: "$left$name",
+        value: accumulated.sum,
+        ndice: lhs.ndice,
+        nsides: lhs.nsides,
+        rolls: accumulated,
+      );
+    } else if (lhs is FudgeRollResult) {
+      throw ArgumentError("($left)$name - cannot explode fudge dice");
+    } else {
+      throw ArgumentError("($left)$name - cannot explode arithmetic result");
+    }
   }
 }
 
@@ -316,5 +518,5 @@ int resolveToInt(DiceExpression expr, [int defaultVal = 0]) {
       return defaultVal;
     }
   }
-  return expr().sum;
+  return expr().value;
 }

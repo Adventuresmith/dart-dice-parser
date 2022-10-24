@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
+import 'package:dart_dice_parser/dart_dice_parser.dart';
 import 'package:logging/logging.dart';
 
 /// A dice roller for M dice of N sides (e.g. `2d6`).
@@ -14,20 +16,20 @@ class DiceRoller {
   /// minimum dice to roll (0)
   static const int minDice = 0;
 
-  /// maximum dice to allow to be rolled (10k)
-  static const int maxDice = 10000;
+  /// maximum dice to allow to be rolled (1k)
+  static const int maxDice = 1000;
 
-  /// minimum sides of dice (1)
-  static const int minSides = 1;
+  /// minimum sides of dice (2)
+  static const int minSides = 2;
 
-  /// maximum sides of dice (1k)
-  static const int maxSides = 1000;
+  /// maximum sides of dice (100k)
+  static const int maxSides = 100000;
 
-  /// default limit to # of times dice rolls can explode (1k)
+  /// default limit to # of times dice rolls can explode (100)
   static const int defaultExplodeLimit = 100;
 
   /// Roll ndice of nsides and return results as list.
-  List<int> roll(int ndice, int nsides, [String msg = '']) {
+  DiceRollResult roll(int ndice, int nsides, [String msg = '']) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
     // nextInt is zero-inclusive; add 1 so result will be in range 1-nsides
@@ -35,52 +37,31 @@ class DiceRoller {
       for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1
     ];
     _log.finest(() => "roll ${ndice}d$nsides => $results $msg");
-    return results;
-  }
-
-  /// return result of rolling given number of nsided dice.
-  List<int> rollWithExplode({
-    required int ndice,
-    required int nsides,
-    bool explode = false,
-    int explodeLimit = defaultExplodeLimit,
-  }) {
-    RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
-    RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
-
-    final results = <int>[];
-    var numToRoll = ndice;
-
-    var explodeCount = 0;
-    while (numToRoll > 0 && explodeCount <= explodeLimit) {
-      final localResults = roll(numToRoll, nsides, "(explode #$explodeCount)");
-      results.addAll(localResults);
-      if (!explode) {
-        break;
-      }
-      if (nsides == 1) {
-        _log.finer("1-sided dice cannot explode");
-        break;
-      }
-
-      explodeCount++;
-      numToRoll = localResults.where((v) => v == nsides).length;
-    }
-
-    _log.finest(() => "roll ${ndice}d!$nsides => $results (explode complete)");
-    return results;
+    return DiceRollResult(
+      name: "${ndice}d$nsides",
+      value: results.sum,
+      ndice: ndice,
+      nsides: nsides,
+      rolls: results,
+    );
   }
 
   static const _fudgeVals = [-1, -1, 0, 0, 1, 1];
 
   /// Roll N fudge dice, return results
-  List<int> rollFudge(int ndice) {
+  FudgeRollResult rollFudge(int ndice) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     final results = [
       for (var i = 0; i < ndice; i++)
         _fudgeVals[_random.nextInt(_fudgeVals.length)]
     ];
     _log.finest(() => "roll ${ndice}dF => $results");
-    return results;
+
+    return FudgeRollResult(
+      name: "${ndice}dF",
+      value: results.sum,
+      ndice: ndice,
+      rolls: results,
+    );
   }
 }

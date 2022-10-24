@@ -1,12 +1,11 @@
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:dart_dice_parser/src/dice_roller.dart';
 import 'package:dart_dice_parser/src/parser.dart';
+import 'package:dart_dice_parser/src/results.dart';
 import 'package:dart_dice_parser/src/stats.dart';
 import 'package:logging/logging.dart';
-
-final _defaultParserBuilder = parserBuilder(DiceRoller());
+import 'package:meta/meta.dart';
 
 /// An abstract expression that can be evaluated.
 abstract class DiceExpression {
@@ -14,9 +13,12 @@ abstract class DiceExpression {
   // TODO: does it make sense to expose more of the AST? Or, have other ways of interrogating a roll result?
 
   static final _log = Logger('DiceExpression');
+  static final _defaultParserBuilder =
+      parserBuilder(DiceRoller(Random.secure()));
 
-  /// parse the given input into a DiceExpression
-  /// throws FormatException if invalid
+  /// Parse the given input into a DiceExpression
+  ///
+  /// Throws [FormatException] if invalid
   static DiceExpression create(String input, [Random? random]) {
     final builder = random == null
         ? _defaultParserBuilder
@@ -33,27 +35,34 @@ abstract class DiceExpression {
   }
 
   /// each operation is callable (when we call the parsed string, this is the method that'll be used)
-  List<int> call();
+  RollResult call();
 
-  /// rolls the dice expression
+  /// Rolls the dice expression
+  ///
+  /// Throws [ArgumentError], [FormatException]
+  @nonVirtual
   int roll() {
     final result = this();
-    final sum = result.sum;
-    _log.fine(() => "$this => $result => $sum");
-    return sum;
+    _log.fine(() => "$this => $result => ${result.value}");
+    return result.value;
   }
 
-  /// Lazy iterable of rolling N times. Results returned as stream.
+  /// Lazy iterable of rolling [num] times. Results returned as stream.
+  ///
+  /// Throws [ArgumentError], [FormatException]
+  @nonVirtual
   Stream<int> rollN(int num) async* {
     for (var i = 0; i < num; i++) {
       yield roll();
     }
   }
 
-  /// Performs N rolls and outputs stats (stddev, mean, min/max, and a histogram)
+  /// Performs [num] rolls and outputs stats (stddev, mean, min/max, and a histogram)
+  ///
+  /// Throws [ArgumentError], [FormatException]
+  @nonVirtual
   Future<Map<String, dynamic>> stats({
     int num = 500,
-    int precision = 3,
   }) async {
     final stats = StatsCollector();
 

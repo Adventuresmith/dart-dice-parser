@@ -60,6 +60,14 @@ void main(List<String> arguments) async {
 
   final diceExpr = DiceExpression.create(input);
 
+  ResultStream().stream.listen(
+    (event) {
+      stdout.writeln("event: $event");
+    },
+    onDone: () => stdout.writeln('Done'),
+    onError: (error) => stderr.writeln(error),
+  );
+
   exit(
     await run(
       expression: diceExpr,

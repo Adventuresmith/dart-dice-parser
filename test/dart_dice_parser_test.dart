@@ -40,12 +40,13 @@ void main() {
   }
 
   group("arithmetic", () {
-    staticRandTest("addition", "1+20", 21);
-    staticRandTest("multi", "3*2", 6);
-    staticRandTest("parens", "(5+6)*2", 22);
-    staticRandTest("order of operations", "5+6*2", 17);
-    staticRandTest("subtraction", "5-6", -1);
-    staticRandTest("subtraction", "5-6", -1);
+    seededRandTest("addition", "1+20", 21);
+    seededRandTest("multi", "3*2", 6);
+    seededRandTest("parens", "(5+6)*2", 22);
+    seededRandTest("order of operations", "5+6*2", 17);
+    seededRandTest("subtraction", "5-6", -1);
+    seededRandTest("subtraction", "5-6", -1);
+    seededRandTest("negative number", "-6", -6); // this will be 0-6
   });
 
   group("dice and arith", () {
@@ -66,6 +67,19 @@ void main() {
     seededRandTest("count # after drop", "4d6-<2#", 3);
   });
 
+  group("keep high/low", () {
+    // mocked responses should return rolls of 6, 2, 1, 5
+    seededRandTest("keep low missing rhs", "4d6kl", 1);
+    seededRandTest("keep low", "4d6kl2", 3);
+    seededRandTest("keep low", "4d6kl3", 8);
+    seededRandTest("keep high missing rhs", "4d6kh", 6);
+    seededRandTest("keep high", "4d6kh2", 11);
+    seededRandTest("keep high", "4d6kh3", 13);
+    seededRandTest("keep high missing rhs", "4d6k", 6);
+    seededRandTest("keep high", "4d6k2", 11);
+    seededRandTest("keep high", "4d6k3", 13);
+  });
+
   group("roll modifiers - drop, clamp, etc", () {
     // mocked responses should return rolls of 6, 2, 1, 5
     seededRandTest("drop high", "4d6-H", 8);
@@ -77,7 +91,6 @@ void main() {
     seededRandTest("drop low - 1", "4d6-l1", 13);
     seededRandTest("drop low - 3", "4d6-l3", 6);
     seededRandTest("drop low and high", "4d6-L-H", 7);
-    seededRandTest("dropping an int drops all", "4-L3", 0);
     seededRandTest("can drop more than rolled", "3d6-H4", 0);
     seededRandTest("can drop more than rolled", "3d6-l4", 0);
     seededRandTest("drop", "4d6->3", 3);
@@ -106,26 +119,40 @@ void main() {
       9,
     );
     seededRandTest("addition combines results - parens", "(2d6+2d6)-L1", 13);
-    seededRandTest("addition combines results", "(2d6+1)-L1", 8);
+    test("cannot drop add result", () {
+      expect(
+        () => DiceExpression.create('(2d6+1)-L1').roll(),
+        throwsArgumentError,
+      );
+    });
   });
 
   group("mult variations", () {
     // mocked responses should return rolls of 6, 2, 1, 5
     seededRandTest("int mult on rhs", "2d6*2", 16);
     seededRandTest("int mult on lhs", "2*2d6", 16);
-    // mult collapses into single result, so dropping will wind up w/ zero return
-    seededRandTest("dropped multiplied results", "(2d6*2)-L", 0);
+    test("cannot drop mult result", () {
+      expect(
+        () => DiceExpression.create('(2d6*2)-L').roll(),
+        throwsArgumentError,
+      );
+    });
   });
 
   group("missing ints", () {
-    staticRandTest("empty string returns zero", "", 0);
-    staticRandTest("empty arith returns zero - add", "+", 0);
-    staticRandTest("empty arith returns zero - mult", "*", 0);
-    staticRandTest("empty ndice is 1", "d6", 2);
-    staticRandTest("whitespace should be swallowed", "2 d6", 4);
-    staticRandTest("whitespace should be swallowed", "2d 6", 4);
-    // weird because mocked random returns '2'
-    staticRandTest("empty nsides is 1", "6d", 12);
+    seededRandTest("empty string returns zero", "", 0);
+    seededRandTest("empty arith returns zero - add", "+", 0);
+    seededRandTest("empty arith returns zero - mult", "*", 0);
+    seededRandTest("empty ndice is 1", "d6", 6);
+    seededRandTest("whitespace should be swallowed", "2 d6", 8);
+    seededRandTest("whitespace should be swallowed", "2d 6", 8);
+
+    test("missing nsides", () {
+      expect(
+        () => DiceExpression.create("6d", seededRandom).roll(),
+        throwsRangeError,
+      );
+    });
   });
 
   group("dice", () {
@@ -143,22 +170,24 @@ void main() {
     staticRandTest("dice expr as sides", "2d(3d6)", 4);
 
     staticRandTest("fudge", "4dF", -4);
+
     // 1st roll: 6, 2, 1, 5, 3, 5, 1, 4, 6, (explodes 2) (total 33)
     // 2nd roll: 5,6 (explodes 1) (total 11)
     // 3rd roll: 4 (explodes 0) (total 4)
-    seededRandTest("exploding dice", "9d!6", 48);
+    seededRandTest("exploding dice", "9d6!", 48);
 
-    // 1-sided dice cannot explode (is just a roll of 2 dice, )
-    staticRandTest("exploding dice 1-sided no-op", "2d1", 4);
+    // 1st round: 6, 2, 1, 5, 3, 5, 1, 4, 6, (compounds 2) (total 33)
+    // 2nd round: 5,                      6 (compounds 1) (total 11)
+    // 3rd round:                         4 (compounds 0) (total 4)
+    // result    11, 2, 1, 5, 3, 5, 1, 4, 16
+    seededRandTest("compounding dice", "9d6!!", 48);
+
+    seededRandTest("compounding dice count", "9d6!!#>6", 2);
 
     // explode, then count 6's
-    seededRandTest("exploding dice and count", "9d!6#=6", 3);
+    seededRandTest("exploding dice and count", "9d6!#=6", 3);
     // explode, then drop less-than-6, then count (should be identical to above)
-    seededRandTest("exploding dice and count variation", "9d!6-<6#", 3);
-
-    // 1st roll: 6, 2, 1, 5, 3, 5, 1, 4, 6, (explodes 2) (total 33)
-    // 2nd roll: 5,6 (a six, but shouldn't explode) (total 11)
-    seededRandTest("limited exploding dice", "9d!!6", 44);
+    seededRandTest("exploding dice and count variation", "9d6!-<6#", 3);
 
     test("multiple rolls is multiple results", () {
       final dice = DiceExpression.create('2d6', seededRandom);
@@ -174,14 +203,20 @@ void main() {
     });
 
     test("string method returns expr", () {
-      final dice = DiceExpression.create('2d6# + 5d!6', seededRandom);
-      expect(dice.toString(), '2d6#+5d!6');
+      final dice = DiceExpression.create('2d6# + 5d6!', seededRandom);
+      expect(dice.toString(), '(((2d6)#)+((5d6))!)');
     });
 
     test("invalid dice str", () {
       expect(
-        () => DiceExpression.create("1d5 + x2", staticMockRandom).roll(),
+        () => DiceExpression.create("1d5 + x2", seededRandom).roll(),
         throwsFormatException,
+      );
+    });
+    test("invalid drop", () {
+      expect(
+        () => DiceExpression.create("4-L3", seededRandom).roll(),
+        throwsArgumentError,
       );
     });
 

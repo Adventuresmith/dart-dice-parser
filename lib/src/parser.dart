@@ -14,11 +14,6 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
       char(')').trim(),
       (left, value, right) => value,
     );
-  // d!! needs higher precedence than d!
-  builder.group().left(
-        string('d!!').trim(),
-        (a, op, b) => ExplodeDice(op.toString(), a, b, roller, 1),
-      );
   // special dice handling need to have higher precedence than 'd'
   builder.group()
     ..postfix(
@@ -32,48 +27,55 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     ..postfix(
       string('d%').trim(),
       (a, op) => PercentDice(op.toString(), a, roller),
-    )
-    ..left(
-      string('d!').trim(),
-      (a, op, b) => ExplodeDice(op.toString(), a, b, roller),
     );
   builder.group().left(
         char('d').trim(),
         (a, op, b) => StdDice(op.toString(), a, b, roller),
       );
+
+  builder.group().postfix(
+        string('!!').trim(),
+        (a, op) => CompoundingDice(op.toString(), a, roller),
+      );
+  builder.group().postfix(
+        char('!').trim(),
+        (a, op) => ExplodingDice(op.toString(), a, roller),
+      );
   builder.group()
     // cap/clamp >=,<=
     ..left(
-      (pattern('cC') & pattern('<>') & char('=')).flatten().trim(),
+      (pattern('cC') & pattern('<>').optional() & char('=').optional())
+          .flatten()
+          .trim(),
       (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b),
     )
-    // drop >=,<=
+    // drop >=,<=,>,<
     ..left(
-      (char('-') & pattern('><') & char('=')).flatten().trim(),
+      (char('-') & pattern('<>') & char('=').optional()).flatten().trim(),
       (a, op, b) => DropOp(op.toString().toUpperCase(), a, b),
-    );
-  builder.group()
-    // cap/clamp >,<
-    ..left(
-      (pattern('cC') & pattern('<>')).flatten().trim(),
-      (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b),
     )
-    // drop <,<,=,L,H
     ..left(
-      (char('-') & pattern('><=LlHh')).flatten().trim(),
+      (string('-=')).flatten().trim(),
       (a, op, b) => DropOp(op.toString().toUpperCase(), a, b),
+    )
+    // drop(-) low, high
+    ..left(
+      (char('-') & pattern('LlHh')).flatten().trim(),
+      (a, op, b) => DropHighLowOp(op.toString().toUpperCase(), a, b),
+    )
+    // keep low/high
+    ..left(
+      (pattern('Kk') & pattern('LlHh').optional()).flatten().trim(),
+      (a, op, b) => DropHighLowOp(op.toString().toUpperCase(), a, b),
     );
-  // count >=, <=
+
+  // count >=, <=, <, >, =, #
   builder.group().left(
-        (char('#') & pattern('<>') & char('=')).flatten().trim(),
+        (char('#') & pattern('<>').optional() & char('=').optional())
+            .flatten()
+            .trim(),
         (a, op, b) => CountOp(op.toString(), a, b),
       );
-  // count >, <, =
-  builder.group().left((char('#') & pattern('<>=')).flatten().trim(),
-      (a, op, b) => CountOp(op.toString(), a, b));
-  builder
-      .group()
-      .postfix(char('#').trim(), (a, op) => CountResults(op.toString(), a));
   builder
       .group()
       .left(char('*').trim(), (a, op, b) => MultiplyOp(op.toString(), a, b));

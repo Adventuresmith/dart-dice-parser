@@ -32,7 +32,9 @@ Other examples:
 * `1d%` -- roll one percentile dice
 * `4dF` -- roll four fudge dice
 * `2d20-H` -- roll 2d20, drop highest (disadvantage)
+  * equivalent to `2d20k` or `2d20kh` or `2d20k1` (keep high)
 * `2d20-L` -- roll 2d20, drop lowest (advantage)
+  * equivalent to `2d20kl` or `2d20kl1`
 * `4d20-H-L` -- roll 4d20, drop highest and lowest
 * `10d10-L3` -- roll 10d10, drop 3 lowest results
 * `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists, and drop lowest 3 results
@@ -50,11 +52,17 @@ Other examples:
     uppercase `D66`, lowercase `d66` will be interpreted as 66-sided die)
 
   * exploding dice
-    * `Ad!X` -- roll `A` `X`-sided dice, explode if max is rolled (re-roll and include in results)
+    * `AdX!` -- roll `A` `X`-sided dice, explode if max (`X`) is rolled (re-roll and include in results)
       * the dice roller won't explode dice more than 100 times.
-    * `Ad!!X` -- roll `A` `X`-sided dice, explode only once (limited explosion)
+  * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each 
+    dice are added together as a single "roll"
+    * `AdX!!` -- roll `A` `X`-sided dice, compound
 
 * modifying the roll results:
+  * keeping dice:
+    * `AdXkN` -- roll `A` `X`-sided dice, keep N highest
+    * `AdXkhN` -- roll `A` `X`-sided dice, keep N highest
+    * `AdXklN` -- roll `A` `X`-sided dice, keep N lowest
   * dropping dice:
     * `AdX-HN` -- roll `A` `X`-sided dice, drop N highest
     * `AdX-LN` -- roll `A` `X`-sided dice, drop N lowest
