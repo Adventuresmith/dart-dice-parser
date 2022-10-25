@@ -254,6 +254,11 @@ void main() {
     // explode, then drop less-than-6, then count (should be identical to above)
     seededRandTest("exploding dice and count variation", "9d6!-<6#", 3);
 
+    // different dice pools can be combined
+    seededRandTest("differing nsides addition", "4d4 + 4d6", 25);
+    // fudge dice can be rolled
+    seededRandTest("differing nsides addition", "4dF + 6dF", 2);
+
     test("multiple rolls is multiple results", () {
       final dice = DiceExpression.create('2d6', seededRandom);
       expect(dice.roll(), 8);
@@ -278,36 +283,23 @@ void main() {
         throwsFormatException,
       );
     });
-    test("invalid drop", () {
-      expect(
-        () => DiceExpression.create("4-L3", seededRandom).roll(),
-        throwsArgumentError,
-      );
-    });
-    test("invalid explode - arithmetic", () {
-      expect(
-        () => DiceExpression.create("4!", seededRandom).roll(),
-        throwsArgumentError,
-      );
-    });
-    test("invalid explode -fudge ", () {
-      expect(
-        () => DiceExpression.create("4dF!", seededRandom).roll(),
-        throwsArgumentError,
-      );
-    });
-    test("invalid compound - arithmetic", () {
-      expect(
-        () => DiceExpression.create("(2d6+1)!!", seededRandom).roll(),
-        throwsArgumentError,
-      );
-    });
-    test("invalid compound -fudge ", () {
-      expect(
-        () => DiceExpression.create("4dF!!", seededRandom).roll(),
-        throwsArgumentError,
-      );
-    });
+    final invalids = [
+      '4d6 + 4dF',
+      '4dF + 4d6',
+      "4-L3",
+      "4!",
+      "4dF!",
+      "4dF!!",
+      "(2d6+1)!!",
+    ];
+    for (final i in invalids) {
+      test("invalid - $i", () {
+        expect(
+          () => DiceExpression.create(i, seededRandom).roll(),
+          throwsArgumentError,
+        );
+      });
+    }
 
     test("rollN test", () {
       // mocked responses should return rolls of 6, 2, 1, 5
