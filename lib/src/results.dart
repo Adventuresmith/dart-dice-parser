@@ -36,8 +36,6 @@ class RollResult extends Equatable {
         value,
       ];
 
-  int get length => 1;
-
   RollResult operator +(RollResult other) {
     return RollResult(
       name: "$name + ${other.name}",
@@ -69,9 +67,6 @@ class DiceRollResult extends RollResult {
         rolls,
         allowAdditionalOps,
       ];
-
-  @override
-  int get length => rolls.length;
 
   @override
   RollResult operator +(RollResult other) {
@@ -123,9 +118,6 @@ class FudgeRollResult extends RollResult {
         ndice,
         rolls,
       ];
-
-  @override
-  int get length => rolls.length;
 
   @override
   RollResult operator +(RollResult other) {
