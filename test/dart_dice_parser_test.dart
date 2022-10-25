@@ -67,6 +67,14 @@ void main() {
     seededRandTest("count # after drop", "4d6-<2#", 3);
     seededRandTest("count # after drop", "4d6#1", 1);
     seededRandTest("count # after drop", "4d6#=1", 1);
+
+    // 1234 seed will return  [1, -1, -1, 1, 0, 1]
+    seededRandTest("count fudge", "6dF#", 6);
+    seededRandTest("count fudge", "6dF#=1", 3);
+    seededRandTest("count fudge", "6dF#=0", 1);
+    seededRandTest("count fudge", "6dF#<0", 2);
+    seededRandTest("count fudge", "6dF#>0", 3);
+
     final invalids = [
       '4d6#=',
       '4d6#<=',
