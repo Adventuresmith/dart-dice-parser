@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
@@ -25,6 +26,11 @@ void main(List<String> arguments) async {
       abbr: "n",
       help: "number of times to roll the expression",
       defaultsTo: "1",
+    )
+    ..addOption(
+      "seed",
+      abbr: "S",
+      help: "random seed to use. if not supplied, will use Random.secure()",
     )
     ..addFlag(
       "verbose",
@@ -57,8 +63,11 @@ void main(List<String> arguments) async {
     stderr.writeln("Supply a dice expression. e.g. '2d6+1'");
     exit(1);
   }
+  final random = results["seed"] == null
+      ? Random.secure()
+      : Random(int.parse(results['seed'] as String));
 
-  final diceExpr = DiceExpression.create(input);
+  final diceExpr = DiceExpression.create(input, random);
 
   ResultStream().stream.listen(
     (event) {
