@@ -112,7 +112,7 @@ class CountOp extends Binary {
       rolls = lhs.rolls;
     } else {
       throw ArgumentError(
-        "Invalid operation ($left)$name -- cannot count arithmetic result",
+        "Invalid operation $this-- cannot count arithmetic result",
       );
     }
     final target = resolveToInt(right, defaultVal: -1);
@@ -169,7 +169,7 @@ class DropOp extends Binary {
       rolls = lhs.rolls;
     } else {
       throw ArgumentError(
-        "Invalid operation ($left)$name -- can only drop standard dice rolls",
+        "Invalid operation $this -- can only drop standard dice rolls",
       );
     }
     final dropTarget = resolveToInt(
@@ -234,7 +234,7 @@ class DropHighLowOp extends Binary {
       rolls = lhs.rolls;
     } else {
       throw ArgumentError(
-        "Invalid operation ($left)$name -- can only drop standard dice rolls",
+        "Invalid operation $this -- can only drop standard dice rolls",
       );
     }
     final sorted = rolls..sort();
@@ -291,7 +291,7 @@ class ClampOp extends Binary {
       rolls = lhs.rolls;
     } else {
       throw ArgumentError(
-        "Invalid operation ($left)$name -- can only clamp dice rolls",
+        "Invalid operation $this -- can only clamp dice rolls",
       );
     }
     final clampTarget = resolveToInt(

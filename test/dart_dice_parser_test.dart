@@ -139,6 +139,7 @@ void main() {
       '(4d6+1)-L',
       '(1)-L',
       '(1)C<=1',
+      '(4dF)C<=1',
     ];
     for (final v in invalids) {
       test("invalid drop - $v", () {
