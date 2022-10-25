@@ -53,10 +53,20 @@ Other examples:
 
   * exploding dice
     * `AdX!` -- roll `A` `X`-sided dice, explode if max (`X`) is rolled (re-roll and include in results)
-      * the dice roller won't explode dice more than 100 times.
+      * `AdX!=N` or `AdX!N` -- explode a roll if equal to N (default X)
+      * `AdX!>=N` - explode if >= N
+      * `AdX!<=N` - explode if >= N
+      * `AdX!>N` - explode if > N
+      * `AdX!<N` - explode if > N
+      * NOTE: the dice roller won't explode dice more than 100 times.
   * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each 
     dice are added together as a single "roll"
     * `AdX!!` -- roll `A` `X`-sided dice, compound
+      * `AdX!!=N` or `AdX!N` -- compound a roll if equal to N (default X)
+      * `AdX!!>=N` - compound if >= N
+      * `AdX!!<=N` - compound if >= N
+      * `AdX!!>N` - compound if > N
+      * `AdX!!<N` - compound if > N
 
 * modifying the roll results:
   * keeping dice:

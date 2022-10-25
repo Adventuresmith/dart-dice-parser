@@ -175,14 +175,32 @@ void main() {
     // 2nd roll: 5,6 (explodes 1) (total 11)
     // 3rd roll: 4 (explodes 0) (total 4)
     seededRandTest("exploding dice", "9d6!", 48);
+    seededRandTest("exploding dice", "9d6!6", 48);
+    seededRandTest("exploding dice", "9d6!=6", 48);
+    seededRandTest("exploding dice", "9d6!>=6", 48);
+    seededRandTest("exploding dice", "9d6!>5", 48);
+
+    seededRandTest("exploding dice", "9d6!1", 44);
+    seededRandTest("exploding dice", "9d6!>=5", 56);
+    seededRandTest("exploding dice", "9d6!<2", 44);
+    seededRandTest("exploding dice", "9d6!<=3", 54);
 
     // 1st round: 6, 2, 1, 5, 3, 5, 1, 4, 6, (compounds 2) (total 33)
     // 2nd round: 5,                      6 (compounds 1) (total 11)
     // 3rd round:                         4 (compounds 0) (total 4)
     // result    11, 2, 1, 5, 3, 5, 1, 4, 16
     seededRandTest("compounding dice", "9d6!!", 48);
+    seededRandTest("compounding dice", "9d6!!6", 48);
+    seededRandTest("compounding dice", "9d6!!=6", 48);
+    seededRandTest("compounding dice", "9d6!!>=6", 48);
+    seededRandTest("compounding dice", "9d6!!>5", 48);
 
     seededRandTest("compounding dice count", "9d6!!#>6", 2);
+
+    seededRandTest("compounding dice", "9d6!!>=5", 56);
+    seededRandTest("compounding dice", "9d6!!<3", 48);
+    seededRandTest("compounding dice", "9d6!!<=3", 54);
+    seededRandTest("compounding dice", "9d6!!1", 44);
 
     // explode, then count 6's
     seededRandTest("exploding dice and count", "9d6!#=6", 3);
@@ -204,7 +222,7 @@ void main() {
 
     test("string method returns expr", () {
       final dice = DiceExpression.create('2d6# + 5d6!', seededRandom);
-      expect(dice.toString(), '(((2d6)#)+((5d6))!)');
+      expect(dice.toString(), '(((2d6)#)+((5d6)!))');
     });
 
     test("invalid dice str", () {

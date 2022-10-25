@@ -33,15 +33,21 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
         (a, op, b) => StdDice(op.toString(), a, b, roller),
       );
 
-  builder.group().postfix(
-        string('!!').trim(),
-        (a, op) => CompoundingDice(op.toString(), a, roller),
-      );
-  builder.group().postfix(
-        char('!').trim(),
-        (a, op) => ExplodingDice(op.toString(), a, roller),
+  // compounding dice
+  builder.group().left(
+        (string('!!') & pattern('<>').optional() & char('=').optional())
+            .flatten()
+            .trim(),
+        (a, op, b) => CompoundingDice(op.toString(), a, b, roller),
       );
   builder.group()
+    // exploding
+    ..left(
+      (char('!') & pattern('<>').optional() & char('=').optional())
+          .flatten()
+          .trim(),
+      (a, op, b) => ExplodingDice(op.toString(), a, b, roller),
+    )
     // cap/clamp >=,<=
     ..left(
       (pattern('cC') & pattern('<>').optional() & char('=').optional())

@@ -415,10 +415,11 @@ class StdDice extends BinaryDice {
   }
 }
 
-class CompoundingDice extends UnaryDice {
+class CompoundingDice extends BinaryDice {
   CompoundingDice(
     super.name,
     super.left,
+    super.right,
     super.roller, {
     this.compoundLimit = 100,
   });
@@ -431,8 +432,30 @@ class CompoundingDice extends UnaryDice {
       final results = <int>[];
       final nsides = lhs.nsides;
 
+      final compoundTarget =
+          resolveToInt(right, nsides); // if missing, assume nsides
+
+      bool test(int val) {
+        switch (name) {
+          case '!!': // equality
+            return val == compoundTarget;
+          case '!!=':
+            return val == compoundTarget;
+          case '!!<':
+            return val < compoundTarget;
+          case '!!>':
+            return val > compoundTarget;
+          case '!!<=':
+            return val <= compoundTarget;
+          case '!!>=':
+            return val >= compoundTarget;
+          default:
+            throw FormatException("unknown explode modifier '$name' in $this");
+        }
+      }
+
       lhs.rolls.forEachIndexed((i, v) {
-        if (v == nsides) {
+        if (test(v)) {
           int sum = v;
           int rerolled;
           int numCompounded = 0;
@@ -442,7 +465,7 @@ class CompoundingDice extends UnaryDice {
                 .value;
             sum += rerolled;
             numCompounded++;
-          } while (rerolled == nsides && numCompounded < compoundLimit);
+          } while (test(rerolled) && numCompounded < compoundLimit);
           results.add(sum);
         } else {
           results.add(v);
@@ -465,10 +488,11 @@ class CompoundingDice extends UnaryDice {
   }
 }
 
-class ExplodingDice extends UnaryDice {
+class ExplodingDice extends BinaryDice {
   ExplodingDice(
     super.name,
     super.left,
+    super.right,
     super.roller, {
     this.explodeLimit = 100,
   });
@@ -478,12 +502,35 @@ class ExplodingDice extends UnaryDice {
   @override
   RollResult eval() {
     final lhs = left();
+
     if (lhs is DiceRollResult) {
       final accumulated = <int>[];
+
       final nsides = lhs.nsides;
+      final explodeTarget =
+          resolveToInt(right, nsides); // if missing, assume nsides
+
+      bool test(int val) {
+        switch (name) {
+          case '!': // equality
+            return val == explodeTarget;
+          case '!=':
+            return val == explodeTarget;
+          case '!<':
+            return val < explodeTarget;
+          case '!>':
+            return val > explodeTarget;
+          case '!<=':
+            return val <= explodeTarget;
+          case '!>=':
+            return val >= explodeTarget;
+          default:
+            throw FormatException("unknown explode modifier '$name' in $this");
+        }
+      }
 
       accumulated.addAll(lhs.rolls);
-      var numToRoll = lhs.rolls.where((v) => v == nsides).length;
+      var numToRoll = lhs.rolls.where(test).length;
       var explodeCount = 0;
       while (numToRoll > 0 && explodeCount <= explodeLimit) {
         final results = roller.roll(
@@ -492,7 +539,7 @@ class ExplodingDice extends UnaryDice {
           "(explode #${explodeCount + 1})",
         );
         accumulated.addAll(results.rolls);
-        numToRoll = results.rolls.where((v) => v == nsides).length;
+        numToRoll = results.rolls.where(test).length;
         explodeCount++;
       }
       return DiceRollResult(

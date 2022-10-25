@@ -1,11 +1,12 @@
 # ?.?.?
 - add compounding dice: `5d6!!`
 - add keep high/low: `2d20k`
-- remove `!!` as 'limited explosion'
+- allow exploding/compounding dice to have an rhs expression (>=,<=,=,<,>)
+- remove `!!` as 'limited explosion' (make it compounding, like Roll20 dice notation)
 - fix syntax for exploding dice (2d6!, not 2d!6). 
-- remove exploding method from dice roller -- now it's part of the AST. 
+- remove exploding method from DiceRoller -- now it's part of the AST. 
 - dice rolls return RollResult
-- clean redundant parser config
+- clean up redundant parser config
 
 # 4.1.0
 - cleanup examples
