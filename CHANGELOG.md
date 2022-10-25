@@ -1,4 +1,4 @@
-# ?.?.?
+# 5.0.0
 - add compounding dice: `5d6!!`
 - add keep high/low: `2d20k`
 - add reroll: `10d4 r<=2`
