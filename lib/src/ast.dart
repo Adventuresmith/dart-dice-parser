@@ -498,9 +498,9 @@ class CompoundingDice extends BinaryDice {
         allowAdditionalOps: false,
       );
     } else if (lhs is FudgeRollResult) {
-      throw ArgumentError("($left)$name - cannot explode fudge dice");
+      throw ArgumentError("($left)$name - cannot compound fudge dice");
     } else {
-      throw ArgumentError("($left)$name - cannot explode arithmetic result");
+      throw ArgumentError("($left)$name - cannot compound arithmetic result");
     }
   }
 }
@@ -583,7 +583,7 @@ int resolveToInt(
 }) {
   if (expr is Value && expr.value.isEmpty) {
     if (ifMissingThrowWithMsg.isNotEmpty) {
-      throw const FormatException("missing rhs of expression");
+      throw FormatException(ifMissingThrowWithMsg);
     } else {
       return defaultVal;
     }

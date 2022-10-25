@@ -134,6 +134,20 @@ void main() {
     // mocked responses should return rolls of 6, 2, 1, 5, 3
     // [6,2] + [1,5,3] = [6,2,1,5,3]-L3 => [6,5] = 9
     seededRandTest("drop low on aggregated dice", "(2d6+3d6)-L3", 11);
+
+    final invalids = [
+      '(4d6+1)-L',
+      '(1)-L',
+      '(1)C<=1',
+    ];
+    for (final v in invalids) {
+      test("invalid drop - $v", () {
+        expect(
+          () => DiceExpression.create(v).roll(),
+          throwsArgumentError,
+        );
+      });
+    }
   });
 
   group("addition combines", () {
@@ -266,6 +280,30 @@ void main() {
     test("invalid drop", () {
       expect(
         () => DiceExpression.create("4-L3", seededRandom).roll(),
+        throwsArgumentError,
+      );
+    });
+    test("invalid explode - arithmetic", () {
+      expect(
+        () => DiceExpression.create("4!", seededRandom).roll(),
+        throwsArgumentError,
+      );
+    });
+    test("invalid explode -fudge ", () {
+      expect(
+        () => DiceExpression.create("4dF!", seededRandom).roll(),
+        throwsArgumentError,
+      );
+    });
+    test("invalid compound - arithmetic", () {
+      expect(
+        () => DiceExpression.create("(2d6+1)!!", seededRandom).roll(),
+        throwsArgumentError,
+      );
+    });
+    test("invalid compound -fudge ", () {
+      expect(
+        () => DiceExpression.create("4dF!!", seededRandom).roll(),
         throwsArgumentError,
       );
     });
