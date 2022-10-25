@@ -267,6 +267,8 @@ void main() {
     seededRandTest("differing nsides addition", "4d4 + 4d6", 25);
     // fudge dice can be rolled
     seededRandTest("differing nsides addition", "4dF + 6dF", 2);
+    // fudge dice can be added to [1, -1, -1, 1]
+    seededRandTest("differing nsides addition", "4dF + 1", 1);
 
     test("multiple rolls is multiple results", () {
       final dice = DiceExpression.create('2d6', seededRandom);
