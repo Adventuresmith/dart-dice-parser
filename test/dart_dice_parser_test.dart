@@ -202,6 +202,15 @@ void main() {
     });
   });
 
+  group("reroll", () {
+    seededRandTest("reroll", "10d4 r=3", 35);
+    seededRandTest("reroll", "10d4 r3", 35);
+    seededRandTest("reroll", "10d4 r<2", 33);
+    seededRandTest("reroll", "10d4 r>2", 16);
+    seededRandTest("reroll", "10d4 r<=3", 40);
+    seededRandTest("reroll", "10d4 r>=2", 10);
+  });
+
   group("dice", () {
     staticRandTest("order of operations, with dice", "5 + 6 * 2d6", 29);
 

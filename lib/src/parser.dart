@@ -41,6 +41,13 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
         (a, op, b) => CompoundingDice(op.toString(), a, b, roller),
       );
   builder.group()
+    // reroll
+    ..left(
+      (pattern('rR') & pattern('<>').optional() & char('=').optional())
+          .flatten()
+          .trim(),
+      (a, op, b) => RerollDice(op.toString().toUpperCase(), a, b, roller),
+    )
     // exploding
     ..left(
       (char('!') & pattern('<>').optional() & char('=').optional())

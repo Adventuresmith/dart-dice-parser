@@ -432,6 +432,78 @@ class StdDice extends BinaryDice {
   }
 }
 
+class RerollDice extends BinaryDice {
+  RerollDice(
+    super.name,
+    super.left,
+    super.right,
+    super.roller, {
+    this.limit = 100,
+  });
+  final int limit;
+
+  @override
+  RollResult eval() {
+    final lhs = left();
+    if (lhs is DiceRollResult) {
+      final results = <int>[];
+      final nsides = lhs.nsides;
+
+      final target = resolveToInt(
+        right,
+        ifMissingThrowWithMsg: "missing rhs condition for reroll $this",
+      );
+
+      bool test(int val) {
+        switch (name) {
+          case 'R': // equality
+            return val == target;
+          case 'R=':
+            return val == target;
+          case 'R<':
+            return val < target;
+          case 'R>':
+            return val > target;
+          case 'R<=':
+            return val <= target;
+          case 'R>=':
+            return val >= target;
+          default:
+            throw FormatException("unknown reroll modifier '$name' in $this");
+        }
+      }
+
+      lhs.rolls.forEachIndexed((i, v) {
+        if (test(v)) {
+          int rerolled;
+          int rerollCount = 0;
+          do {
+            rerolled =
+                roller.roll(1, nsides, "(reroll ind $i,  #$rerollCount)").value;
+            rerollCount++;
+          } while (test(rerolled) && rerollCount < limit);
+          results.add(rerolled);
+        } else {
+          results.add(v);
+        }
+      });
+
+      return DiceRollResult(
+        name: "$left$name",
+        value: results.sum,
+        ndice: lhs.ndice,
+        nsides: lhs.nsides,
+        rolls: results,
+        allowAdditionalOps: false,
+      );
+    } else if (lhs is FudgeRollResult) {
+      throw ArgumentError("($left)$name - cannot compound fudge dice");
+    } else {
+      throw ArgumentError("($left)$name - cannot compound arithmetic result");
+    }
+  }
+}
+
 class CompoundingDice extends BinaryDice {
   CompoundingDice(
     super.name,

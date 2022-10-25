@@ -11,7 +11,7 @@ class ResultStream {
   static final _singleton = ResultStream._internal();
   static final _logger = Logger('ResultStream');
 
-  final _controller = StreamController<String>.broadcast(
+  final _controller = StreamController<String>(
     onCancel: () => _logger.finest('Cancelled'),
     onListen: () => _logger.finest('Listens'),
   );

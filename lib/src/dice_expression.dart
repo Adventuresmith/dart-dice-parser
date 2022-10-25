@@ -13,16 +13,15 @@ abstract class DiceExpression {
   // TODO: does it make sense to expose more of the AST? Or, have other ways of interrogating a roll result?
 
   static final _log = Logger('DiceExpression');
-  static final _defaultParserBuilder =
-      parserBuilder(DiceRoller(Random.secure()));
 
   /// Parse the given input into a DiceExpression
   ///
   /// Throws [FormatException] if invalid
-  static DiceExpression create(String input, [Random? random]) {
-    final builder = random == null
-        ? _defaultParserBuilder
-        : parserBuilder(DiceRoller(random));
+  static DiceExpression create(
+    String input, [
+    Random? random,
+  ]) {
+    final builder = parserBuilder(DiceRoller(random));
     final result = builder.parse(input);
     if (result.isFailure) {
       throw FormatException(

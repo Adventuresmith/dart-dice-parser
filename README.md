@@ -50,7 +50,8 @@ Other examples:
   * `Ad%` -- roll `A` percentile dice (equivalent to `1d100`)
   * `AD66` -- roll `A` D66, aka `1d6*10 + 1d6` (NOTE: you _must_ use
     uppercase `D66`, lowercase `d66` will be interpreted as 66-sided die)
-
+  
+* modifying the roll results:
   * exploding dice
     * `AdX!` -- roll `A` `X`-sided dice, explode if max (`X`) is rolled (re-roll and include in results)
       * `AdX!=N` or `AdX!N` -- explode a roll if equal to N (default X)
@@ -59,7 +60,7 @@ Other examples:
       * `AdX!>N` - explode if > N
       * `AdX!<N` - explode if > N
       * NOTE: the dice roller won't explode dice more than 100 times.
-  * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each 
+  * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each
     dice are added together as a single "roll"
     * `AdX!!` -- roll `A` `X`-sided dice, compound
       * `AdX!!=N` or `AdX!N` -- compound a roll if equal to N (default X)
@@ -67,12 +68,17 @@ Other examples:
       * `AdX!!<=N` - compound if >= N
       * `AdX!!>N` - compound if > N
       * `AdX!!<N` - compound if > N
-
-* modifying the roll results:
+  * re-rolling dice:
+    * `AdX rN` -- roll `A` `X`-sided dice, re-roll any N
+    * `AdX r=N` -- roll `A` `X`-sided dice, re-roll any N
+    * `AdX r<=N` -- roll `A` `X`-sided dice, re-roll any <= N
+    * `AdX r>=N` -- roll `A` `X`-sided dice, re-roll any >= N
+    * `AdX r<N` -- roll `A` `X`-sided dice, re-roll any < N
+    * `AdX r>N` -- roll `A` `X`-sided dice, re-roll any > N
   * keeping dice:
-    * `AdXkN` -- roll `A` `X`-sided dice, keep N highest
-    * `AdXkhN` -- roll `A` `X`-sided dice, keep N highest
-    * `AdXklN` -- roll `A` `X`-sided dice, keep N lowest
+    * `AdX k N` -- roll `A` `X`-sided dice, keep N highest
+    * `AdX kh N` -- roll `A` `X`-sided dice, keep N highest
+    * `AdX kl N` -- roll `A` `X`-sided dice, keep N lowest
   * dropping dice:
     * `AdX-HN` -- roll `A` `X`-sided dice, drop N highest
     * `AdX-LN` -- roll `A` `X`-sided dice, drop N lowest
@@ -84,19 +90,19 @@ Other examples:
     * NOTE: the drop operators have higher precedence than
       the arithmetic operators; `4d10-L2+2` is equivalent to `(4d10-L2)+2`
   * cap/clamp:
-    * `AdXC<B` -- roll `A` `X`-sided dice, change any value < B to B
-    * `AdXC>B` -- roll `A` `X`-sided dice, change any value > B to B
-    * `AdXC<=B` -- roll `A` `X`-sided dice, change any value <= B to B
-    * `AdXC>=B` -- roll `A` `X`-sided dice, change any value >= B to B
+    * `AdX C<B` -- roll `A` `X`-sided dice, change any value < B to B
+    * `AdX C>B` -- roll `A` `X`-sided dice, change any value > B to B
+    * `AdX C<=B` -- roll `A` `X`-sided dice, change any value <= B to B
+    * `AdX C>=B` -- roll `A` `X`-sided dice, change any value >= B to B
 * operations on dice rolls:
   * counting:
-    * `AdX#` -- how many results? 
+    * `AdX #` -- how many results? 
       * For example, you might use this to count # of dice above a target. `5d10-<6` -- roll 5 d10, drop any 5 or under, count results
-    * `AdX#>B` -- roll `A` `X`-sided dice, count any greater than B
-    * `AdX#<B` -- roll `A` `X`-sided dice, count any less than B
-    * `AdX#>=B` -- roll `A` `X`-sided dice, count any greater than or equal to B
-    * `AdX#<=B` -- roll `A` `X`-sided dice, count any less than or equal to B
-    * `AdX#=B` -- roll `A` `X`-sided dice, count any equal to B
+    * `AdX #>B` -- roll `A` `X`-sided dice, count any greater than B
+    * `AdX #<B` -- roll `A` `X`-sided dice, count any less than B
+    * `AdX #>=B` -- roll `A` `X`-sided dice, count any greater than or equal to B
+    * `AdX #<=B` -- roll `A` `X`-sided dice, count any less than or equal to B
+    * `AdX #=B` -- roll `A` `X`-sided dice, count any equal to B
 * arithmetic operations
   * parenthesis for order of operations
   * addition is a little special -- could be a sum of ints, or it can be used to aggregate results of multiple dice rolls

@@ -1,6 +1,7 @@
 # ?.?.?
 - add compounding dice: `5d6!!`
 - add keep high/low: `2d20k`
+- add reroll: `10d4 r<=2`
 - allow exploding/compounding dice to have an rhs expression (>=,<=,=,<,>)
 - remove `!!` as 'limited explosion' (make it compounding, like Roll20 dice notation)
 - fix syntax for exploding dice (2d6!, not 2d!6). 
