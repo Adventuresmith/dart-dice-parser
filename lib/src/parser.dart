@@ -75,13 +75,14 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
       (a, op, b) => DropHighLowOp(op.toString().toUpperCase(), a, b),
     );
 
-  // count >=, <=, <, >, =, #
+  // count >=, <=, <, >, =,
   builder.group().left(
         (char('#') & pattern('<>').optional() & char('=').optional())
             .flatten()
             .trim(),
         (a, op, b) => CountOp(op.toString(), a, b),
       );
+
   builder
       .group()
       .left(char('*').trim(), (a, op, b) => MultiplyOp(op.toString(), a, b));

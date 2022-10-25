@@ -65,6 +65,23 @@ void main() {
     seededRandTest("count > (missing from result)", "4d6#>6", 0);
     seededRandTest("count #", "4d6#", 4);
     seededRandTest("count # after drop", "4d6-<2#", 3);
+    seededRandTest("count # after drop", "4d6#1", 1);
+    seededRandTest("count # after drop", "4d6#=1", 1);
+    final invalids = [
+      '4d6#=',
+      '4d6#<=',
+      '4d6#>=',
+      '4d6#>',
+      '4d6#<',
+    ];
+    for (final v in invalids) {
+      test("invalid count - $v", () {
+        expect(
+          () => DiceExpression.create(v).roll(),
+          throwsFormatException,
+        );
+      });
+    }
   });
 
   group("keep high/low", () {
@@ -114,14 +131,21 @@ void main() {
   group("addition combines", () {
     // mocked responses should return rolls of 6, 2, 1, 5
     seededRandTest(
-      "addition combines results (drop is higher order than plus)",
+      "addition combines results (drop is higher priority than plus)",
       "3d6+1d6-L1",
       9,
     );
     seededRandTest("addition combines results - parens", "(2d6+2d6)-L1", 13);
-    test("cannot drop add result", () {
+
+    test("cannot drop arith result", () {
       expect(
         () => DiceExpression.create('(2d6+1)-L1').roll(),
+        throwsArgumentError,
+      );
+    });
+    test("cannot count arith result", () {
+      expect(
+        () => DiceExpression.create('(2d6+1)#1').roll(),
         throwsArgumentError,
       );
     });

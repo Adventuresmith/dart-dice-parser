@@ -115,30 +115,38 @@ class CountOp extends Binary {
         "Invalid operation ($left)$name -- cannot count arithmetic result",
       );
     }
-    final target = resolveToInt(right, 1); // if missing, assume '1'
-    final int retval;
-    switch (name) {
-      case "#>=": // how many results on lhs are greater than or equal to rhs?
-        retval = rolls.where((v) => v >= target).length;
-        break;
-      case "#<=": // how many results on lhs are less than or equal to rhs?
-        retval = rolls.where((v) => v <= target).length;
-        break;
-      case "#>": // how many results on lhs are greater than rhs?
-        retval = rolls.where((v) => v > target).length;
-        break;
-      case "#<": // how many results on lhs are less than rhs?
-        retval = rolls.where((v) => v < target).length;
-        break;
-      case "#=": // how many results on lhs are equal to rhs?
-        retval = rolls.where((v) => v == target).length;
-        break;
-      case "#": //how many are in there?
-        retval = rolls.length;
-        break;
-      default:
-        throw FormatException("unknown roll modifier '$name' in $this");
+    final target = resolveToInt(right, defaultVal: -1);
+    if (target == -1 && name != '#') {
+      // everything needs lhs except for
+      throw FormatException("invalid count operation (missing rhs) $this");
     }
+    final int retval;
+    bool test(int v) {
+      switch (name) {
+        case "#>=": // how many results on lhs are greater than or equal to rhs?
+          return v >= target;
+        case "#<=": // how many results on lhs are less than or equal to rhs?
+          return v <= target;
+        case "#>": // how many results on lhs are greater than rhs?
+          return v > target;
+        case "#<": // how many results on lhs are less than rhs?
+          return v < target;
+        case "#=": // how many results on lhs are equal to rhs?
+          return v == target;
+        case '#':
+          if (target == -1) {
+            // if missing rhs, we're just counting results
+            return true;
+          } else {
+            // if not missing rhs, it's equivalent to '#='
+            return v == target;
+          }
+        default:
+          throw FormatException("unknown count operation '$name' in $this");
+      }
+    }
+
+    retval = rolls.where(test).length;
     return RollResult(name: name, value: retval);
   }
 }
@@ -164,7 +172,11 @@ class DropOp extends Binary {
         "Invalid operation ($left)$name -- can only drop standard dice rolls",
       );
     }
-    final dropTarget = resolveToInt(right, 1); // if missing, assume '1'
+    final dropTarget = resolveToInt(
+      right,
+      ifMissingThrowWithMsg: "cannot drop with missing rhs '$right' in $this",
+    );
+
     var results = <int>[];
     var dropped = <int>[];
     switch (name.toUpperCase()) {
@@ -226,7 +238,8 @@ class DropHighLowOp extends Binary {
       );
     }
     final sorted = rolls..sort();
-    final numToDrop = resolveToInt(right, 1); // if missing, assume '1'
+    final numToDrop =
+        resolveToInt(right, defaultVal: 1); // if missing, assume '1'
     var results = <int>[];
     var dropped = <int>[];
     switch (name.toUpperCase()) {
@@ -278,10 +291,14 @@ class ClampOp extends Binary {
       rolls = lhs.rolls;
     } else {
       throw ArgumentError(
-        "Invalid operation ($left)$name -- cannot clamp $left",
+        "Invalid operation ($left)$name -- can only clamp dice rolls",
       );
     }
-    final clampTarget = resolveToInt(right, 1); // if missing, assume '1'
+    final clampTarget = resolveToInt(
+      right,
+      ifMissingThrowWithMsg: "cannot clamp with missing rhs '$right' in $this",
+    );
+
     List<int> results;
     switch (name.toUpperCase()) {
       // TODO: does <=,<= make any sense?
@@ -352,7 +369,7 @@ class FudgeDice extends UnaryDice {
 
   @override
   RollResult eval() {
-    final ndice = resolveToInt(left, 1);
+    final ndice = resolveToInt(left, defaultVal: 1);
     return roller.rollFudge(ndice);
   }
 }
@@ -363,7 +380,7 @@ class PercentDice extends UnaryDice {
 
   @override
   RollResult eval() {
-    final ndice = resolveToInt(left, 1);
+    final ndice = resolveToInt(left, defaultVal: 1);
     return roller.roll(ndice, 100);
   }
 }
@@ -374,7 +391,7 @@ class D66Dice extends UnaryDice {
 
   @override
   RollResult eval() {
-    final ndice = resolveToInt(left, 1);
+    final ndice = resolveToInt(left, defaultVal: 1);
     final results = [
       for (var i = 0; i < ndice; i++)
         roller.roll(1, 6).value * 10 + roller.roll(1, 6).value
@@ -396,8 +413,8 @@ class StdDice extends BinaryDice {
 
   @override
   RollResult eval() {
-    final ndice = resolveToInt(left, 1);
-    final nsides = resolveToInt(right, 1);
+    final ndice = resolveToInt(left, defaultVal: 1);
+    final nsides = resolveToInt(right, defaultVal: 1);
 
     RangeError.checkValueInInterval(
       ndice,
@@ -433,7 +450,7 @@ class CompoundingDice extends BinaryDice {
       final nsides = lhs.nsides;
 
       final compoundTarget =
-          resolveToInt(right, nsides); // if missing, assume nsides
+          resolveToInt(right, defaultVal: nsides); // if missing, assume nsides
 
       bool test(int val) {
         switch (name) {
@@ -508,7 +525,7 @@ class ExplodingDice extends BinaryDice {
 
       final nsides = lhs.nsides;
       final explodeTarget =
-          resolveToInt(right, nsides); // if missing, assume nsides
+          resolveToInt(right, defaultVal: nsides); // if missing, assume nsides
 
       bool test(int val) {
         switch (name) {
@@ -559,9 +576,15 @@ class ExplodingDice extends BinaryDice {
 
 /// if input is a Value and empty, return defaultVal.
 /// Otherwise, evaluate the expression and return sum.
-int resolveToInt(DiceExpression expr, [int defaultVal = 0]) {
-  if (expr is Value) {
-    if (expr.value.isEmpty) {
+int resolveToInt(
+  DiceExpression expr, {
+  int defaultVal = 0,
+  String ifMissingThrowWithMsg = "",
+}) {
+  if (expr is Value && expr.value.isEmpty) {
+    if (ifMissingThrowWithMsg.isNotEmpty) {
+      throw const FormatException("missing rhs of expression");
+    } else {
       return defaultVal;
     }
   }
