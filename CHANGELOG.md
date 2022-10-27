@@ -1,3 +1,6 @@
+# 5.1.0
+- make RollResult aggregate _all_ results for whole AST
+
 # 5.0.0
 - add compounding dice: `5d6!!`
 - add keep high/low: `2d20k`

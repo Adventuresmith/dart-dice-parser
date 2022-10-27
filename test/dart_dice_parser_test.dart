@@ -24,7 +24,7 @@ void main() {
   void staticRandTest(String name, String input, int expected) {
     test("$name - $input", () {
       expect(
-        DiceExpression.create(input, staticMockRandom).roll(),
+        DiceExpression.create(input, staticMockRandom).roll().total,
         equals(expected),
       );
     });
@@ -33,7 +33,7 @@ void main() {
   void seededRandTest(String name, String input, int expected) {
     test("$name - $input", () {
       expect(
-        DiceExpression.create(input, seededRandom).roll(),
+        DiceExpression.create(input, seededRandom).roll().total,
         equals(expected),
       );
     });
@@ -67,6 +67,7 @@ void main() {
     seededRandTest("count # after drop", "4d6-<2#", 3);
     seededRandTest("count # after drop", "4d6#1", 1);
     seededRandTest("count # after drop", "4d6#=1", 1);
+    seededRandTest("count arith result", "(4d6+1)#1", 2);
 
     // 1234 seed will return  [1, -1, -1, 1, 0, 1]
     seededRandTest("count fudge", "6dF#", 6);
@@ -74,6 +75,8 @@ void main() {
     seededRandTest("count fudge", "6dF#=0", 1);
     seededRandTest("count fudge", "6dF#<0", 2);
     seededRandTest("count fudge", "6dF#>0", 3);
+    seededRandTest("count", "4d6#", 4);
+    seededRandTest("count", "4d6#6", 1);
 
     final invalids = [
       '4d6#=',
@@ -81,6 +84,9 @@ void main() {
       '4d6#>=',
       '4d6#>',
       '4d6#<',
+      '4d6-=',
+      '4d6 C=',
+      '4d6 r=',
     ];
     for (final v in invalids) {
       test("invalid count - $v", () {
@@ -112,12 +118,20 @@ void main() {
     seededRandTest("drop high (1)", "4d6-h1", 8);
     seededRandTest("drop high (3)", "4d6-h3", 1);
     seededRandTest("drop low", "4d6-L", 13);
+    seededRandTest("drop add result", "(4d6+1)-L", 14);
+    seededRandTest("drop add result", "1-L", 0);
     seededRandTest("drop low (lower)", "4d6-l", 13);
     seededRandTest("drop low - 1", "4d6-l1", 13);
     seededRandTest("drop low - 3", "4d6-l3", 6);
     seededRandTest("drop low and high", "4d6-L-H", 7);
     seededRandTest("can drop more than rolled", "3d6-H4", 0);
     seededRandTest("can drop more than rolled", "3d6-l4", 0);
+    seededRandTest("can drop arith result", "(2d6+3d6)-L1", 16);
+    seededRandTest(
+      "can drop arith result -- diff dice sides",
+      "(2d6+3d4)-L1",
+      14,
+    );
     seededRandTest("drop", "4d6->3", 3);
     seededRandTest("drop", "4d6-<3", 11);
     seededRandTest("drop", "4d6->=2", 1);
@@ -130,25 +144,13 @@ void main() {
     seededRandTest("clamp", "4d6c<3", 17);
     seededRandTest("clamp", "4d6c>=2", 7);
     seededRandTest("clamp", "4d6c<=2", 15);
+    seededRandTest("clamp", "1 C<=1", 1);
+    // rolls [1,-1,-1,1]  , -1s turned to 0
+    seededRandTest("clamp", "4dF C<=0", 2);
 
     // mocked responses should return rolls of 6, 2, 1, 5, 3
     // [6,2] + [1,5,3] = [6,2,1,5,3]-L3 => [6,5] = 9
     seededRandTest("drop low on aggregated dice", "(2d6+3d6)-L3", 11);
-
-    final invalids = [
-      '(4d6+1)-L',
-      '(1)-L',
-      '(1)C<=1',
-      '(4dF)C<=1',
-    ];
-    for (final v in invalids) {
-      test("invalid drop - $v", () {
-        expect(
-          () => DiceExpression.create(v).roll(),
-          throwsArgumentError,
-        );
-      });
-    }
   });
 
   group("addition combines", () {
@@ -159,31 +161,13 @@ void main() {
       9,
     );
     seededRandTest("addition combines results - parens", "(2d6+2d6)-L1", 13);
-
-    test("cannot drop arith result", () {
-      expect(
-        () => DiceExpression.create('(2d6+1)-L1').roll(),
-        throwsArgumentError,
-      );
-    });
-    test("cannot count arith result", () {
-      expect(
-        () => DiceExpression.create('(2d6+1)#1').roll(),
-        throwsArgumentError,
-      );
-    });
   });
 
   group("mult variations", () {
     // mocked responses should return rolls of 6, 2, 1, 5
     seededRandTest("int mult on rhs", "2d6*2", 16);
     seededRandTest("int mult on lhs", "2*2d6", 16);
-    test("cannot drop mult result", () {
-      expect(
-        () => DiceExpression.create('(2d6*2)-L').roll(),
-        throwsArgumentError,
-      );
-    });
+    seededRandTest("int mult on lhs", "(2*2d6)-l", 0);
   });
 
   group("missing ints", () {
@@ -258,6 +242,8 @@ void main() {
     seededRandTest("compounding dice", "9d6!!<=3", 54);
     seededRandTest("compounding dice", "9d6!!1", 44);
 
+    seededRandTest("explode arith result", "(9d6+3)!", 51);
+
     // explode, then count 6's
     seededRandTest("exploding dice and count", "9d6!#=6", 3);
     // explode, then drop less-than-6, then count (should be identical to above)
@@ -269,11 +255,17 @@ void main() {
     seededRandTest("differing nsides addition", "4dF + 6dF", 2);
     // fudge dice can be added to [1, -1, -1, 1]
     seededRandTest("differing nsides addition", "4dF + 1", 1);
+    seededRandTest(
+      "fudge add to d6",
+      "4d6+4dF",
+      14,
+    );
+    seededRandTest("fudge add to d6", "4dF+4d6", 13);
 
     test("multiple rolls is multiple results", () {
       final dice = DiceExpression.create('2d6', seededRandom);
-      expect(dice.roll(), 8);
-      expect(dice.roll(), 6);
+      expect(dice.roll().total, 8);
+      expect(dice.roll().total, 6);
     });
 
     test("create dice with real random", () {
@@ -295,13 +287,13 @@ void main() {
       );
     });
     final invalids = [
-      '4d6 + 4dF',
-      '4dF + 4d6',
-      "4-L3",
       "4!",
       "4dF!",
       "4dF!!",
-      "(2d6+1)!!",
+      "4dFr",
+      "4D66!",
+      "4D66!!",
+      "4D66 r",
     ];
     for (final i in invalids) {
       test("invalid - $i", () {
@@ -312,7 +304,7 @@ void main() {
       });
     }
 
-    test("rollN test", () {
+    test("rollN test", () async {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create('2d6', seededRandom);
 

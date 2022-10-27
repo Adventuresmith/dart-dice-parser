@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
 import 'package:logging/logging.dart';
 
@@ -29,7 +28,7 @@ class DiceRoller {
   static const int defaultExplodeLimit = 100;
 
   /// Roll ndice of nsides and return results as list.
-  DiceRollResult roll(int ndice, int nsides, [String msg = '']) {
+  RollResult roll(int ndice, int nsides, [String msg = '']) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
     // nextInt is zero-inclusive; add 1 so result will be in range 1-nsides
@@ -37,19 +36,20 @@ class DiceRoller {
       for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1
     ];
     _log.finest(() => "roll ${ndice}d$nsides => $results $msg");
-    return DiceRollResult(
-      name: "${ndice}d$nsides",
-      value: results.sum,
+    return RollResult(
+      operation: "${ndice}d$nsides",
+      expression: "${ndice}d$nsides",
+      operationType: OperationType.dice,
       ndice: ndice,
       nsides: nsides,
-      rolls: results,
+      rolled: results,
     );
   }
 
   static const _fudgeVals = [-1, -1, 0, 0, 1, 1];
 
   /// Roll N fudge dice, return results
-  FudgeRollResult rollFudge(int ndice) {
+  RollResult rollFudge(int ndice) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     final results = [
       for (var i = 0; i < ndice; i++)
@@ -57,11 +57,12 @@ class DiceRoller {
     ];
     _log.finest(() => "roll ${ndice}dF => $results");
 
-    return FudgeRollResult(
-      name: "${ndice}dF",
-      value: results.sum,
+    return RollResult(
+      operation: "${ndice}dF",
+      expression: "${ndice}dF",
+      operationType: OperationType.dice,
       ndice: ndice,
-      rolls: results,
+      rolled: results,
     );
   }
 }

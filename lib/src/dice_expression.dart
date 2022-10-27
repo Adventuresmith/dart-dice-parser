@@ -40,10 +40,10 @@ abstract class DiceExpression {
   ///
   /// Throws [ArgumentError], [FormatException]
   @nonVirtual
-  int roll() {
+  RollResult roll() {
     final result = this();
-    _log.fine(() => "$this => $result => ${result.value}");
-    return result.value;
+    _log.fine(() => "$this => $result");
+    return result;
   }
 
   /// Lazy iterable of rolling [num] times. Results returned as stream.
@@ -52,7 +52,7 @@ abstract class DiceExpression {
   @nonVirtual
   Stream<int> rollN(int num) async* {
     for (var i = 0; i < num; i++) {
-      yield roll();
+      yield roll().total;
     }
   }
 

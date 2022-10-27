@@ -17,8 +17,8 @@ void main() {
   final dice = DiceExpression.create('2d20-L', Random.secure());
 
   // each roll returns different results.
-  final int result1 = dice.roll();
-  stdout.writeln("Result1: $result1");
-  final int result2 = dice.roll();
-  stdout.writeln("Result2: $result2");
+  final results1 = dice.roll();
+  stdout.writeln("Result1: $results1");
+  final results2 = dice.roll();
+  stdout.writeln("Result2: $results2");
 }
