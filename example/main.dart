@@ -5,6 +5,8 @@ import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
 import 'package:logging/logging.dart';
 
+final defaultStatsNum = 500;
+
 void main(List<String> arguments) async {
   Logger.root.level = Level.INFO;
 
@@ -19,23 +21,48 @@ void main(List<String> arguments) async {
       );
     }
   });
+  Random random = Random.secure();
 
   final argParser = ArgParser()
     ..addOption(
       "num",
       abbr: "n",
-      help: "number of times to roll the expression",
+      help: "Number of times to roll the expression",
       defaultsTo: "1",
     )
     ..addOption(
-      "seed",
-      abbr: "S",
-      help: "random seed to use. if not supplied, will use Random.secure()",
+      "random",
+      abbr: "r",
+      defaultsTo: 'pseudo',
+      help: "Random number generator to use.",
+      allowedHelp: {
+        'secure': 'secure random',
+        'pseudo': 'pseudorandom generator',
+        '<integer>': 'pseudorandom generator initialized with given seed',
+      },
+      callback: (val) {
+        switch (val?.toLowerCase()) {
+          case "pseudo":
+            random = Random();
+            break;
+          case "secure":
+            random = Random.secure();
+            break;
+          default:
+            try {
+              random = Random(int.parse(val!));
+            } on FormatException {
+              stderr.writeln("Invalid random number option '$val'.");
+              exit(1);
+            }
+            break;
+        }
+      },
     )
     ..addFlag(
       "verbose",
       abbr: "v",
-      help: "enable verbose logging",
+      help: "Enable verbose logging",
       callback: (verbose) {
         if (verbose) {
           Logger.root.level = Level.FINEST;
@@ -47,7 +74,7 @@ void main(List<String> arguments) async {
     ..addFlag(
       "stats",
       abbr: "s",
-      help: "output dice stats. assumes n=500 unless overridden",
+      help: "Output dice stats. Assumes n=$defaultStatsNum unless overridden",
     )
     ..addFlag("help", abbr: "h");
 
@@ -63,19 +90,24 @@ void main(List<String> arguments) async {
     stderr.writeln("Supply a dice expression. e.g. '2d6+1'");
     exit(1);
   }
-  final random = results["seed"] == null
-      ? Random.secure()
-      : Random(int.parse(results['seed'] as String));
 
-  final diceExpr = DiceExpression.create(input, random);
+  try {
+    final collectStats = results['stats'] as bool;
+    if (collectStats) {
+      random = Random();
+    }
+    final diceExpr = DiceExpression.create(input, random);
 
-  exit(
-    await run(
-      expression: diceExpr,
-      numRolls: int.parse(results["num"] as String),
-      stats: results["stats"] as bool,
-    ),
-  );
+    exit(
+      await run(
+        expression: diceExpr,
+        numRolls: int.parse(results["num"] as String),
+        stats: collectStats,
+      ),
+    );
+  } on FormatException catch (e) {
+    stderr.writeln(e.toString());
+  }
 }
 
 Future<int> run({
@@ -84,7 +116,8 @@ Future<int> run({
   required bool stats,
 }) async {
   if (stats) {
-    final stats = await expression.stats(num: numRolls == 1 ? 500 : numRolls);
+    final stats =
+        await expression.stats(num: numRolls == 1 ? defaultStatsNum : numRolls);
     stdout.writeln(stats);
   } else {
     await for (final r in expression.rollN(numRolls)) {

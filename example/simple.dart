@@ -13,8 +13,10 @@ void main() {
     );
   });
 
-  // create a roller for D20 advantage (roll 2d20, drop lowest)
-  final dice = DiceExpression.create('2d20-L', Random.secure());
+  // Create a roller for D20 advantage (roll 2d20, keep highest).
+  // By default, dice roller will use Random.secure(). Depending on your use case,
+  // it can be much faster to use the pseudorandom generator instead.
+  final dice = DiceExpression.create('2d20 kh', Random());
 
   // each roll returns different results.
   final results1 = dice.roll();
