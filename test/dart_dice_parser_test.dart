@@ -202,18 +202,24 @@ void main() {
   group("dice", () {
     staticRandTest("order of operations, with dice", "5 + 6 * 2d6", 29);
 
-    staticRandTest("simple roll", "1d6", 2);
-    staticRandTest("percentile", "1d%", 2);
-    staticRandTest("D66", "1D66", 22);
-    staticRandTest("d66 -- 66-sided, not D66", "1d66", 2);
-    staticRandTest("ndice in parens", "(4+6)d10", 20);
-    staticRandTest("nsides in parens", "10d(2*3)", 20);
+    seededRandTest("simple roll", "1d6", 6);
+    seededRandTest("simple roll", "d6", 6);
+    seededRandTest("percentile", "1d%", 96);
+    seededRandTest("percentile", "d%", 96);
+    seededRandTest("D66", "1D66", 62);
+    seededRandTest("D66", "D66", 62);
+    seededRandTest("d66 -- 66-sided, not D66", "1d66", 30);
+    seededRandTest("d66 -- 66-sided, not D66", "d66", 30);
+    seededRandTest("ndice in parens", "(4+6)d10", 54);
+    seededRandTest("nsides in parens", "10d(2*3)", 38);
 
-    staticRandTest("zero dice rolled", "0d6", 0);
+    seededRandTest("zero dice rolled", "0d6", 0);
 
     staticRandTest("dice expr as sides", "2d(3d6)", 4);
 
-    staticRandTest("fudge", "4dF", -4);
+    seededRandTest("fudge", "4dF", 0);
+    seededRandTest("fudge", "dF", 1);
+    seededRandTest("fudge", "1dF", 1);
 
     // 1st roll: 6, 2, 1, 5, 3, 5, 1, 4, 6, (explodes 2) (total 33)
     // 2nd roll: 5,6 (explodes 1) (total 11)
