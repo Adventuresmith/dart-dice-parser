@@ -46,6 +46,10 @@ void main() {
     seededRandTest("order of operations", "5+6*2", 17);
     seededRandTest("subtraction", "5-6", -1);
     seededRandTest("subtraction", "5-6", -1);
+    seededRandTest("subtraction", "1-", 1);
+    seededRandTest("subtraction", "1-0", 1);
+    seededRandTest("subtraction", "0-1", -1);
+    seededRandTest("subtraction", "-1", -1);
     seededRandTest("negative number", "-6", -6); // this will be 0-6
   });
 
