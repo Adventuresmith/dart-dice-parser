@@ -42,7 +42,7 @@ class DiceRoller {
       operationType: OperationType.dice,
       ndice: ndice,
       nsides: nsides,
-      rolled: results,
+      results: results,
     );
   }
 
@@ -62,7 +62,7 @@ class DiceRoller {
       expression: "${ndice}dF",
       operationType: OperationType.dice,
       ndice: ndice,
-      rolled: results,
+      results: results,
     );
   }
 }

@@ -14,7 +14,7 @@ class Value extends DiceExpression {
           expression: value,
           operation: value,
           operationType: OperationType.value,
-          rolled: value.isEmpty ? [] : [int.parse(value)],
+          results: value.isEmpty ? [] : [int.parse(value)],
         );
 
   final String value;
@@ -74,7 +74,7 @@ class MultiplyOp extends Binary {
       operation: name,
       expression: toString(),
       operationType: OperationType.multiply,
-      rolled: [lhs.resolveToInt(() => 0) * rhs.resolveToInt(() => 0)],
+      results: [lhs.resolveToInt(() => 0) * rhs.resolveToInt(() => 0)],
       left: lhs,
       right: rhs,
     );
@@ -93,7 +93,7 @@ class AddOp extends Binary {
       operation: name,
       expression: toString(),
       operationType: OperationType.add,
-      rolled: lhs.rolled + rhs.rolled,
+      results: lhs.results + rhs.results,
       ndice: max(lhs.ndice, rhs.ndice),
       nsides: max(lhs.nsides, rhs.nsides),
       left: lhs,
@@ -114,7 +114,7 @@ class SubOp extends Binary {
       operation: name,
       expression: toString(),
       operationType: OperationType.subtract,
-      rolled: lhs.rolled + [rhs.resolveToInt(() => 0) * -1],
+      results: lhs.results + [rhs.resolveToInt(() => 0) * -1],
       left: lhs,
       right: rhs,
     );
@@ -172,12 +172,12 @@ class CountOp extends Binary {
       }
     }
 
-    retval = lhs.rolled.where(test).length;
+    retval = lhs.results.where(test).length;
     return RollResult(
       operation: name,
       expression: toString(),
       operationType: OperationType.count,
-      rolled: [retval],
+      results: [retval],
       // TODO: add count results to metadata?
       left: lhs,
       right: rhs,
@@ -210,24 +210,24 @@ class DropOp extends Binary {
     var dropped = <int>[];
     switch (name.toUpperCase()) {
       case '-<': // drop <
-        results = lhs.rolled.where((v) => v >= target).toList();
-        dropped = lhs.rolled.where((v) => v < target).toList();
+        results = lhs.results.where((v) => v >= target).toList();
+        dropped = lhs.results.where((v) => v < target).toList();
         break;
       case '-<=': // drop <=
-        results = lhs.rolled.where((v) => v > target).toList();
-        dropped = lhs.rolled.where((v) => v <= target).toList();
+        results = lhs.results.where((v) => v > target).toList();
+        dropped = lhs.results.where((v) => v <= target).toList();
         break;
       case '->': // drop >
-        results = lhs.rolled.where((v) => v <= target).toList();
-        dropped = lhs.rolled.where((v) => v > target).toList();
+        results = lhs.results.where((v) => v <= target).toList();
+        dropped = lhs.results.where((v) => v > target).toList();
         break;
       case '->=': // drop >=
-        results = lhs.rolled.where((v) => v < target).toList();
-        dropped = lhs.rolled.where((v) => v >= target).toList();
+        results = lhs.results.where((v) => v < target).toList();
+        dropped = lhs.results.where((v) => v >= target).toList();
         break;
       case '-=': // drop =
-        results = lhs.rolled.where((v) => v != target).toList();
-        dropped = lhs.rolled.where((v) => v == target).toList();
+        results = lhs.results.where((v) => v != target).toList();
+        dropped = lhs.results.where((v) => v == target).toList();
         break;
       default:
         throw FormatException("unknown roll modifier '$name' in $this");
@@ -240,8 +240,11 @@ class DropOp extends Binary {
       operationType: OperationType.drop,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
-      rolled: results,
-      dropped: dropped,
+      results: results,
+      metadata: {
+        RollMetadata.dropped: dropped,
+        RollMetadata.rolled: lhs.results,
+      },
       left: lhs,
       right: rhs,
     );
@@ -262,7 +265,7 @@ class DropHighLowOp extends Binary {
   RollResult eval() {
     final lhs = left();
     final rhs = right();
-    final sorted = lhs.rolled..sort();
+    final sorted = lhs.results..sort();
     final numToDrop = rhs.resolveToInt(() => 1); // if missing, assume '1'
     var results = <int>[];
     var dropped = <int>[];
@@ -298,8 +301,11 @@ class DropHighLowOp extends Binary {
       operationType: OperationType.dropHighLow,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
-      rolled: results,
-      dropped: dropped,
+      results: results,
+      metadata: {
+        RollMetadata.dropped: dropped,
+        RollMetadata.rolled: sorted,
+      },
       left: lhs,
       right: rhs,
     );
@@ -324,7 +330,7 @@ class ClampOp extends Binary {
     switch (name.toUpperCase()) {
       // TODO: does <=,<= make any sense?
       case "C>=": // change any value >= rhs to rhs
-        results = lhs.rolled.map((v) {
+        results = lhs.results.map((v) {
           if (v >= target) {
             return target;
           } else {
@@ -333,7 +339,7 @@ class ClampOp extends Binary {
         }).toList();
         break;
       case "C<=": // change any value <= rhs to rhs
-        results = lhs.rolled.map((v) {
+        results = lhs.results.map((v) {
           if (v <= target) {
             return target;
           } else {
@@ -342,7 +348,7 @@ class ClampOp extends Binary {
         }).toList();
         break;
       case "C>": // change any value > rhs to rhs
-        results = lhs.rolled.map((v) {
+        results = lhs.results.map((v) {
           if (v > target) {
             return target;
           } else {
@@ -351,7 +357,7 @@ class ClampOp extends Binary {
         }).toList();
         break;
       case "C<": // change any value < rhs to rhs
-        results = lhs.rolled.map((v) {
+        results = lhs.results.map((v) {
           if (v < target) {
             return target;
           } else {
@@ -368,7 +374,7 @@ class ClampOp extends Binary {
       operationType: OperationType.clamp,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
-      rolled: results,
+      results: results,
       left: lhs,
       right: rhs,
     );
@@ -402,7 +408,7 @@ class FudgeDice extends UnaryDice {
       expression: toString(),
       operationType: OperationType.diceFudge,
       ndice: ndice,
-      rolled: roll.rolled,
+      results: roll.results,
       left: lhs,
     );
   }
@@ -424,7 +430,7 @@ class PercentDice extends UnaryDice {
       operationType: OperationType.dice,
       ndice: ndice,
       nsides: nsides,
-      rolled: roll.rolled,
+      results: roll.results,
       left: lhs,
     );
   }
@@ -447,7 +453,7 @@ class D66Dice extends UnaryDice {
       expression: toString(),
       operationType: OperationType.dice66,
       ndice: ndice,
-      rolled: results,
+      results: results,
       left: lhs,
     );
   }
@@ -483,7 +489,7 @@ class StdDice extends BinaryDice {
       operationType: OperationType.dice,
       ndice: ndice,
       nsides: nsides,
-      rolled: roll.rolled,
+      results: roll.results,
       left: lhs,
       right: rhs,
     );
@@ -536,7 +542,7 @@ class RerollDice extends BinaryDice {
       }
     }
 
-    lhs.rolled.forEachIndexed((i, v) {
+    lhs.results.forEachIndexed((i, v) {
       if (test(v)) {
         int rerolled;
         int rerollCount = 0;
@@ -558,7 +564,7 @@ class RerollDice extends BinaryDice {
       operationType: OperationType.reroll,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
-      rolled: results,
+      results: results,
       left: lhs,
       right: rhs,
     );
@@ -606,7 +612,7 @@ class CompoundingDice extends BinaryDice {
     }
 
     final results = <int>[];
-    lhs.rolled.forEachIndexed((i, v) {
+    lhs.results.forEachIndexed((i, v) {
       if (test(v)) {
         int sum = v;
         int rerolled;
@@ -630,7 +636,7 @@ class CompoundingDice extends BinaryDice {
       operationType: OperationType.compound,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
-      rolled: results,
+      results: results,
       left: lhs,
       right: rhs,
     );
@@ -681,8 +687,8 @@ class ExplodingDice extends BinaryDice {
       }
     }
 
-    accumulated.addAll(lhs.rolled);
-    var numToRoll = lhs.rolled.where(test).length;
+    accumulated.addAll(lhs.results);
+    var numToRoll = lhs.results.where(test).length;
     var explodeCount = 0;
     while (numToRoll > 0 && explodeCount <= explodeLimit) {
       final results = roller.roll(
@@ -690,8 +696,8 @@ class ExplodingDice extends BinaryDice {
         lhs.nsides,
         "(explode #${explodeCount + 1})",
       );
-      accumulated.addAll(results.rolled);
-      numToRoll = results.rolled.where(test).length;
+      accumulated.addAll(results.results);
+      numToRoll = results.results.where(test).length;
       explodeCount++;
     }
 
@@ -701,7 +707,7 @@ class ExplodingDice extends BinaryDice {
       operationType: OperationType.explode,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
-      rolled: accumulated,
+      results: accumulated,
       left: lhs,
       right: rhs,
     );
