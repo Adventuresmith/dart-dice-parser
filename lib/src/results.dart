@@ -28,8 +28,6 @@ enum RollMetadata {
 
 /// The result of rolling a dice expression.
 ///
-/// RollResult is a binary tree with [left] and [right] branches
-/// representing the parsed dice expression.
 class RollResult {
   RollResult({
     required this.expression,
@@ -38,8 +36,6 @@ class RollResult {
     this.nsides = 0,
     this.results = const [],
     this.metadata = const {},
-    this.left,
-    this.right,
   }) {
     total = results.sum;
   }
@@ -64,12 +60,6 @@ class RollResult {
 
   /// any metadata the operation may have recorded
   final Map<RollMetadata, Object> metadata;
-
-  /// left RollResult of expression
-  final RollResult? left;
-
-  /// right RollResult of expression
-  final RollResult? right;
 
   /// Get the total, or if results are empty return result of calling [defaultCb].
   int totalOrDefault(int Function() defaultCb) {

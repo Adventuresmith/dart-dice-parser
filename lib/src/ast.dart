@@ -76,8 +76,6 @@ class MultiplyOp extends Binary {
       operation: name,
       expression: toString(),
       results: [lhs.totalOrDefault(() => 0) * rhs.totalOrDefault(() => 0)],
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -96,8 +94,6 @@ class AddOp extends Binary {
       results: lhs.results + rhs.results,
       ndice: max(lhs.ndice, rhs.ndice),
       nsides: max(lhs.nsides, rhs.nsides),
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -114,8 +110,6 @@ class SubOp extends Binary {
       operation: name,
       expression: toString(),
       results: lhs.results + [rhs.totalOrDefault(() => 0) * -1],
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -248,8 +242,6 @@ class CountOp extends Binary {
       results: countType == CountType.count ? [count] : lhs.results,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -306,8 +298,6 @@ class DropOp extends Binary {
         RollMetadata.dropped: dropped,
         RollMetadata.rolled: lhs.results,
       },
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -364,8 +354,6 @@ class DropHighLowOp extends Binary {
         RollMetadata.dropped: dropped,
         RollMetadata.rolled: sorted,
       },
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -432,8 +420,6 @@ class ClampOp extends Binary {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -465,7 +451,6 @@ class FudgeDice extends UnaryDice {
       expression: toString(),
       ndice: ndice,
       results: roll.results,
-      left: lhs,
     );
   }
 }
@@ -486,7 +471,6 @@ class PercentDice extends UnaryDice {
       ndice: ndice,
       nsides: nsides,
       results: roll.results,
-      left: lhs,
     );
   }
 }
@@ -508,7 +492,6 @@ class D66Dice extends UnaryDice {
       expression: toString(),
       ndice: ndice,
       results: results,
-      left: lhs,
     );
   }
 }
@@ -543,8 +526,6 @@ class StdDice extends BinaryDice {
       ndice: ndice,
       nsides: nsides,
       results: roll.results,
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -626,8 +607,6 @@ class RerollDice extends BinaryDice {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -706,8 +685,6 @@ class CompoundingDice extends BinaryDice {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      left: lhs,
-      right: rhs,
     );
   }
 }
@@ -785,8 +762,6 @@ class ExplodingDice extends BinaryDice {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: accumulated,
-      left: lhs,
-      right: rhs,
     );
   }
 }
