@@ -75,7 +75,7 @@ class MultiplyOp extends Binary {
     return RollResult(
       operation: name,
       expression: toString(),
-      results: [lhs.resolveToInt(() => 0) * rhs.resolveToInt(() => 0)],
+      results: [lhs.totalOrDefault(() => 0) * rhs.totalOrDefault(() => 0)],
       left: lhs,
       right: rhs,
     );
@@ -113,7 +113,7 @@ class SubOp extends Binary {
     return RollResult(
       operation: name,
       expression: toString(),
-      results: lhs.results + [rhs.resolveToInt(() => 0) * -1],
+      results: lhs.results + [rhs.totalOrDefault(() => 0) * -1],
       left: lhs,
       right: rhs,
     );
@@ -161,7 +161,7 @@ class CountOp extends Binary {
     final rhs = right();
 
     bool rhsEmpty = false;
-    final target = rhs.resolveToInt(
+    final target = rhs.totalOrDefault(
       () {
         switch (name) {
           case '#':
@@ -263,7 +263,7 @@ class DropOp extends Binary {
     final lhs = left();
     final rhs = right();
 
-    final target = rhs.resolveToInt(() {
+    final target = rhs.totalOrDefault(() {
       throw FormatException(
         "invalid drop operation '$this' -- missing value after '$name'",
       );
@@ -327,7 +327,7 @@ class DropHighLowOp extends Binary {
     final lhs = left();
     final rhs = right();
     final sorted = lhs.results..sort();
-    final numToDrop = rhs.resolveToInt(() => 1); // if missing, assume '1'
+    final numToDrop = rhs.totalOrDefault(() => 1); // if missing, assume '1'
     var results = <int>[];
     var dropped = <int>[];
     switch (name) {
@@ -378,7 +378,7 @@ class ClampOp extends Binary {
   RollResult eval() {
     final lhs = left();
     final rhs = right();
-    final target = rhs.resolveToInt(() {
+    final target = rhs.totalOrDefault(() {
       throw FormatException(
         "invalid clamp operation '$this' -- missing value after '$name'",
       );
@@ -457,7 +457,7 @@ class FudgeDice extends UnaryDice {
   @override
   RollResult eval() {
     final lhs = left();
-    final ndice = lhs.resolveToInt(() => 1);
+    final ndice = lhs.totalOrDefault(() => 1);
     final roll = roller.rollFudge(ndice);
 
     return RollResult(
@@ -478,7 +478,7 @@ class PercentDice extends UnaryDice {
   RollResult eval() {
     final lhs = left();
     const nsides = 100;
-    final ndice = lhs.resolveToInt(() => 1);
+    final ndice = lhs.totalOrDefault(() => 1);
     final roll = roller.roll(ndice, nsides);
     return RollResult(
       operation: name,
@@ -498,10 +498,10 @@ class D66Dice extends UnaryDice {
   @override
   RollResult eval() {
     final lhs = left();
-    final ndice = lhs.resolveToInt(() => 1);
+    final ndice = lhs.totalOrDefault(() => 1);
     final results = [
       for (var i = 0; i < ndice; i++)
-        roller.roll(1, 6).resolveToInt() * 10 + roller.roll(1, 6).resolveToInt()
+        roller.roll(1, 6).total * 10 + roller.roll(1, 6).total
     ];
     return RollResult(
       operation: name,
@@ -521,8 +521,8 @@ class StdDice extends BinaryDice {
   RollResult eval() {
     final lhs = left();
     final rhs = right();
-    final ndice = lhs.resolveToInt(() => 1);
-    final nsides = rhs.resolveToInt(() => 1);
+    final ndice = lhs.totalOrDefault(() => 1);
+    final nsides = rhs.totalOrDefault(() => 1);
 
     RangeError.checkValueInInterval(
       ndice,
@@ -573,7 +573,7 @@ class RerollDice extends BinaryDice {
         "Invalid reroll operation '$this' -- cannot determine # sides from '$left'",
       );
     }
-    final target = rhs.resolveToInt(() {
+    final target = rhs.totalOrDefault(() {
       throw FormatException(
         "invalid reroll operation '$this' -- missing value after '$name'",
       );
@@ -656,7 +656,7 @@ class CompoundingDice extends BinaryDice {
         "Invalid compounding operation '$this' -- cannot determine # sides from '$left'",
       );
     }
-    final target = rhs.resolveToInt(() => lhs.nsides);
+    final target = rhs.totalOrDefault(() => lhs.nsides);
     bool test(int val) {
       switch (name) {
         case '!!': // equality
@@ -737,7 +737,7 @@ class ExplodingDice extends BinaryDice {
         "Invalid exploding operation '$this' -- cannot determine # sides from '$left'",
       );
     }
-    final target = rhs.resolveToInt(() => lhs.nsides);
+    final target = rhs.totalOrDefault(() => lhs.nsides);
 
     final accumulated = <int>[];
 

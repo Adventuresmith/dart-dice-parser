@@ -45,7 +45,7 @@ class RollResult {
   }
 
   /// sum of [results]
-  int total = 0;
+  late int total = 0;
 
   /// the parsed expression
   final String expression;
@@ -59,7 +59,7 @@ class RollResult {
   /// number of dice rolled. may be zero if complex expression
   final int ndice;
 
-  /// the results of the operation -- will be a subset of [rolled]
+  /// the results of the operation
   final List<int> results;
 
   /// any metadata the operation may have recorded
@@ -71,12 +71,8 @@ class RollResult {
   /// right RollResult of expression
   final RollResult? right;
 
-  static int _defaultCb() => throw ArgumentError("missing value");
-
-  /// Evaluate this roll result (typically, sum the rolls).
-  /// However, if result is a Value and empty, return result of calling [defaultCb].
-  /// if [defaultCb] not provided, 0 will be returned.
-  int resolveToInt([int Function() defaultCb = _defaultCb]) {
+  /// Get the total, or if results are empty return result of calling [defaultCb].
+  int totalOrDefault(int Function() defaultCb) {
     if (results.isEmpty) {
       return defaultCb();
     }
