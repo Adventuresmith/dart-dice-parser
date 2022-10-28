@@ -342,7 +342,7 @@ void main() {
       test("invalid - $i", () {
         expect(
           () => DiceExpression.create(i, seededRandom).roll(),
-          throwsArgumentError,
+          throwsFormatException,
         );
       });
     }

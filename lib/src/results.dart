@@ -30,6 +30,13 @@ enum RollMetadata {
 
 /// The result of rolling a dice expression.
 ///
+/// A [RollResult] is modeled as a binary tree. The dice expression
+/// is parsed into a [DiceExpression] and when evaluated the results
+/// should (mostly) reflect the structure of AST.
+///
+/// In general, most users will just care about the root node of the tree.
+/// But, depending on the information you want to from the evaluated dice rolls,
+/// you may need to traverse the tree to find all the events.
 class RollResult {
   RollResult({
     required this.expression,
@@ -37,10 +44,14 @@ class RollResult {
     this.nsides = 0,
     this.results = const [],
     this.metadata = const {},
+    this.left,
+    this.right,
   }) {
     total = results.sum;
   }
 
+  /// factory constructor to merge [other] with the params of this function
+  /// and produce a new [RollResult].
   factory RollResult.fromRollResult(
     RollResult other, {
     required String expression,
@@ -48,39 +59,59 @@ class RollResult {
     int? nsides,
     List<int>? results,
     Map<RollMetadata, Object> metadata = const {},
+    RollResult? left,
+    RollResult? right,
   }) {
-    // TODO: this seems wrong...  and metadata will overwrite
     return RollResult(
       expression: expression,
       ndice: ndice ?? other.ndice,
       nsides: nsides ?? other.nsides,
       results: results ?? other.results,
       metadata: {...other.metadata, ...metadata},
+      left: left ?? other.left,
+      right: right ?? other.right,
     );
   }
 
+  /// addition operator for [RollResult].
+  ///
+  /// in the returned results, nsides will be max(nsides, other.nsides).
+  /// this is so we can explode a dice expr like `(2d6 + 1)!`.
+  /// A side-effect of this decision is `(2d6 + 2d10)!` will explode with 10s, not 6s.
   RollResult operator +(RollResult other) {
     return RollResult(
       expression: "($expression+${other.expression})",
       results: results + other.results,
-      ndice: max(ndice, other.ndice),
       nsides: max(nsides, other.nsides),
+      left: this,
+      right: other,
     );
   }
 
+  /// multiplication operator for [RollResult].
+  ///
+  /// Results are collapsed into a single value (the result of multiplication).
+  ///
   RollResult operator *(RollResult other) {
     return RollResult(
-      expression: "($expression+${other.expression})",
+      expression: "($expression*${other.expression})",
       results: [totalOrDefault(() => 0) * other.totalOrDefault(() => 0)],
+      left: this,
+      right: other,
     );
   }
 
+  /// subtraction operator for [RollResult].
+  ///
+  /// Results are [this.results + (-1)*(other.results.sum)].
+  ///
   RollResult operator -(RollResult other) {
     return RollResult(
-      expression: "($expression+${other.expression})",
+      expression: "($expression-${other.expression})",
       results: results + other.results.map((v) => v * -1).toList(),
-      ndice: max(ndice, other.ndice),
       nsides: max(nsides, other.nsides),
+      left: this,
+      right: other,
     );
   }
 
@@ -101,6 +132,9 @@ class RollResult {
 
   /// any metadata the operation may have recorded
   final Map<RollMetadata, Object> metadata;
+
+  final RollResult? left;
+  final RollResult? right;
 
   /// Get the total, or if results are empty return result of calling [defaultCb].
   int totalOrDefault(int Function() defaultCb) {

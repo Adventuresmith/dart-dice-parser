@@ -38,7 +38,7 @@ abstract class DiceExpression {
 
   /// Rolls the dice expression
   ///
-  /// Throws [ArgumentError], [FormatException]
+  /// Throws [FormatException]
   @nonVirtual
   RollResult roll() {
     final result = this();
@@ -48,7 +48,7 @@ abstract class DiceExpression {
 
   /// Lazy iterable of rolling [num] times. Results returned as stream.
   ///
-  /// Throws [ArgumentError], [FormatException]
+  /// Throws [FormatException]
   @nonVirtual
   Stream<RollResult> rollN(int num) async* {
     for (var i = 0; i < num; i++) {
@@ -58,7 +58,7 @@ abstract class DiceExpression {
 
   /// Performs [num] rolls and outputs stats (stddev, mean, min/max, and a histogram)
   ///
-  /// Throws [ArgumentError], [FormatException]
+  /// Throws [FormatException]
   @nonVirtual
   Future<Map<String, dynamic>> stats({
     int num = 500,

@@ -206,10 +206,7 @@ class CountOp extends Binary {
     final metadata = <RollMetadata, Object>{};
     metadata.addAll(lhs.metadata);
     metadata.addAll({
-      countType.metadataKey: {
-        'count': count,
-        'target': '$name$target',
-      }
+      countType.metadataKey: count,
     });
 
     return RollResult(
@@ -218,6 +215,8 @@ class CountOp extends Binary {
       results: countType == CountType.count ? [count] : lhs.results,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
+      left: lhs,
+      right: rhs,
     );
   }
 }
@@ -273,6 +272,8 @@ class DropOp extends Binary {
         RollMetadata.dropped: dropped,
         RollMetadata.rolled: lhs.results,
       },
+      left: lhs,
+      right: rhs,
     );
   }
 }
@@ -328,6 +329,8 @@ class DropHighLowOp extends Binary {
         RollMetadata.dropped: dropped,
         RollMetadata.rolled: sorted,
       },
+      left: lhs,
+      right: rhs,
     );
   }
 }
@@ -393,6 +396,8 @@ class ClampOp extends Binary {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
+      left: lhs,
+      right: rhs,
     );
   }
 }
@@ -421,6 +426,7 @@ class FudgeDice extends UnaryDice {
     return RollResult.fromRollResult(
       roller.rollFudge(ndice),
       expression: toString(),
+      left: lhs,
     );
   }
 }
@@ -437,6 +443,7 @@ class PercentDice extends UnaryDice {
     return RollResult.fromRollResult(
       roller.roll(ndice, nsides),
       expression: toString(),
+      left: lhs,
     );
   }
 }
@@ -457,6 +464,7 @@ class D66Dice extends UnaryDice {
       expression: toString(),
       ndice: ndice,
       results: results,
+      left: lhs,
     );
   }
 }
@@ -489,6 +497,8 @@ class StdDice extends BinaryDice {
     return RollResult.fromRollResult(
       roller.roll(ndice, nsides),
       expression: toString(),
+      left: lhs,
+      right: rhs,
     );
   }
 }
@@ -513,7 +523,7 @@ class RerollDice extends BinaryDice {
     final rhs = right();
 
     if (lhs.nsides == 0) {
-      throw ArgumentError(
+      throw FormatException(
         "Invalid reroll operation '$this' -- cannot determine # sides from '$left'",
       );
     }
@@ -569,6 +579,8 @@ class RerollDice extends BinaryDice {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
+      left: lhs,
+      right: rhs,
     );
   }
 }
@@ -593,7 +605,7 @@ class CompoundingDice extends BinaryDice {
     final rhs = right();
 
     if (lhs.nsides == 0) {
-      throw ArgumentError(
+      throw FormatException(
         "Invalid compounding operation '$this' -- cannot determine # sides from '$left'",
       );
     }
@@ -646,6 +658,8 @@ class CompoundingDice extends BinaryDice {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
+      left: lhs,
+      right: rhs,
     );
   }
 }
@@ -671,7 +685,7 @@ class ExplodingDice extends BinaryDice {
     final rhs = right();
 
     if (lhs.nsides == 0) {
-      throw ArgumentError(
+      throw FormatException(
         "Invalid exploding operation '$this' -- cannot determine # sides from '$left'",
       );
     }
@@ -722,6 +736,8 @@ class ExplodingDice extends BinaryDice {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: accumulated,
+      left: lhs,
+      right: rhs,
     );
   }
 }
