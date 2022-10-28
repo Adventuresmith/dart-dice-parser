@@ -37,7 +37,6 @@ class DiceRoller {
     ];
     _log.finest(() => "roll ${ndice}d$nsides => $results $msg");
     return RollResult(
-      operation: "${ndice}d$nsides",
       expression: "${ndice}d$nsides",
       ndice: ndice,
       nsides: nsides,
@@ -57,7 +56,6 @@ class DiceRoller {
     _log.finest(() => "roll ${ndice}dF => $results");
 
     return RollResult(
-      operation: "${ndice}dF",
       expression: "${ndice}dF",
       ndice: ndice,
       results: results,

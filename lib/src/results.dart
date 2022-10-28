@@ -31,7 +31,6 @@ enum RollMetadata {
 class RollResult {
   RollResult({
     required this.expression,
-    required this.operation,
     this.ndice = 0,
     this.nsides = 0,
     this.results = const [],
@@ -45,9 +44,6 @@ class RollResult {
 
   /// the parsed expression
   final String expression;
-
-  /// the operation token
-  final String operation;
 
   /// number of sides. may be zero if complex expression
   final int nsides;

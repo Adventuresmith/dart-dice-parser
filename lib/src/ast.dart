@@ -15,7 +15,6 @@ class Value extends DiceExpression {
   Value(this.value)
       : _results = RollResult(
           expression: value,
-          operation: value,
           results: value.isEmpty ? [] : [int.parse(value)],
         );
 
@@ -73,7 +72,6 @@ class MultiplyOp extends Binary {
     final lhs = left();
     final rhs = right();
     return RollResult(
-      operation: name,
       expression: toString(),
       results: [lhs.totalOrDefault(() => 0) * rhs.totalOrDefault(() => 0)],
     );
@@ -89,7 +87,6 @@ class AddOp extends Binary {
     final lhs = left();
     final rhs = right();
     return RollResult(
-      operation: name,
       expression: toString(),
       results: lhs.results + rhs.results,
       ndice: max(lhs.ndice, rhs.ndice),
@@ -107,7 +104,6 @@ class SubOp extends Binary {
     final lhs = left();
     final rhs = right();
     return RollResult(
-      operation: name,
       expression: toString(),
       results: lhs.results + [rhs.totalOrDefault(() => 0) * -1],
     );
@@ -236,7 +232,6 @@ class CountOp extends Binary {
     });
 
     return RollResult(
-      operation: name,
       expression: toString(),
       metadata: metadata,
       results: countType == CountType.count ? [count] : lhs.results,
@@ -289,7 +284,6 @@ class DropOp extends Binary {
     }
 
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: lhs.ndice,
       nsides: lhs.nsides,
@@ -345,7 +339,6 @@ class DropHighLowOp extends Binary {
         throw FormatException("unknown roll modifier '$name' in $this");
     }
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: lhs.ndice,
       nsides: lhs.nsides,
@@ -415,7 +408,6 @@ class ClampOp extends Binary {
         throw FormatException("unknown roll modifier '$name' in $this");
     }
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: lhs.ndice,
       nsides: lhs.nsides,
@@ -447,7 +439,6 @@ class FudgeDice extends UnaryDice {
     final roll = roller.rollFudge(ndice);
 
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: ndice,
       results: roll.results,
@@ -466,7 +457,6 @@ class PercentDice extends UnaryDice {
     final ndice = lhs.totalOrDefault(() => 1);
     final roll = roller.roll(ndice, nsides);
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: ndice,
       nsides: nsides,
@@ -488,7 +478,6 @@ class D66Dice extends UnaryDice {
         roller.roll(1, 6).total * 10 + roller.roll(1, 6).total
     ];
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: ndice,
       results: results,
@@ -521,7 +510,6 @@ class StdDice extends BinaryDice {
     );
     final roll = roller.roll(ndice, nsides);
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: ndice,
       nsides: nsides,
@@ -602,7 +590,6 @@ class RerollDice extends BinaryDice {
     });
 
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: lhs.ndice,
       nsides: lhs.nsides,
@@ -680,7 +667,6 @@ class CompoundingDice extends BinaryDice {
     });
 
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: lhs.ndice,
       nsides: lhs.nsides,
@@ -757,7 +743,6 @@ class ExplodingDice extends BinaryDice {
     }
 
     return RollResult(
-      operation: name,
       expression: toString(),
       ndice: lhs.ndice,
       nsides: lhs.nsides,
