@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 
 enum RollMetadata {
@@ -39,19 +41,62 @@ class RollResult {
     total = results.sum;
   }
 
+  factory RollResult.fromRollResult(
+    RollResult other, {
+    required String expression,
+    int? ndice,
+    int? nsides,
+    List<int>? results,
+    Map<RollMetadata, Object> metadata = const {},
+  }) {
+    // TODO: this seems wrong...  and metadata will overwrite
+    return RollResult(
+      expression: expression,
+      ndice: ndice ?? other.ndice,
+      nsides: nsides ?? other.nsides,
+      results: results ?? other.results,
+      metadata: {...other.metadata, ...metadata},
+    );
+  }
+
+  RollResult operator +(RollResult other) {
+    return RollResult(
+      expression: "($expression+${other.expression})",
+      results: results + other.results,
+      ndice: max(ndice, other.ndice),
+      nsides: max(nsides, other.nsides),
+    );
+  }
+
+  RollResult operator *(RollResult other) {
+    return RollResult(
+      expression: "($expression+${other.expression})",
+      results: [totalOrDefault(() => 0) * other.totalOrDefault(() => 0)],
+    );
+  }
+
+  RollResult operator -(RollResult other) {
+    return RollResult(
+      expression: "($expression+${other.expression})",
+      results: results + other.results.map((v) => v * -1).toList(),
+      ndice: max(ndice, other.ndice),
+      nsides: max(nsides, other.nsides),
+    );
+  }
+
   /// sum of [results]
   late int total = 0;
 
   /// the parsed expression
   final String expression;
 
-  /// number of sides. may be zero if complex expression
+  /// number of sides. may be zero if complex expression or arithmetic result
   final int nsides;
 
-  /// number of dice rolled. may be zero if complex expression
+  /// number of dice rolled. may be zero if complex expression or arithmetic result
   final int ndice;
 
-  /// the results of the operation
+  /// the results of the evaluating the expression
   final List<int> results;
 
   /// any metadata the operation may have recorded
@@ -67,6 +112,6 @@ class RollResult {
 
   @override
   String toString() {
-    return '$expression => RollResult(total: $total, results: $results $metadata)';
+    return '$expression => RollResult(total: $total, results: $results ${metadata.isNotEmpty ? ", metadata: $metadata" : ""})';
   }
 }

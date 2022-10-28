@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:dart_dice_parser/src/dice_expression.dart';
 import 'package:dart_dice_parser/src/dice_roller.dart';
@@ -69,12 +67,7 @@ class MultiplyOp extends Binary {
 
   @override
   RollResult eval() {
-    final lhs = left();
-    final rhs = right();
-    return RollResult(
-      expression: toString(),
-      results: [lhs.totalOrDefault(() => 0) * rhs.totalOrDefault(() => 0)],
-    );
+    return left() * right();
   }
 }
 
@@ -84,14 +77,7 @@ class AddOp extends Binary {
 
   @override
   RollResult eval() {
-    final lhs = left();
-    final rhs = right();
-    return RollResult(
-      expression: toString(),
-      results: lhs.results + rhs.results,
-      ndice: max(lhs.ndice, rhs.ndice),
-      nsides: max(lhs.nsides, rhs.nsides),
-    );
+    return left() + right();
   }
 }
 
@@ -101,12 +87,7 @@ class SubOp extends Binary {
 
   @override
   RollResult eval() {
-    final lhs = left();
-    final rhs = right();
-    return RollResult(
-      expression: toString(),
-      results: lhs.results + [rhs.totalOrDefault(() => 0) * -1],
-    );
+    return left() - right();
   }
 }
 
@@ -436,12 +417,10 @@ class FudgeDice extends UnaryDice {
   RollResult eval() {
     final lhs = left();
     final ndice = lhs.totalOrDefault(() => 1);
-    final roll = roller.rollFudge(ndice);
 
-    return RollResult(
+    return RollResult.fromRollResult(
+      roller.rollFudge(ndice),
       expression: toString(),
-      ndice: ndice,
-      results: roll.results,
     );
   }
 }
@@ -455,12 +434,9 @@ class PercentDice extends UnaryDice {
     final lhs = left();
     const nsides = 100;
     final ndice = lhs.totalOrDefault(() => 1);
-    final roll = roller.roll(ndice, nsides);
-    return RollResult(
+    return RollResult.fromRollResult(
+      roller.roll(ndice, nsides),
       expression: toString(),
-      ndice: ndice,
-      nsides: nsides,
-      results: roll.results,
     );
   }
 }
@@ -496,6 +472,7 @@ class StdDice extends BinaryDice {
     final ndice = lhs.totalOrDefault(() => 1);
     final nsides = rhs.totalOrDefault(() => 1);
 
+    // redundant w/ RangeError checks in the DiceRoller. Here they'll give better error msg
     RangeError.checkValueInInterval(
       ndice,
       DiceRoller.minDice,
@@ -508,12 +485,10 @@ class StdDice extends BinaryDice {
       DiceRoller.maxSides,
       '$this: nsides=$nsides',
     );
-    final roll = roller.roll(ndice, nsides);
-    return RollResult(
+
+    return RollResult.fromRollResult(
+      roller.roll(ndice, nsides),
       expression: toString(),
-      ndice: ndice,
-      nsides: nsides,
-      results: roll.results,
     );
   }
 }
