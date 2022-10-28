@@ -147,11 +147,9 @@ void main() {
     seededRandTest("clamp", "4d6C<3", 17);
     seededRandTest("clamp", "4d6c>3", 9);
     seededRandTest("clamp", "4d6c<3", 17);
-    seededRandTest("clamp", "4d6c>=2", 7);
-    seededRandTest("clamp", "4d6c<=2", 15);
-    seededRandTest("clamp", "1 C<=1", 1);
+    seededRandTest("clamp", "1 C<1", 1);
     // rolls [1,-1,-1,1]  , -1s turned to 0
-    seededRandTest("clamp", "4dF C<=0", 2);
+    seededRandTest("clamp", "4dF C<0", 2);
 
     // mocked responses should return rolls of 6, 2, 1, 5, 3
     // [6,2] + [1,5,3] = [6,2,1,5,3]-L3 => [6,5] = 9

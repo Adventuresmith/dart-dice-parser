@@ -374,25 +374,6 @@ class ClampOp extends Binary {
 
     List<int> results;
     switch (name) {
-      // TODO: does <=,<= make any sense?
-      case "c>=": // change any value >= rhs to rhs
-        results = lhs.results.map((v) {
-          if (v >= target) {
-            return target;
-          } else {
-            return v;
-          }
-        }).toList();
-        break;
-      case "c<=": // change any value <= rhs to rhs
-        results = lhs.results.map((v) {
-          if (v <= target) {
-            return target;
-          } else {
-            return v;
-          }
-        }).toList();
-        break;
       case "c>": // change any value > rhs to rhs
         results = lhs.results.map((v) {
           if (v > target) {

@@ -14,13 +14,16 @@ void main() {
   });
 
   // Create a roller for D20 advantage (roll 2d20, keep highest).
+  //
   // By default, dice roller will use Random.secure(). Depending on your use case,
   // it can be much faster to use the pseudorandom generator instead.
-  final dice = DiceExpression.create('2d20 kh', Random());
+  final d20adv = DiceExpression.create('2d20 kh', Random());
 
-  // each roll returns different results.
-  final results1 = dice.roll();
-  stdout.writeln("Result1: $results1");
-  final results2 = dice.roll();
-  stdout.writeln("Result2: $results2");
+  stdout.writeln(d20adv.roll());
+  // outputs:
+  //   ((2d20)kh) => RollResult(total: 15, results: [15] , metadata: {dropped: [8], rolled: [8, 15]})
+
+  stdout.writeln(d20adv.roll());
+  // outputs:
+  //   ((2d20)kh) => RollResult(total: 20, results: [20] , metadata: {dropped: [5], rolled: [5, 20]})
 }

@@ -146,6 +146,6 @@ class RollResult {
 
   @override
   String toString() {
-    return '$expression => RollResult(total: $total, results: $results ${metadata.isNotEmpty ? ", metadata: $metadata" : ""})';
+    return '$expression => RollResult(total: $total, results: $results${metadata.isNotEmpty ? ", metadata: $metadata" : ""})';
   }
 }

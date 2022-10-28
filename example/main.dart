@@ -5,7 +5,7 @@ import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
 import 'package:logging/logging.dart';
 
-const defaultStatsNum = 500;
+const defaultStatsNum = 10000;
 
 void main(List<String> arguments) async {
   Logger.root.level = Level.INFO;
@@ -74,7 +74,8 @@ void main(List<String> arguments) async {
     ..addFlag(
       "stats",
       abbr: "s",
-      help: "Output dice stats. Assumes n=$defaultStatsNum unless overridden",
+      help:
+          "Output statistics for the given dice expression. Uses n=$defaultStatsNum unless overridden",
     )
     ..addFlag("help", abbr: "h");
 

@@ -9,9 +9,6 @@ import 'package:meta/meta.dart';
 
 /// An abstract expression that can be evaluated.
 abstract class DiceExpression {
-  // TODO: have an LRU cache of DiceExpressions? Or, treat that as out-of-scope for this library?
-  // TODO: does it make sense to expose more of the AST? Or, have other ways of interrogating a roll result?
-
   static final _log = Logger('DiceExpression');
 
   /// Parse the given input into a DiceExpression

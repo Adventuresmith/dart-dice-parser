@@ -65,11 +65,9 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
           .trim(),
       (a, op, b) => ExplodingDice(op.toString().toLowerCase(), a, b, roller),
     )
-    // cap/clamp >=,<=
+    // cap/clamp >,<
     ..left(
-      (pattern('cC') & pattern('<>').optional() & char('=').optional())
-          .flatten()
-          .trim(),
+      (pattern('cC') & pattern('<>').optional()).flatten().trim(),
       (a, op, b) => ClampOp(op.toString().toLowerCase(), a, b),
     )
     // drop >=,<=,>,<
