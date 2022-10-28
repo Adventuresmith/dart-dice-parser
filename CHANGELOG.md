@@ -1,3 +1,14 @@
+# 5.1.1
+- add syntax for exploding/compounding/reroll once
+  - `4d6 !o`
+  - `4d6 !!o`
+  - `4d6 ro`
+- add syntax for success, failure, as well as crit success & failure.
+  - `4d6 #s=6`
+  - plain `#` counts results and transforms the expression from rolls into a count.
+  - but `#s`, `#f`, `#cs`, `#cf` only add metadata to the roll result, and can be chained together.
+    - `9d6! -= 3 #s>=5#f1#cs` -- roll 9d6 with exploding, drop any threes, count >=5 as success, 1s as failures, and 6 as critical success
+
 # 5.1.0
 - make RollResult aggregate _all_ results for whole AST
 

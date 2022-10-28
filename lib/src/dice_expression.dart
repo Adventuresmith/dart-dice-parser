@@ -42,7 +42,7 @@ abstract class DiceExpression {
   @nonVirtual
   RollResult roll() {
     final result = this();
-    _log.fine(() => "$this => $result");
+    _log.fine(() => "$result");
     return result;
   }
 
@@ -50,9 +50,9 @@ abstract class DiceExpression {
   ///
   /// Throws [ArgumentError], [FormatException]
   @nonVirtual
-  Stream<int> rollN(int num) async* {
+  Stream<RollResult> rollN(int num) async* {
     for (var i = 0; i < num; i++) {
-      yield roll().total;
+      yield roll();
     }
   }
 
@@ -66,7 +66,7 @@ abstract class DiceExpression {
     final stats = StatsCollector();
 
     await for (final r in rollN(num)) {
-      stats.update(r);
+      stats.update(r.total);
     }
     return stats.asMap();
   }

@@ -33,62 +33,76 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
         (a, op, b) => StdDice(op.toString(), a, b, roller),
       );
 
-  // compounding dice
+  // compounding dice (has to be in separate group from exploding)
   builder.group().left(
-        (string('!!') & pattern('<>').optional() & char('=').optional())
+        (string('!!') &
+                pattern('oO').optional() &
+                pattern('<>').optional() &
+                char('=').optional())
             .flatten()
             .trim(),
-        (a, op, b) => CompoundingDice(op.toString(), a, b, roller),
+        (a, op, b) =>
+            CompoundingDice(op.toString().toLowerCase(), a, b, roller),
       );
   builder.group()
-    // reroll
+    // reroll & reroll once
     ..left(
-      (pattern('rR') & pattern('<>').optional() & char('=').optional())
+      (pattern('rR') &
+              pattern('oO').optional() &
+              pattern('<>').optional() &
+              char('=').optional())
           .flatten()
           .trim(),
-      (a, op, b) => RerollDice(op.toString().toUpperCase(), a, b, roller),
+      (a, op, b) => RerollDice(op.toString().toLowerCase(), a, b, roller),
     )
     // exploding
     ..left(
-      (char('!') & pattern('<>').optional() & char('=').optional())
+      (char('!') &
+              pattern('oO').optional() &
+              pattern('<>').optional() &
+              char('=').optional())
           .flatten()
           .trim(),
-      (a, op, b) => ExplodingDice(op.toString(), a, b, roller),
+      (a, op, b) => ExplodingDice(op.toString().toLowerCase(), a, b, roller),
     )
     // cap/clamp >=,<=
     ..left(
       (pattern('cC') & pattern('<>').optional() & char('=').optional())
           .flatten()
           .trim(),
-      (a, op, b) => ClampOp(op.toString().toUpperCase(), a, b),
+      (a, op, b) => ClampOp(op.toString().toLowerCase(), a, b),
     )
     // drop >=,<=,>,<
     ..left(
       (char('-') & pattern('<>') & char('=').optional()).flatten().trim(),
-      (a, op, b) => DropOp(op.toString().toUpperCase(), a, b),
+      (a, op, b) => DropOp(op.toString().toLowerCase(), a, b),
     )
     ..left(
       (string('-=')).flatten().trim(),
-      (a, op, b) => DropOp(op.toString().toUpperCase(), a, b),
+      (a, op, b) => DropOp(op.toString().toLowerCase(), a, b),
     )
     // drop(-) low, high
     ..left(
       (char('-') & pattern('LlHh')).flatten().trim(),
-      (a, op, b) => DropHighLowOp(op.toString().toUpperCase(), a, b),
+      (a, op, b) => DropHighLowOp(op.toString().toLowerCase(), a, b),
     )
     // keep low/high
     ..left(
       (pattern('Kk') & pattern('LlHh').optional()).flatten().trim(),
-      (a, op, b) => DropHighLowOp(op.toString().toUpperCase(), a, b),
+      (a, op, b) => DropHighLowOp(op.toString().toLowerCase(), a, b),
+    )
+    // count >=, <=, <, >, =,
+    // #s, #cs, #f, #cf -- count (critical) successes / failures
+    ..left(
+      (char('#') &
+              char('c').optional() &
+              pattern('sf').optional() &
+              pattern('<>').optional() &
+              char('=').optional())
+          .flatten()
+          .trim(),
+      (a, op, b) => CountOp(op.toString().toLowerCase(), a, b),
     );
-
-  // count >=, <=, <, >, =,
-  builder.group().left(
-        (char('#') & pattern('<>').optional() & char('=').optional())
-            .flatten()
-            .trim(),
-        (a, op, b) => CountOp(op.toString(), a, b),
-      );
 
   builder
       .group()

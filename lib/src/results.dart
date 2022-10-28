@@ -19,13 +19,33 @@ enum OperationType {
 }
 
 enum RollMetadata {
-  // all the dice rolled by the operation
+  /// all the dice rolled by the operation
   rolled,
-  // any dice dropped by the operation
+
+  /// any dice dropped by the operation
   dropped,
+
+  /// count of items
+  count,
+
+  /// success count
+  successes,
+
+  /// failure count
+  failures,
+
+  /// critical success count
+  critSuccesses,
+
+  /// critical failure count
+  critFailures;
+
+  @override
+  String toString() => name;
 }
 
 /// The result of rolling a dice expression.
+///
 /// RollResult is a binary tree with [left] and [right] branches
 /// representing the parsed dice expression.
 class RollResult {
@@ -87,6 +107,6 @@ class RollResult {
 
   @override
   String toString() {
-    return 'RollResult(expr: $expression, results: $results $metadata, total: $total)';
+    return '$expression => RollResult(total: $total, results: $results $metadata)';
   }
 }

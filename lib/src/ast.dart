@@ -6,6 +6,9 @@ import 'package:dart_dice_parser/src/dice_roller.dart';
 import 'package:dart_dice_parser/src/results.dart';
 import 'package:dart_dice_parser/src/utils.dart';
 
+/// default limit for rerolls/exploding/compounding to avoid getting stuck in loop
+const defaultRerollLimit = 1000;
+
 /// A value expression. The token we read from input will be a String,
 /// it must parse as an int, and an empty string will return empty set.
 class Value extends DiceExpression {
@@ -29,14 +32,14 @@ class Value extends DiceExpression {
 
 /// All our operations will inherit from this class.
 abstract class DiceOp extends DiceExpression with LoggingMixin {
-  /// each child class should override this to implement their operation
+  // each child class should override this to implement their operation
   RollResult eval();
 
-  /// all children can share this call operator -- and it'll let us be consistent w/ regard to logging
+  // all children can share this call operator -- and it'll let us be consistent w/ regard to logging
   @override
   RollResult call() {
     final results = eval();
-    logger.finer(() => "$this => $results");
+    logger.finer(() => "$results");
     return results;
   }
 }
@@ -121,9 +124,40 @@ class SubOp extends Binary {
   }
 }
 
+enum CountType {
+  count(RollMetadata.count),
+  success(RollMetadata.successes),
+  failure(RollMetadata.failures),
+  critSuccess(RollMetadata.critSuccesses),
+  critFailure(RollMetadata.critFailures);
+
+  const CountType(this.metadataKey);
+
+  final RollMetadata metadataKey;
+}
+
 /// variation on count -- count how many results from lhs are =,<,> rhs.
 class CountOp extends Binary {
-  CountOp(super.name, super.left, super.right);
+  CountOp(
+    super.name,
+    super.left,
+    super.right, [
+    this.countType = CountType.count,
+  ]) {
+    if (name.startsWith('#s')) {
+      countType = CountType.success;
+    } else if (name.startsWith('#f')) {
+      countType = CountType.failure;
+    } else if (name.startsWith('#cs')) {
+      countType = CountType.critSuccess;
+    } else if (name.startsWith('#cf')) {
+      countType = CountType.critFailure;
+    } else {
+      countType = CountType.count;
+    }
+  }
+
+  CountType countType;
 
   @override
   RollResult eval() {
@@ -133,31 +167,60 @@ class CountOp extends Binary {
     bool rhsEmpty = false;
     final target = rhs.resolveToInt(
       () {
-        if (name != '#') {
-          throw FormatException(
-            "invalid count operation '$this' -- missing value after '$name'",
-          );
-        } else {
-          // if operation is simple '#', return 0 and set flag
-          rhsEmpty = true;
-          return 0;
+        switch (name) {
+          case '#':
+            rhsEmpty = true;
+            return 0;
+          case '#s':
+          case '#cs':
+            return lhs.nsides;
+          case '#f':
+          case '#cf':
+            return 1;
+          default:
+            throw FormatException(
+              "invalid count operation '$this' -- missing value after '$name'",
+            );
         }
       },
     );
-    final int retval;
     bool test(int v) {
       switch (name) {
         case "#>=": // how many results on lhs are greater than or equal to rhs?
+        case "#s>=":
+        case "#f>=":
+        case "#cs>=":
+        case "#cf>=":
           return v >= target;
         case "#<=": // how many results on lhs are less than or equal to rhs?
+        case "#s<=":
+        case "#f<=":
+        case "#cs<=":
+        case "#cf<=":
           return v <= target;
         case "#>": // how many results on lhs are greater than rhs?
+        case "#s>":
+        case "#f>":
+        case "#cs>":
+        case "#cf>":
           return v > target;
         case "#<": // how many results on lhs are less than rhs?
+        case "#s<":
+        case "#f<":
+        case "#cs<":
+        case "#cf<":
           return v < target;
         case "#=": // how many results on lhs are equal to rhs?
+        case "#s=":
+        case "#f=":
+        case "#cs=":
+        case "#cf=":
           return v == target;
         case '#':
+        case '#s':
+        case '#f':
+        case '#cs':
+        case '#cf':
           if (rhsEmpty) {
             // if missing rhs, we're just counting results
             // that is, '3d6#' should return 3
@@ -172,13 +235,24 @@ class CountOp extends Binary {
       }
     }
 
-    retval = lhs.results.where(test).length;
+    final count = lhs.results.where(test).length;
+    final metadata = <RollMetadata, Object>{};
+    metadata.addAll(lhs.metadata);
+    metadata.addAll({
+      countType.metadataKey: {
+        'count': count,
+        'target': '$name$target',
+      }
+    });
+
     return RollResult(
       operation: name,
       expression: toString(),
       operationType: OperationType.count,
-      results: [retval],
-      // TODO: add count results to metadata?
+      metadata: metadata,
+      results: countType == CountType.count ? [count] : lhs.results,
+      ndice: lhs.ndice,
+      nsides: lhs.nsides,
       left: lhs,
       right: rhs,
     );
@@ -188,12 +262,6 @@ class CountOp extends Binary {
 /// drop operations -- drop high/low, or drop <,>,= rhs
 class DropOp extends Binary {
   DropOp(super.name, super.left, super.right);
-
-  // override call so we can log from within the op method -- that way, we can have single log line that shows results & dropped
-  @override
-  RollResult call() {
-    return eval();
-  }
 
   @override
   RollResult eval() {
@@ -208,7 +276,7 @@ class DropOp extends Binary {
 
     var results = <int>[];
     var dropped = <int>[];
-    switch (name.toUpperCase()) {
+    switch (name) {
       case '-<': // drop <
         results = lhs.results.where((v) => v >= target).toList();
         dropped = lhs.results.where((v) => v < target).toList();
@@ -233,7 +301,6 @@ class DropOp extends Binary {
         throw FormatException("unknown roll modifier '$name' in $this");
     }
 
-    logger.finer(() => "$this => $results (dropped: $dropped)");
     return RollResult(
       operation: name,
       expression: toString(),
@@ -269,32 +336,30 @@ class DropHighLowOp extends Binary {
     final numToDrop = rhs.resolveToInt(() => 1); // if missing, assume '1'
     var results = <int>[];
     var dropped = <int>[];
-    switch (name.toUpperCase()) {
-      case '-H': // drop high
+    switch (name) {
+      case '-h': // drop high
         results = sorted.reversed.skip(numToDrop).toList();
         dropped = sorted.reversed.take(numToDrop).toList();
         break;
-      case '-L': // drop low
+      case '-l': // drop low
         results = sorted.skip(numToDrop).toList();
         dropped = sorted.take(numToDrop).toList();
         break;
-      case 'KL':
+      case 'kl':
         results = sorted.take(numToDrop).toList();
         dropped = sorted.skip(numToDrop).toList();
         break;
-      case 'KH':
+      case 'kh':
         results = sorted.reversed.take(numToDrop).toList();
         dropped = sorted.reversed.skip(numToDrop).toList();
         break;
-      case 'K':
+      case 'k':
         results = sorted.reversed.take(numToDrop).toList();
         dropped = sorted.reversed.skip(numToDrop).toList();
         break;
       default:
         throw FormatException("unknown roll modifier '$name' in $this");
     }
-
-    logger.finer(() => "$this => $results (dropped: $dropped)");
     return RollResult(
       operation: name,
       expression: toString(),
@@ -327,9 +392,9 @@ class ClampOp extends Binary {
     });
 
     List<int> results;
-    switch (name.toUpperCase()) {
+    switch (name) {
       // TODO: does <=,<= make any sense?
-      case "C>=": // change any value >= rhs to rhs
+      case "c>=": // change any value >= rhs to rhs
         results = lhs.results.map((v) {
           if (v >= target) {
             return target;
@@ -338,7 +403,7 @@ class ClampOp extends Binary {
           }
         }).toList();
         break;
-      case "C<=": // change any value <= rhs to rhs
+      case "c<=": // change any value <= rhs to rhs
         results = lhs.results.map((v) {
           if (v <= target) {
             return target;
@@ -347,7 +412,7 @@ class ClampOp extends Binary {
           }
         }).toList();
         break;
-      case "C>": // change any value > rhs to rhs
+      case "c>": // change any value > rhs to rhs
         results = lhs.results.map((v) {
           if (v > target) {
             return target;
@@ -356,7 +421,7 @@ class ClampOp extends Binary {
           }
         }).toList();
         break;
-      case "C<": // change any value < rhs to rhs
+      case "c<": // change any value < rhs to rhs
         results = lhs.results.map((v) {
           if (v < target) {
             return target;
@@ -502,9 +567,13 @@ class RerollDice extends BinaryDice {
     super.left,
     super.right,
     super.roller, {
-    this.limit = 100,
-  });
-  final int limit;
+    this.limit = defaultRerollLimit,
+  }) {
+    if (name.startsWith('ro')) {
+      limit = 1;
+    }
+  }
+  int limit;
 
   @override
   RollResult eval() {
@@ -525,17 +594,22 @@ class RerollDice extends BinaryDice {
 
     bool test(int val) {
       switch (name) {
-        case 'R': // equality
+        case 'r': // equality
+        case 'ro': // equality
+        case 'r=':
+        case 'ro=':
           return val == target;
-        case 'R=':
-          return val == target;
-        case 'R<':
+        case 'r<':
+        case 'ro<':
           return val < target;
-        case 'R>':
+        case 'r>':
+        case 'ro>':
           return val > target;
-        case 'R<=':
+        case 'r<=':
+        case 'ro<=':
           return val <= target;
-        case 'R>=':
+        case 'r>=':
+        case 'ro>=':
           return val >= target;
         default:
           throw FormatException("unknown reroll modifier '$name' in $this");
@@ -577,9 +651,13 @@ class CompoundingDice extends BinaryDice {
     super.left,
     super.right,
     super.roller, {
-    this.compoundLimit = 100,
-  });
-  final int compoundLimit;
+    this.limit = defaultRerollLimit,
+  }) {
+    if (name.startsWith("!!o")) {
+      limit = 1;
+    }
+  }
+  int limit;
 
   @override
   RollResult eval() {
@@ -595,16 +673,21 @@ class CompoundingDice extends BinaryDice {
     bool test(int val) {
       switch (name) {
         case '!!': // equality
-          return val == target;
         case '!!=':
+        case '!!o':
+        case '!!o=':
           return val == target;
         case '!!<':
+        case '!!o<':
           return val < target;
         case '!!>':
+        case '!!o>':
           return val > target;
         case '!!<=':
+        case '!!o<=':
           return val <= target;
         case '!!>=':
+        case '!!o>=':
           return val >= target;
         default:
           throw FormatException("unknown explode modifier '$name' in $this");
@@ -623,7 +706,7 @@ class CompoundingDice extends BinaryDice {
               .total;
           sum += rerolled;
           numCompounded++;
-        } while (test(rerolled) && numCompounded < compoundLimit);
+        } while (test(rerolled) && numCompounded < limit);
         results.add(sum);
       } else {
         results.add(v);
@@ -649,10 +732,14 @@ class ExplodingDice extends BinaryDice {
     super.left,
     super.right,
     super.roller, {
-    this.explodeLimit = 100,
-  });
+    this.limit = defaultRerollLimit,
+  }) {
+    if (name.startsWith('!o')) {
+      limit = 1;
+    }
+  }
 
-  final int explodeLimit;
+  int limit;
 
   @override
   RollResult eval() {
@@ -671,16 +758,21 @@ class ExplodingDice extends BinaryDice {
     bool test(int val) {
       switch (name) {
         case '!': // equality
-          return val == target;
         case '!=':
+        case '!o':
+        case '!o=':
           return val == target;
         case '!<':
+        case '!o<':
           return val < target;
         case '!>':
+        case '!o>':
           return val > target;
         case '!<=':
+        case '!o<=':
           return val <= target;
         case '!>=':
+        case '!o>=':
           return val >= target;
         default:
           throw FormatException("unknown explode modifier '$name' in $this");
@@ -690,7 +782,7 @@ class ExplodingDice extends BinaryDice {
     accumulated.addAll(lhs.results);
     var numToRoll = lhs.results.where(test).length;
     var explodeCount = 0;
-    while (numToRoll > 0 && explodeCount <= explodeLimit) {
+    while (numToRoll > 0 && explodeCount < limit) {
       final results = roller.roll(
         numToRoll,
         lhs.nsides,

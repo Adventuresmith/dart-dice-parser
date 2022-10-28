@@ -91,6 +91,7 @@ void main() {
       '4d6-=',
       '4d6 C=',
       '4d6 r=',
+      '4d6 ro=',
     ];
     for (final v in invalids) {
       test("invalid count - $v", () {
@@ -197,6 +198,16 @@ void main() {
     seededRandTest("reroll", "10d4 r>2", 16);
     seededRandTest("reroll", "10d4 r<=3", 40);
     seededRandTest("reroll", "10d4 r>=2", 10);
+
+    seededRandTest("reroll", "10d4 ro=3", 35);
+    seededRandTest("reroll", "10d4 ro3", 35);
+    seededRandTest("reroll", "10d4 ro<2", 33);
+    seededRandTest("reroll", "10d4 ro>2", 26);
+    seededRandTest("reroll", "10d4 ro<=3", 34);
+    seededRandTest("reroll", "10d4 ro>=2", 27);
+
+    seededRandTest("reroll once", "8d6r>3", 15);
+    seededRandTest("reroll once", "8d6ro>3", 28);
   });
 
   group("dice", () {
@@ -230,10 +241,21 @@ void main() {
     seededRandTest("exploding dice", "9d6!>=6", 48);
     seededRandTest("exploding dice", "9d6!>5", 48);
 
+    seededRandTest("exploding dice", "9d6!o", 44);
+    seededRandTest("exploding dice", "9d6!o6", 44);
+    seededRandTest("exploding dice", "9d6!o=6", 44);
+    seededRandTest("exploding dice", "9d6!o>=6", 44);
+    seededRandTest("exploding dice", "9d6!o>5", 44);
+
     seededRandTest("exploding dice", "9d6!1", 44);
     seededRandTest("exploding dice", "9d6!>=5", 56);
     seededRandTest("exploding dice", "9d6!<2", 44);
     seededRandTest("exploding dice", "9d6!<=3", 54);
+
+    seededRandTest("exploding dice", "9d6!o1", 44);
+    seededRandTest("exploding dice", "9d6!o>=5", 50);
+    seededRandTest("exploding dice", "9d6!o<2", 44);
+    seededRandTest("exploding dice", "9d6!o<=3", 50);
 
     // 1st round: 6, 2, 1, 5, 3, 5, 1, 4, 6, (compounds 2) (total 33)
     // 2nd round: 5,                      6 (compounds 1) (total 11)
@@ -245,12 +267,23 @@ void main() {
     seededRandTest("compounding dice", "9d6!!>=6", 48);
     seededRandTest("compounding dice", "9d6!!>5", 48);
 
+    seededRandTest("compounding dice", "9d6!!o", 44);
+    seededRandTest("compounding dice", "9d6!!o6", 44);
+    seededRandTest("compounding dice", "9d6!!o=6", 44);
+    seededRandTest("compounding dice", "9d6!!o>=6", 44);
+    seededRandTest("compounding dice", "9d6!!o>5", 44);
+
     seededRandTest("compounding dice count", "9d6!!#>6", 2);
 
     seededRandTest("compounding dice", "9d6!!>=5", 56);
     seededRandTest("compounding dice", "9d6!!<3", 48);
     seededRandTest("compounding dice", "9d6!!<=3", 54);
     seededRandTest("compounding dice", "9d6!!1", 44);
+
+    seededRandTest("compounding dice", "9d6!!o>=5", 50);
+    seededRandTest("compounding dice", "9d6!!o<3", 48);
+    seededRandTest("compounding dice", "9d6!!o<=3", 50);
+    seededRandTest("compounding dice", "9d6!!o1", 44);
 
     seededRandTest("explode arith result", "(9d6+3)!", 51);
 
@@ -318,14 +351,9 @@ void main() {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create('2d6', seededRandom);
 
-      expect(
-        dice.rollN(2),
-        emitsInOrder([
-          8,
-          6,
-          emitsDone,
-        ]),
-      );
+      final results =
+          await dice.rollN(2).map((result) => result.total).toList();
+      expect(results, equals([8, 6]));
     });
 
     test("stats test", () async {

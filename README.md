@@ -61,7 +61,8 @@ Other examples:
       * `AdX!<=N` - explode if >= N
       * `AdX!>N` - explode if > N
       * `AdX!<N` - explode if > N
-      * NOTE: the dice roller won't explode dice more than 100 times.
+      * To limit to a single explode, use syntax `!o` (otherwise, dice rolls explode at most 1000 times)
+        * `AdX!o<N`
   * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each
     dice are added together as a single "roll"
     * `AdX!!` -- roll `A` `X`-sided dice, compound
@@ -70,6 +71,8 @@ Other examples:
       * `AdX!!<=N` - compound if >= N
       * `AdX!!>N` - compound if > N
       * `AdX!!<N` - compound if > N
+      * To limit to a single compound, use syntax `!!o` (otherwise, dice rolls compound at most 1000 times)
+        * `AdX!!o<N`
   * re-rolling dice:
     * `AdX rN` -- roll `A` `X`-sided dice, re-roll any N
     * `AdX r=N` -- roll `A` `X`-sided dice, re-roll any N
@@ -77,6 +80,8 @@ Other examples:
     * `AdX r>=N` -- roll `A` `X`-sided dice, re-roll any >= N
     * `AdX r<N` -- roll `A` `X`-sided dice, re-roll any < N
     * `AdX r>N` -- roll `A` `X`-sided dice, re-roll any > N
+    * To limit to a single reroll, use syntax `!!o` (otherwise, dice rolls reroll at most 1000 times)
+      * `AdX!!o<N`
   * keeping dice:
     * `AdX k N` -- roll `A` `X`-sided dice, keep N highest
     * `AdX kh N` -- roll `A` `X`-sided dice, keep N highest
@@ -105,6 +110,13 @@ Other examples:
     * `AdX #>=B` -- roll `A` `X`-sided dice, count any greater than or equal to B
     * `AdX #<=B` -- roll `A` `X`-sided dice, count any less than or equal to B
     * `AdX #=B` -- roll `A` `X`-sided dice, count any equal to B
+  * counting (critical) success/failures 
+    * A normal count operation `#` discards the rolled dice and changes the result to be the count
+      * For example, `2d6#<=3` rolls `[3,4]` then counts which results are `<=3` , returning `[1]`
+    * But, sometimes you want to be able to count successes/failures without discarding the rolls. 
+      In this case, use modifiers `#s`, `#f`, `#cs`, `#cf` to add metadata to the results.
+      * `6d6 #f<=2#s>=5#cs6` -- roll 6d6, count results <= 2 as failures, >= 5 as successes, and =6 as critical successes.
+        * returns a result like: `RollResult(total: 22, results: [6, 2, 1, 5, 3, 5] {failures: {count: 2, target: #f<=2}, successes: {count: 3, target: #s>=5}, critSuccesses: {count: 1, target: #cs6}})`
 * arithmetic operations
   * parenthesis for order of operations
   * addition is a little special -- could be a sum of ints, or it can be used to aggregate results of multiple dice rolls
