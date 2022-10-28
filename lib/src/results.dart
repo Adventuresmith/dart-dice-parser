@@ -1,23 +1,4 @@
-import 'dart:async';
-
 import 'package:collection/collection.dart';
-import 'package:logging/logging.dart';
-
-class ResultStream {
-  factory ResultStream() => _singleton;
-  ResultStream._internal();
-
-  static final _singleton = ResultStream._internal();
-  static final _logger = Logger('ResultStream');
-
-  final _controller = StreamController<String>(
-    onCancel: () => _logger.finest('Cancelled'),
-    onListen: () => _logger.finest('Listens'),
-  );
-  Stream<String> get stream => _controller.stream;
-
-  void publish(String event) => _controller.add(event);
-}
 
 enum OperationType {
   /// integer value
