@@ -1,23 +1,5 @@
 import 'package:collection/collection.dart';
 
-enum OperationType {
-  /// integer value
-  value,
-  add,
-  subtract,
-  multiply,
-  count,
-  drop,
-  dropHighLow,
-  clamp,
-  dice,
-  diceFudge,
-  dice66,
-  reroll,
-  compound,
-  explode,
-}
-
 enum RollMetadata {
   /// all the dice rolled by the operation
   rolled,
@@ -52,7 +34,6 @@ class RollResult {
   RollResult({
     required this.expression,
     required this.operation,
-    required this.operationType,
     this.ndice = 0,
     this.nsides = 0,
     this.results = const [],
@@ -71,9 +52,6 @@ class RollResult {
 
   /// the operation token
   final String operation;
-
-  /// operation type
-  final OperationType operationType;
 
   /// number of sides. may be zero if complex expression
   final int nsides;
@@ -99,7 +77,7 @@ class RollResult {
   /// However, if result is a Value and empty, return result of calling [defaultCb].
   /// if [defaultCb] not provided, 0 will be returned.
   int resolveToInt([int Function() defaultCb = _defaultCb]) {
-    if (operationType == OperationType.value && results.isEmpty) {
+    if (results.isEmpty) {
       return defaultCb();
     }
     return total;

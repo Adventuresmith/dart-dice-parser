@@ -16,7 +16,6 @@ class Value extends DiceExpression {
       : _results = RollResult(
           expression: value,
           operation: value,
-          operationType: OperationType.value,
           results: value.isEmpty ? [] : [int.parse(value)],
         );
 
@@ -76,7 +75,6 @@ class MultiplyOp extends Binary {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.multiply,
       results: [lhs.resolveToInt(() => 0) * rhs.resolveToInt(() => 0)],
       left: lhs,
       right: rhs,
@@ -95,7 +93,6 @@ class AddOp extends Binary {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.add,
       results: lhs.results + rhs.results,
       ndice: max(lhs.ndice, rhs.ndice),
       nsides: max(lhs.nsides, rhs.nsides),
@@ -116,7 +113,6 @@ class SubOp extends Binary {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.subtract,
       results: lhs.results + [rhs.resolveToInt(() => 0) * -1],
       left: lhs,
       right: rhs,
@@ -248,7 +244,6 @@ class CountOp extends Binary {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.count,
       metadata: metadata,
       results: countType == CountType.count ? [count] : lhs.results,
       ndice: lhs.ndice,
@@ -304,7 +299,6 @@ class DropOp extends Binary {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.drop,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
@@ -363,7 +357,6 @@ class DropHighLowOp extends Binary {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.dropHighLow,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
@@ -436,7 +429,6 @@ class ClampOp extends Binary {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.clamp,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
@@ -471,7 +463,6 @@ class FudgeDice extends UnaryDice {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.diceFudge,
       ndice: ndice,
       results: roll.results,
       left: lhs,
@@ -492,7 +483,6 @@ class PercentDice extends UnaryDice {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.dice,
       ndice: ndice,
       nsides: nsides,
       results: roll.results,
@@ -516,7 +506,6 @@ class D66Dice extends UnaryDice {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.dice66,
       ndice: ndice,
       results: results,
       left: lhs,
@@ -551,7 +540,6 @@ class StdDice extends BinaryDice {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.dice,
       ndice: ndice,
       nsides: nsides,
       results: roll.results,
@@ -635,7 +623,6 @@ class RerollDice extends BinaryDice {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.reroll,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
@@ -716,7 +703,6 @@ class CompoundingDice extends BinaryDice {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.compound,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
@@ -796,7 +782,6 @@ class ExplodingDice extends BinaryDice {
     return RollResult(
       operation: name,
       expression: toString(),
-      operationType: OperationType.explode,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: accumulated,

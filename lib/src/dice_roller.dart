@@ -39,7 +39,6 @@ class DiceRoller {
     return RollResult(
       operation: "${ndice}d$nsides",
       expression: "${ndice}d$nsides",
-      operationType: OperationType.dice,
       ndice: ndice,
       nsides: nsides,
       results: results,
@@ -60,7 +59,6 @@ class DiceRoller {
     return RollResult(
       operation: "${ndice}dF",
       expression: "${ndice}dF",
-      operationType: OperationType.dice,
       ndice: ndice,
       results: results,
     );
