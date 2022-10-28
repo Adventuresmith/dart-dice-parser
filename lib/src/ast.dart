@@ -131,22 +131,29 @@ class CountOp extends Binary {
     final lhs = left();
     final rhs = right();
 
-    bool rhsEmpty = false;
+    bool rhsEmptyAndSimpleCount = false;
     final target = rhs.totalOrDefault(
       () {
+        // if missing RHS, we can make assumptions depending on operator.
+        //
         switch (name) {
           case '#':
-            rhsEmpty = true;
+            // example: '3d6#' should be 3. target is ignored in case statement below.
+            rhsEmptyAndSimpleCount = true;
             return 0;
           case '#s':
           case '#cs':
+            // example: '3d6#s' -- assume target is nsides (maximum)
             return lhs.nsides;
           case '#f':
           case '#cf':
+            // example: '3d6#f' -- assume target is 1 (minimum)
             return 1;
           default:
             throw FormatException(
-              "invalid count operation '$this' -- missing value after '$name'",
+              "Invalid count operation. Missing count target'",
+              toString(),
+              toString().length,
             );
         }
       },
@@ -188,7 +195,7 @@ class CountOp extends Binary {
         case '#f':
         case '#cs':
         case '#cf':
-          if (rhsEmpty) {
+          if (rhsEmptyAndSimpleCount) {
             // if missing rhs, we're just counting results
             // that is, '3d6#' should return 3
             return true;
@@ -198,7 +205,11 @@ class CountOp extends Binary {
             return v == target;
           }
         default:
-          throw FormatException("unknown count operation '$name' in $this");
+          throw FormatException(
+            "unknown count operation '$name'",
+            toString(),
+            toString().indexOf(name),
+          );
       }
     }
 
@@ -232,7 +243,9 @@ class DropOp extends Binary {
 
     final target = rhs.totalOrDefault(() {
       throw FormatException(
-        "invalid drop operation '$this' -- missing value after '$name'",
+        "Invalid drop operation. Missing drop target'",
+        toString(),
+        toString().length,
       );
     });
 
@@ -260,7 +273,11 @@ class DropOp extends Binary {
         dropped = lhs.results.where((v) => v == target).toList();
         break;
       default:
-        throw FormatException("unknown roll modifier '$name' in $this");
+        throw FormatException(
+          "unknown drop operation '$name'",
+          toString(),
+          toString().indexOf(name),
+        );
     }
 
     return RollResult(
@@ -318,7 +335,11 @@ class DropHighLowOp extends Binary {
         dropped = sorted.reversed.skip(numToDrop).toList();
         break;
       default:
-        throw FormatException("unknown roll modifier '$name' in $this");
+        throw FormatException(
+          "unknown drop operation '$name'",
+          toString(),
+          toString().indexOf(name),
+        );
     }
     return RollResult(
       expression: toString(),
@@ -345,7 +366,9 @@ class ClampOp extends Binary {
     final rhs = right();
     final target = rhs.totalOrDefault(() {
       throw FormatException(
-        "invalid clamp operation '$this' -- missing value after '$name'",
+        "Invalid clamp operation. Missing clamp target'",
+        toString(),
+        toString().length,
       );
     });
 
@@ -389,7 +412,11 @@ class ClampOp extends Binary {
         }).toList();
         break;
       default:
-        throw FormatException("unknown roll modifier '$name' in $this");
+        throw FormatException(
+          "unknown clamp operation '$name'",
+          toString(),
+          toString().indexOf(name),
+        );
     }
     return RollResult(
       expression: toString(),
@@ -524,12 +551,16 @@ class RerollDice extends BinaryDice {
 
     if (lhs.nsides == 0) {
       throw FormatException(
-        "Invalid reroll operation '$this' -- cannot determine # sides from '$left'",
+        "Invalid reroll operation. Cannot determine # sides from '$left'",
+        toString(),
+        left.toString().length,
       );
     }
     final target = rhs.totalOrDefault(() {
       throw FormatException(
-        "invalid reroll operation '$this' -- missing value after '$name'",
+        "Invalid reroll operation. Missing reroll target'",
+        toString(),
+        toString().length,
       );
     });
     final results = <int>[];
@@ -554,7 +585,11 @@ class RerollDice extends BinaryDice {
         case 'ro>=':
           return val >= target;
         default:
-          throw FormatException("unknown reroll modifier '$name' in $this");
+          throw FormatException(
+            "unknown reroll operation '$name'",
+            toString(),
+            toString().indexOf(name),
+          );
       }
     }
 
@@ -606,7 +641,9 @@ class CompoundingDice extends BinaryDice {
 
     if (lhs.nsides == 0) {
       throw FormatException(
-        "Invalid compounding operation '$this' -- cannot determine # sides from '$left'",
+        "Invalid compounding operation. Cannot determine # sides from '$left'",
+        toString(),
+        left.toString().length,
       );
     }
     final target = rhs.totalOrDefault(() => lhs.nsides);
@@ -630,7 +667,11 @@ class CompoundingDice extends BinaryDice {
         case '!!o>=':
           return val >= target;
         default:
-          throw FormatException("unknown explode modifier '$name' in $this");
+          throw FormatException(
+            "unknown compounding operation '$name'",
+            toString(),
+            toString().indexOf(name),
+          );
       }
     }
 
@@ -686,7 +727,9 @@ class ExplodingDice extends BinaryDice {
 
     if (lhs.nsides == 0) {
       throw FormatException(
-        "Invalid exploding operation '$this' -- cannot determine # sides from '$left'",
+        "Invalid exploding operation. Cannot determine # sides from '$left'",
+        toString(),
+        left.toString().length,
       );
     }
     final target = rhs.totalOrDefault(() => lhs.nsides);
@@ -713,7 +756,11 @@ class ExplodingDice extends BinaryDice {
         case '!o>=':
           return val >= target;
         default:
-          throw FormatException("unknown explode modifier '$name' in $this");
+          throw FormatException(
+            "unknown explode operation '$name'",
+            toString(),
+            toString().indexOf(name),
+          );
       }
     }
 
