@@ -30,12 +30,38 @@ void main() {
     });
   }
 
-  void seededRandTest(String name, String input, int expected) {
+  void seededRandTest(
+    String name,
+    String input,
+    int? total, {
+    List<int>? results,
+    Map<RollMetadata, Object>? metadata,
+  }) {
     test("$name - $input", () {
-      expect(
-        DiceExpression.create(input, seededRandom).roll().total,
-        equals(expected),
-      );
+      final roll = DiceExpression.create(input, seededRandom).roll();
+      if (total != null) {
+        expect(
+          roll.total,
+          equals(total),
+          reason: "mismatching total",
+        );
+      }
+      if (results != null) {
+        expect(
+          roll.results,
+          equals(results),
+          reason: "mismatching results",
+        );
+      }
+      if (metadata != null) {
+        metadata.forEach((key, value) {
+          expect(
+            roll.metadata[key],
+            equals(value),
+            reason: "mismatching metadata $key",
+          );
+        });
+      }
     });
   }
 
@@ -54,9 +80,80 @@ void main() {
   });
 
   group("dice and arith", () {
-    seededRandTest("dice", "4d6", 14);
-    seededRandTest("dice+", "4d6+2", 16);
-    seededRandTest("dice*", "4d6*2", 28);
+    seededRandTest("dice", "4d6", 14, results: [6, 2, 1, 5]);
+    seededRandTest("dice+", "4d6+2", 16, results: [6, 2, 1, 5, 2]);
+    seededRandTest("dice*", "4d6*2", 28, results: [28]);
+  });
+
+  group("successes and failures", () {
+    // count s=nsides, f=1
+    seededRandTest(
+      "dice",
+      "4d6#s#f#cs#cf",
+      14,
+      results: [6, 2, 1, 5],
+      metadata: {
+        RollMetadata.successes: 1,
+        RollMetadata.failures: 1,
+        RollMetadata.critSuccesses: 1,
+        RollMetadata.critFailures: 1,
+      },
+    );
+    seededRandTest(
+      "dice",
+      "4d6#s6#f1",
+      14,
+      results: [6, 2, 1, 5],
+      metadata: {
+        RollMetadata.successes: 1,
+        RollMetadata.failures: 1,
+      },
+    );
+    seededRandTest(
+      "dice",
+      "4d6#s=6#f=1",
+      14,
+      results: [6, 2, 1, 5],
+      metadata: {
+        RollMetadata.successes: 1,
+        RollMetadata.failures: 1,
+      },
+    );
+
+    seededRandTest(
+      "dice",
+      "4d6#s>4#f<=2#cs>5#cf<2",
+      14,
+      results: [6, 2, 1, 5],
+      metadata: {
+        RollMetadata.successes: 2,
+        RollMetadata.failures: 2,
+        RollMetadata.critSuccesses: 1,
+        RollMetadata.critFailures: 1,
+      },
+    );
+
+    seededRandTest(
+      "dice",
+      "4d6#s>=4#f<2",
+      14,
+      results: [6, 2, 1, 5],
+      metadata: {
+        RollMetadata.successes: 2,
+        RollMetadata.failures: 1,
+      },
+    );
+
+    seededRandTest(
+      "dice",
+      "4d6#s<2#f>5",
+      14,
+      results: [6, 2, 1, 5],
+      metadata: {
+        RollMetadata.successes: 1,
+        RollMetadata.failures: 1,
+      },
+    );
   });
 
   group("counting operations", () {
@@ -154,6 +251,13 @@ void main() {
     // mocked responses should return rolls of 6, 2, 1, 5, 3
     // [6,2] + [1,5,3] = [6,2,1,5,3]-L3 => [6,5] = 9
     seededRandTest("drop low on aggregated dice", "(2d6+3d6)-L3", 11);
+
+    test("missing clamp target", () {
+      expect(
+        () => DiceExpression.create("6d6 C<", seededRandom).roll(),
+        throwsFormatException,
+      );
+    });
   });
 
   group("addition combines", () {
