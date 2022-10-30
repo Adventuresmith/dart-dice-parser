@@ -1,3 +1,6 @@
+# 5.1.2
+- fix error messages with extraneous `'`
+
 # 5.1.1
 - add syntax for exploding/compounding/reroll once
   - `4d6 !o`
