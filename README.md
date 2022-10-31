@@ -29,9 +29,9 @@ void main() {
 
 ## Random Number Generator
 
-By default, Random.secure() is used. You can select other RNGs at when creating the
-dice expression. Random.secure() is slower, so if you're doing lots of rolls
-for use cases where security doesn't matter, you may want to use Random() instead.
+By default, Random.secure() is used. You can select other RNGs when creating the
+dice expression. Random() is faster than Random.secure(), so if you're doing lots of rolls
+for use cases where security doesn't matter, you may want to use Random().
 
 ```dart 
   // uses Random.secure()
@@ -147,7 +147,7 @@ for use cases where security doesn't matter, you may want to use Random() instea
   * division is not supported.
   
 
-### CLI Usage
+# CLI Usage
 
 There's no executable in bin, but there's an example CLI at `example/main.dart`. 
 

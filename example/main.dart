@@ -63,7 +63,7 @@ void main(List<String> arguments) async {
             try {
               random = Random(int.parse(val!));
             } on FormatException {
-              stderr.writeln("Invalid random number option '$val'.");
+              stderr.writeln("Invalid random number generator '$val'.");
               exit(1);
             }
             break;
