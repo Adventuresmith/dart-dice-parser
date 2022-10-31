@@ -214,10 +214,10 @@ class CountOp extends Binary {
     }
 
     final count = lhs.results.where(test).length;
-    final metadata = <RollMetadata, Object>{};
+    final metadata = <String, Object>{};
     metadata.addAll(lhs.metadata);
     metadata.addAll({
-      countType.metadataKey: count,
+      countType.metadataKey.name: count,
     });
 
     return RollResult(
@@ -286,8 +286,8 @@ class DropOp extends Binary {
       nsides: lhs.nsides,
       results: results,
       metadata: {
-        RollMetadata.dropped: dropped,
-        RollMetadata.rolled: lhs.results,
+        RollMetadata.dropped.name: dropped,
+        RollMetadata.rolled.name: lhs.results,
       },
       left: lhs,
       right: rhs,
@@ -347,8 +347,8 @@ class DropHighLowOp extends Binary {
       nsides: lhs.nsides,
       results: results,
       metadata: {
-        RollMetadata.dropped: dropped,
-        RollMetadata.rolled: sorted,
+        RollMetadata.dropped.name: dropped,
+        RollMetadata.rolled.name: sorted,
       },
       left: lhs,
       right: rhs,

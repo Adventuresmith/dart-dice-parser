@@ -7,7 +7,7 @@
 
 A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, exploding die, and other variations.
 
-## Example
+# Example
 
 ```dart
 
@@ -15,7 +15,7 @@ import 'package:dart_dice_parser/dart_dice_parser.dart';
 
 void main() {
   // Create a roller for D20 advantage (roll 2d20, keep highest).
-  final d20adv = DiceExpression.create('2d20 kh', Random());
+  final d20adv = DiceExpression.create('2d20 kh');
 
   stdout.writeln(d20adv.roll());
   // outputs:
@@ -27,29 +27,11 @@ void main() {
 }
 ```
 
-Other examples:
-
-* `2d6 + 1` -- roll two six-sided dice, sum results and add one
-* `1D66` -- roll a D66 -- aka two six-sided dice, multiply first by 10 and sum results
-* `1d%` -- roll one percentile dice
-* `4dF` -- roll four fudge dice
-* `2d20-H` -- roll 2d20, drop highest (disadvantage)
-  * equivalent to `2d20k` or `2d20kh` or `2d20k1` (keep high)
-* `2d20-L` -- roll 2d20, drop lowest (advantage)
-  * equivalent to `2d20kl` or `2d20kl1`
-* `4d20-H-L` -- roll 4d20, drop highest and lowest
-* `10d10-L3` -- roll 10d10, drop 3 lowest results
-* `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists, and drop lowest 3 results
-* `20d10-<3->8#` -- roll 20 d10, drop any less than 3 or greater than 8 and count the number of remaining dice
-* `2d6 * 3` -- roll 2d6, multiply result by 3
-* `2d(2*10) + 3d100` -- roll 2 twenty-sided dice, sum results,
-  add that to sum of 3 100-sided die
-
 ## Random Number Generator
 
 By default, Random.secure() is used. You can select other RNGs at when creating the
-dice expression. Random.secure() is much slower, so if you're doing lots of rolls
-for a use case where security doesn't matter, you may want to use Random() instead.
+dice expression. Random.secure() is slower, so if you're doing lots of rolls
+for use cases where security doesn't matter, you may want to use Random() instead.
 
 ```dart 
   // uses Random.secure()
@@ -60,69 +42,89 @@ for a use case where security doesn't matter, you may want to use Random() inste
 
 ```
 
+# Dice Notation
+
+## Examples:
+
+* `1d20 #cf #cs`
+  * roll 1d20, result will include counts of successes, failures (1)
+
+* advantage/disadvantage in 5E
+  * There's a couple ways to roll advantage
+    * `2d20-L` -- roll 2d20, drop lowest (advantage)
+    * `2d20k`, `2d20kh` -- roll 2d20 keep highest
+  * Similarly for disadvantage:
+    * `2d20-H` -- drop highest
+    * `2d20-kl` -- keep lowest
+* `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists, and drop lowest 3 results
+* `20d10-<3->8#` -- roll 20 d10, drop any less than 3 or greater than 8 and count the number of remaining dice
+
+
 ## Supported notation
-* `AdX` -- roll `A` dice of `X` sides
+
+* `2d6` -- roll `2` dice of `6` sides
 * special dice variations:
-  * `AdF` -- roll `A` fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
-  * `Ad%` -- roll `A` percentile dice (equivalent to `1d100`)
-  * `AD66` -- roll `A` D66, aka `1d6*10 + 1d6` (NOTE: you _must_ use
-    uppercase `D66`, lowercase `d66` will be interpreted as 66-sided die)
+  * `4dF` -- roll `4` fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
+  * `1d%` -- roll `1` percentile dice (equivalent to `1d100`)
+  * `1D66` -- roll `1` D66, aka `1d6*10 + 1d6` 
+    * **_NOTE_**: you _must_ use uppercase `D66`, lowercase `d66` will be interpreted as 66-sided die
   
-* modifying the roll results:
-  * exploding dice
-    * `AdX!` -- roll `A` `X`-sided dice, explode if max (`X`) is rolled (re-roll and include in results)
-      * `AdX!=N` or `AdX!N` -- explode a roll if equal to N (default X)
-      * `AdX!>=N` - explode if >= N
-      * `AdX!<=N` - explode if >= N
-      * `AdX!>N` - explode if > N
-      * `AdX!<N` - explode if > N
-      * To limit to a single explode, use syntax `!o` (otherwise, dice rolls explode at most 1000 times)
-        * `AdX!o<N`
-  * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each
-    dice are added together as a single "roll"
-    * `AdX!!` -- roll `A` `X`-sided dice, compound
-      * `AdX!!=N` or `AdX!N` -- compound a roll if equal to N (default X)
-      * `AdX!!>=N` - compound if >= N
-      * `AdX!!<=N` - compound if >= N
-      * `AdX!!>N` - compound if > N
-      * `AdX!!<N` - compound if > N
-      * To limit to a single compound, use syntax `!!o` (otherwise, dice rolls compound at most 1000 times)
-        * `AdX!!o<N`
-  * re-rolling dice:
-    * `AdX rN` -- roll `A` `X`-sided dice, re-roll any N
-    * `AdX r=N` -- roll `A` `X`-sided dice, re-roll any N
-    * `AdX r<=N` -- roll `A` `X`-sided dice, re-roll any <= N
-    * `AdX r>=N` -- roll `A` `X`-sided dice, re-roll any >= N
-    * `AdX r<N` -- roll `A` `X`-sided dice, re-roll any < N
-    * `AdX r>N` -- roll `A` `X`-sided dice, re-roll any > N
-    * To limit to a single reroll, use syntax `!!o` (otherwise, dice rolls reroll at most 1000 times)
-      * `AdX!!o<N`
-  * keeping dice:
-    * `AdX k N` -- roll `A` `X`-sided dice, keep N highest
-    * `AdX kh N` -- roll `A` `X`-sided dice, keep N highest
-    * `AdX kl N` -- roll `A` `X`-sided dice, keep N lowest
-  * dropping dice:
-    * `AdX-HN` -- roll `A` `X`-sided dice, drop N highest
-    * `AdX-LN` -- roll `A` `X`-sided dice, drop N lowest
-    * `AdX->B` -- roll `A` `X`-sided dice, drop any results > B
-    * `AdX-<B` -- roll `A` `X`-sided dice, drop any results < B
-    * `AdX->=B` -- roll `A` `X`-sided dice, drop any results >= B
-    * `AdX-<=B` -- roll `A` `X`-sided dice, drop any results <= B
-    * `AdX-=B` -- roll `A` `X`-sided dice, drop any results equal to B
-    * NOTE: the drop operators have higher precedence than
-      the arithmetic operators; `4d10-L2+2` is equivalent to `(4d10-L2)+2`
+* exploding dice
+  * `4d6!` -- roll `4` `6`-sided dice, explode if max (`6`) is rolled (re-roll and include in results)
+    * `4d6!=5` or `4d6!5` -- explode a roll if equal to 5 
+    * `4d6!>=4` - explode if >= 4
+    * `4d6!<=2` - explode if <=2
+    * `4d6!>5` - explode if > 5
+    * `4d6!<2` - explode if <2
+    * To limit to a single explosion, use syntax `!o` (otherwise, dice rolls will explode at most 1000 times)
+      * `4d6!o<5`
+* compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each
+  dice are added together as a single "roll"
+  * `5d6!!` -- roll `5` `6`-sided dice, compound
+    * `5d6!!=5` or `5d6!5` -- compound a roll if equal to 5 
+    * `5d6!!>=4` - compound if >= 4
+    * `5d6!!<=4` - compound if <= 4
+    * `5d6!!>5` - compound if > 5
+    * `5d6!!<3` - compound if < 3
+    * To limit to a single compound, use syntax `!!o` (otherwise, dice rolls compound at most 1000 times)
+      * `5d6!!o<2`
+* re-rolling dice:
+  * `4d4 r2` -- roll 4d4, re-roll any result = 2
+  * `4d4 r=2` -- roll 4d4, re-roll any result = 2
+  * `4d4 r<=2` -- roll 4d4, re-roll any <= 2
+  * `4d4 r>=3` -- roll 4d4, re-roll any >= 3
+  * `4d4 r<2` -- roll 4d4, re-roll any < 2
+  * `4d4 r>3` -- roll 4d4, re-roll any > 3
+  * To limit to a single reroll, use syntax `!!o` (otherwise, dice rolls reroll at most 1000 times)
+    * `4d4!!o<2`
+* keeping dice:
+  * `3d20 k 2` -- roll 3d20, keep 2 highest
+  * `3d20 kh 2` -- roll 3d20, keep 2 highest
+  * `3d20 kl 2` -- roll 3d20, keep 2 lowest
+* dropping dice:
+  * `4d6 -H` -- roll 4d6, drop 1 highest
+  * `4d6 -L` -- roll 4d6, drop 1 lowest
+  * `4d6 -H2` -- roll 4d6, drop 2 highest
+  * `4d6 -L2` -- roll 4d6, drop 2 lowest
+  * `4d6 ->5` -- roll 4d6, drop any results > 5
+  * `4d6 -<2` -- roll 4d6, drop any results < 2
+  * `4d6 ->=5` -- roll 4d6, drop any results >= 5
+  * `4d6 -<=2` -- roll 4d6, drop any results <= 2
+  * `4d6 -=1` -- roll 4d6, drop any results equal to 1
+  * NOTE: the drop operators have higher precedence than
+    the arithmetic operators; `4d10-L2+2` is equivalent to `(4d10-L2)+2`
   * cap/clamp:
-    * `AdX C<B` -- roll `A` `X`-sided dice, change any value < B to B
-    * `AdX C>B` -- roll `A` `X`-sided dice, change any value > B to B
+    * `4d20 C<5` -- roll 4d20, change any value < 5 to 5
+    * `4d20 C>15` -- roll 4d20, change any value > 15 to 15
 * operations on dice rolls:
   * counting:
-    * `AdX #` -- how many results? 
-      * For example, you might use this to count # of dice above a target. `5d10-<6` -- roll 5 d10, drop any 5 or under, count results
-    * `AdX #>B` -- roll `A` `X`-sided dice, count any greater than B
-    * `AdX #<B` -- roll `A` `X`-sided dice, count any less than B
-    * `AdX #>=B` -- roll `A` `X`-sided dice, count any greater than or equal to B
-    * `AdX #<=B` -- roll `A` `X`-sided dice, count any less than or equal to B
-    * `AdX #=B` -- roll `A` `X`-sided dice, count any equal to B
+    * `4d6 #` -- how many results? 
+      * For example, you might use this to count # of dice above a target. `(5d10-<6)#` -- roll 5 d10, drop any 5 or under, count results
+    * `4d6 #>3` -- roll 4d6, count any > 3
+    * `4d6 #<3` -- roll 4d6, count any < 3
+    * `4d6 #>=5` -- roll 4d6, count any >= 5
+    * `4d6 #<=2` -- roll 4d6, count any <= 2
+    * `4d6 #=5` -- roll 4d6, count any equal to 5
   * counting (critical) success/failures 
     * A normal count operation `#` discards the rolled dice and changes the result to be the count
       * For example, `2d6#<=3` rolls `[3,4]` then counts which results are `<=3` , returning `[1]`

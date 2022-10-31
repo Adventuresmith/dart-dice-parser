@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:equatable/equatable.dart';
 
 enum RollMetadata {
   /// all the dice rolled by the operation
@@ -23,9 +24,6 @@ enum RollMetadata {
 
   /// critical failure count
   critFailures;
-
-  @override
-  String toString() => name;
 }
 
 /// The result of rolling a dice expression.
@@ -37,7 +35,8 @@ enum RollMetadata {
 /// In general, most users will just care about the root node of the tree.
 /// But, depending on the information you want to from the evaluated dice rolls,
 /// you may need to traverse the tree to find all the events.
-class RollResult {
+
+class RollResult with EquatableMixin {
   RollResult({
     required this.expression,
     this.ndice = 0,
@@ -58,7 +57,7 @@ class RollResult {
     int? ndice,
     int? nsides,
     List<int>? results,
-    Map<RollMetadata, Object> metadata = const {},
+    Map<String, Object> metadata = const {},
     RollResult? left,
     RollResult? right,
   }) {
@@ -103,7 +102,7 @@ class RollResult {
 
   /// subtraction operator for [RollResult].
   ///
-  /// Results are [this.results + (-1)*(other.results.sum)].
+  /// Results create new list lhs.results + (-1)*(other.results).
   ///
   RollResult operator -(RollResult other) {
     return RollResult(
@@ -131,10 +130,14 @@ class RollResult {
   final List<int> results;
 
   /// any metadata the operation may have recorded
-  final Map<RollMetadata, Object> metadata;
+  final Map<String, Object> metadata;
 
   final RollResult? left;
   final RollResult? right;
+
+  @override
+  List<Object?> get props =>
+      [total, expression, nsides, ndice, results, metadata, left, right];
 
   /// Get the total, or if results are empty return result of calling [defaultCb].
   int totalOrDefault(int Function() defaultCb) {
@@ -148,4 +151,15 @@ class RollResult {
   String toString() {
     return '$expression => RollResult(total: $total, results: $results${metadata.isNotEmpty ? ", metadata: $metadata" : ""})';
   }
+
+  Map<String, Object?> toJson() => {
+        'expression': expression,
+        'total': total,
+        'nsides': nsides,
+        'ndice': ndice,
+        'results': results,
+        'metadata': metadata,
+        'left': left?.toJson(),
+        'right': right?.toJson(),
+      };
 }

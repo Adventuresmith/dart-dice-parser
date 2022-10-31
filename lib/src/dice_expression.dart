@@ -30,7 +30,7 @@ abstract class DiceExpression {
     return result.value;
   }
 
-  /// each operation is callable (when we call the parsed string, this is the method that'll be used)
+  /// each DiceExpression operation is callable (when we call the parsed string, this is the method that'll be used)
   RollResult call();
 
   /// Rolls the dice expression

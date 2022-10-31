@@ -1,5 +1,7 @@
 # 5.1.2
 - fix error messages with extraneous `'`
+- make examples in README less abstract
+- add method for json encoding roll result
 
 # 5.1.1
 - add syntax for exploding/compounding/reroll once

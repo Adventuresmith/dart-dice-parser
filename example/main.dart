@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -29,6 +30,16 @@ void main(List<String> arguments) async {
       abbr: "n",
       help: "Number of times to roll the expression",
       defaultsTo: "1",
+    )
+    ..addOption(
+      "output",
+      abbr: "o",
+      defaultsTo: 'plain',
+      help: 'output type',
+      allowedHelp: {
+        'plain': 'output using RollResult.toString()',
+        'json': 'output JSON',
+      },
     )
     ..addOption(
       "random",
@@ -104,6 +115,7 @@ void main(List<String> arguments) async {
         expression: diceExpr,
         numRolls: int.parse(results["num"] as String),
         stats: collectStats,
+        output: results['output'] as String,
       ),
     );
   } on FormatException catch (e) {
@@ -115,6 +127,7 @@ Future<int> run({
   required int numRolls,
   required DiceExpression expression,
   required bool stats,
+  required String output,
 }) async {
   if (stats) {
     final stats =
@@ -122,7 +135,11 @@ Future<int> run({
     stdout.writeln(stats);
   } else {
     await for (final r in expression.rollN(numRolls)) {
-      stdout.writeln("$r");
+      if (output == 'json') {
+        stdout.writeln(json.encode(r));
+      } else {
+        stdout.writeln(r);
+      }
     }
   }
   return 0;
