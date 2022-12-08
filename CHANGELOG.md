@@ -1,3 +1,6 @@
+# 5.1.4
+- upgrade deps (lint)
+
 # 5.1.3
 - transfer repository to Adventuresmith org
 
