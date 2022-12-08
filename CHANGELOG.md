@@ -1,3 +1,6 @@
+# 5.1.5
+- clean up example documenation in README.md
+
 # 5.1.4
 - upgrade deps (lint)
 

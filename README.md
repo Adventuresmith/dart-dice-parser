@@ -46,14 +46,13 @@ for use cases where security doesn't matter, you may want to use Random().
 
 ## Examples:
 
-* `1d20 #cf #cs`
-  * roll 1d20, result will include counts of successes, failures (1)
+* `2d20 #cf #cs`
+  * roll 2d20, result will include counts of critical successes (20) and failures (1)
 
-* advantage/disadvantage in 5E
-  * There's a couple ways to roll advantage
-    * `2d20-L` -- roll 2d20, drop lowest (advantage)
-    * `2d20k`, `2d20kh` -- roll 2d20 keep highest
-  * Similarly for disadvantage:
+* advantage
+    * `2d20-L` -- drop lowest 
+    * `2d20k`, `2d20kh` -- keep highest
+* disadvantage
     * `2d20-H` -- drop highest
     * `2d20-kl` -- keep lowest
 * `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists, and drop lowest 3 results
@@ -67,7 +66,7 @@ for use cases where security doesn't matter, you may want to use Random().
   * `4dF` -- roll `4` fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
   * `1d%` -- roll `1` percentile dice (equivalent to `1d100`)
   * `1D66` -- roll `1` D66, aka `1d6*10 + 1d6` 
-    * **_NOTE_**: you _must_ use uppercase `D66`, lowercase `d66` will be interpreted as 66-sided die
+    * **_NOTE_**: you _must_ use uppercase `D66`, lowercase `d66` will be interpreted as a 66-sided die
   
 * exploding dice
   * `4d6!` -- roll `4` `6`-sided dice, explode if max (`6`) is rolled (re-roll and include in results)
@@ -76,7 +75,7 @@ for use cases where security doesn't matter, you may want to use Random().
     * `4d6!<=2` - explode if <=2
     * `4d6!>5` - explode if > 5
     * `4d6!<2` - explode if <2
-    * To limit to a single explosion, use syntax `!o` (otherwise, dice rolls will explode at most 1000 times)
+    * To explode only once, use syntax `!o` 
       * `4d6!o<5`
 * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each
   dice are added together as a single "roll"
@@ -86,7 +85,7 @@ for use cases where security doesn't matter, you may want to use Random().
     * `5d6!!<=4` - compound if <= 4
     * `5d6!!>5` - compound if > 5
     * `5d6!!<3` - compound if < 3
-    * To limit to a single compound, use syntax `!!o` (otherwise, dice rolls compound at most 1000 times)
+    * To compound only once, use syntax `!!o` 
       * `5d6!!o<2`
 * re-rolling dice:
   * `4d4 r2` -- roll 4d4, re-roll any result = 2
@@ -95,7 +94,7 @@ for use cases where security doesn't matter, you may want to use Random().
   * `4d4 r>=3` -- roll 4d4, re-roll any >= 3
   * `4d4 r<2` -- roll 4d4, re-roll any < 2
   * `4d4 r>3` -- roll 4d4, re-roll any > 3
-  * To limit to a single reroll, use syntax `!!o` (otherwise, dice rolls reroll at most 1000 times)
+  * To reroll only once, use syntax `!!o` 
     * `4d4!!o<2`
 * keeping dice:
   * `3d20 k 2` -- roll 3d20, keep 2 highest
@@ -113,9 +112,10 @@ for use cases where security doesn't matter, you may want to use Random().
   * `4d6 -=1` -- roll 4d6, drop any results equal to 1
   * NOTE: the drop operators have higher precedence than
     the arithmetic operators; `4d10-L2+2` is equivalent to `(4d10-L2)+2`
-  * cap/clamp:
-    * `4d20 C<5` -- roll 4d20, change any value < 5 to 5
-    * `4d20 C>15` -- roll 4d20, change any value > 15 to 15
+* cap/clamp:
+  * `4d20 C<5` -- roll 4d20, change any value < 5 to 5
+  * `4d20 C>15` -- roll 4d20, change any value > 15 to 15
+
 * operations on dice rolls:
   * counting:
     * `4d6 #` -- how many results? 
@@ -130,7 +130,7 @@ for use cases where security doesn't matter, you may want to use Random().
       * For example, `2d6#<=3` rolls `[3,4]` then counts which results are `<=3` , returning `[1]`
     * But, sometimes you want to be able to count successes/failures without discarding the rolls. 
       In this case, use modifiers `#s`, `#f`, `#cs`, `#cf` to add metadata to the results.
-      * `6d6 #f<=2#s>=5#cs6` -- roll 6d6, count results <= 2 as failures, >= 5 as successes, and =6 as critical successes.
+      * `6d6 #f<=2 #s>=5 #cs6` -- roll 6d6, count results <= 2 as failures, >= 5 as successes, and =6 as critical successes.
         * returns a result like: `RollResult(total: 22, results: [6, 2, 1, 5, 3, 5] {failures: {count: 2, target: #f<=2}, successes: {count: 3, target: #s>=5}, critSuccesses: {count: 1, target: #cs6}})`
 * arithmetic operations
   * parenthesis for order of operations
