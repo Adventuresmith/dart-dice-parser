@@ -18,19 +18,19 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   builder.group()
     ..postfix(
       string('dF').trim(),
-      (a, op) => FudgeDice(op.toString(), a, roller),
+      (a, op) => FudgeDice(op, a, roller),
     )
     ..postfix(
       string('D66').trim(),
-      (a, op) => D66Dice(op.toString(), a, roller),
+      (a, op) => D66Dice(op, a, roller),
     )
     ..postfix(
       string('d%').trim(),
-      (a, op) => PercentDice(op.toString(), a, roller),
+      (a, op) => PercentDice(op, a, roller),
     );
   builder.group().left(
         char('d').trim(),
-        (a, op, b) => StdDice(op.toString(), a, b, roller),
+        (a, op, b) => StdDice(op, a, b, roller),
       );
 
   // compounding dice (has to be in separate group from exploding)
@@ -41,8 +41,7 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
                 char('=').optional())
             .flatten()
             .trim(),
-        (a, op, b) =>
-            CompoundingDice(op.toString().toLowerCase(), a, b, roller),
+        (a, op, b) => CompoundingDice(op.toLowerCase(), a, b, roller),
       );
   builder.group()
     // reroll & reroll once
@@ -53,7 +52,7 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
               char('=').optional())
           .flatten()
           .trim(),
-      (a, op, b) => RerollDice(op.toString().toLowerCase(), a, b, roller),
+      (a, op, b) => RerollDice(op.toLowerCase(), a, b, roller),
     )
     // exploding
     ..left(
@@ -63,31 +62,31 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
               char('=').optional())
           .flatten()
           .trim(),
-      (a, op, b) => ExplodingDice(op.toString().toLowerCase(), a, b, roller),
+      (a, op, b) => ExplodingDice(op.toLowerCase(), a, b, roller),
     )
     // cap/clamp >,<
     ..left(
       (pattern('cC') & pattern('<>').optional()).flatten().trim(),
-      (a, op, b) => ClampOp(op.toString().toLowerCase(), a, b),
+      (a, op, b) => ClampOp(op.toLowerCase(), a, b),
     )
     // drop >=,<=,>,<
     ..left(
       (char('-') & pattern('<>') & char('=').optional()).flatten().trim(),
-      (a, op, b) => DropOp(op.toString().toLowerCase(), a, b),
+      (a, op, b) => DropOp(op.toLowerCase(), a, b),
     )
     ..left(
       (string('-=')).flatten().trim(),
-      (a, op, b) => DropOp(op.toString().toLowerCase(), a, b),
+      (a, op, b) => DropOp(op.toLowerCase(), a, b),
     )
     // drop(-) low, high
     ..left(
       (char('-') & pattern('LlHh')).flatten().trim(),
-      (a, op, b) => DropHighLowOp(op.toString().toLowerCase(), a, b),
+      (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
     )
     // keep low/high
     ..left(
       (pattern('Kk') & pattern('LlHh').optional()).flatten().trim(),
-      (a, op, b) => DropHighLowOp(op.toString().toLowerCase(), a, b),
+      (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
     )
     // count >=, <=, <, >, =,
     // #s, #cs, #f, #cf -- count (critical) successes / failures
@@ -99,14 +98,12 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
               char('=').optional())
           .flatten()
           .trim(),
-      (a, op, b) => CountOp(op.toString().toLowerCase(), a, b),
+      (a, op, b) => CountOp(op.toLowerCase(), a, b),
     );
 
-  builder
-      .group()
-      .left(char('*').trim(), (a, op, b) => MultiplyOp(op.toString(), a, b));
+  builder.group().left(char('*').trim(), (a, op, b) => MultiplyOp(op, a, b));
   builder.group()
-    ..left(char('+').trim(), (a, op, b) => AddOp(op.toString(), a, b))
-    ..left(char('-').trim(), (a, op, b) => SubOp(op.toString(), a, b));
+    ..left(char('+').trim(), (a, op, b) => AddOp(op, a, b))
+    ..left(char('-').trim(), (a, op, b) => SubOp(op, a, b));
   return builder.build().end();
 }

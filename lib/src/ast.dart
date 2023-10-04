@@ -255,23 +255,18 @@ class DropOp extends Binary {
       case '-<': // drop <
         results = lhs.results.where((v) => v >= target).toList();
         dropped = lhs.results.where((v) => v < target).toList();
-        break;
       case '-<=': // drop <=
         results = lhs.results.where((v) => v > target).toList();
         dropped = lhs.results.where((v) => v <= target).toList();
-        break;
       case '->': // drop >
         results = lhs.results.where((v) => v <= target).toList();
         dropped = lhs.results.where((v) => v > target).toList();
-        break;
       case '->=': // drop >=
         results = lhs.results.where((v) => v < target).toList();
         dropped = lhs.results.where((v) => v >= target).toList();
-        break;
       case '-=': // drop =
         results = lhs.results.where((v) => v != target).toList();
         dropped = lhs.results.where((v) => v == target).toList();
-        break;
       default:
         throw FormatException(
           "unknown drop operation '$name'",
@@ -317,23 +312,18 @@ class DropHighLowOp extends Binary {
       case '-h': // drop high
         results = sorted.reversed.skip(numToDrop).toList();
         dropped = sorted.reversed.take(numToDrop).toList();
-        break;
       case '-l': // drop low
         results = sorted.skip(numToDrop).toList();
         dropped = sorted.take(numToDrop).toList();
-        break;
       case 'kl':
         results = sorted.take(numToDrop).toList();
         dropped = sorted.skip(numToDrop).toList();
-        break;
       case 'kh':
         results = sorted.reversed.take(numToDrop).toList();
         dropped = sorted.reversed.skip(numToDrop).toList();
-        break;
       case 'k':
         results = sorted.reversed.take(numToDrop).toList();
         dropped = sorted.reversed.skip(numToDrop).toList();
-        break;
       default:
         throw FormatException(
           "unknown drop operation '$name'",
@@ -382,7 +372,6 @@ class ClampOp extends Binary {
             return v;
           }
         }).toList();
-        break;
       case "c<": // change any value < rhs to rhs
         results = lhs.results.map((v) {
           if (v < target) {
@@ -391,7 +380,6 @@ class ClampOp extends Binary {
             return v;
           }
         }).toList();
-        break;
       default:
         throw FormatException(
           "unknown clamp operation '$name'",

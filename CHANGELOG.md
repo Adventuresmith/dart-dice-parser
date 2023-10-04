@@ -1,3 +1,7 @@
+# 6.0.0
+- dart 3.0 requirement
+- upgrade deps
+
 # 5.1.5
 - clean up example documenation in README.md
 

@@ -6,6 +6,7 @@ import 'package:dart_dice_parser/src/results.dart';
 import 'package:dart_dice_parser/src/stats.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:petitparser/petitparser.dart';
 
 /// An abstract expression that can be evaluated.
 abstract class DiceExpression {
@@ -20,7 +21,7 @@ abstract class DiceExpression {
   ]) {
     final builder = parserBuilder(DiceRoller(random));
     final result = builder.parse(input);
-    if (result.isFailure) {
+    if (result is Failure) {
       throw FormatException(
         "Error parsing dice expression",
         input,

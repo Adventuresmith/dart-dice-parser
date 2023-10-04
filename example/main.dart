@@ -55,10 +55,8 @@ void main(List<String> arguments) async {
         switch (val?.toLowerCase()) {
           case "pseudo":
             random = Random();
-            break;
           case "secure":
             random = Random.secure();
-            break;
           default:
             try {
               random = Random(int.parse(val!));
@@ -66,7 +64,6 @@ void main(List<String> arguments) async {
               stderr.writeln("Invalid random number generator '$val'.");
               exit(1);
             }
-            break;
         }
       },
     )
