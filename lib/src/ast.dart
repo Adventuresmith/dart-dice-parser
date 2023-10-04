@@ -141,12 +141,10 @@ class CountOp extends Binary {
             // example: '3d6#' should be 3. target is ignored in case statement below.
             rhsEmptyAndSimpleCount = true;
             return 0;
-          case '#s':
-          case '#cs':
+          case '#s' || '#cs':
             // example: '3d6#s' -- assume target is nsides (maximum)
             return lhs.nsides;
-          case '#f':
-          case '#cf':
+          case '#f' || '#cf':
             // example: '3d6#f' -- assume target is 1 (minimum)
             return 1;
           default:
@@ -160,41 +158,22 @@ class CountOp extends Binary {
     );
     bool test(int v) {
       switch (name) {
-        case "#>=": // how many results on lhs are greater than or equal to rhs?
-        case "#s>=":
-        case "#f>=":
-        case "#cs>=":
-        case "#cf>=":
+        case "#>=" || "#s>=" || "#f>=" || "#cs>=" || "#cf>=":
+          // how many results on lhs are greater than or equal to rhs?
           return v >= target;
-        case "#<=": // how many results on lhs are less than or equal to rhs?
-        case "#s<=":
-        case "#f<=":
-        case "#cs<=":
-        case "#cf<=":
+        case "#<=" || "#s<=" || "#f<=" || "#cs<=" || "#cf<=":
+          // how many results on lhs are less than or equal to rhs?
           return v <= target;
-        case "#>": // how many results on lhs are greater than rhs?
-        case "#s>":
-        case "#f>":
-        case "#cs>":
-        case "#cf>":
+        case "#>" || "#s>" || "#f>" || "#cs>" || "#cf>":
+          // how many results on lhs are greater than rhs?
           return v > target;
-        case "#<": // how many results on lhs are less than rhs?
-        case "#s<":
-        case "#f<":
-        case "#cs<":
-        case "#cf<":
+        case "#<" || "#s<" || "#f<" || "#cs<" || "#cf<":
+          // how many results on lhs are less than rhs?
           return v < target;
-        case "#=": // how many results on lhs are equal to rhs?
-        case "#s=":
-        case "#f=":
-        case "#cs=":
-        case "#cf=":
+        case "#=" || "#s=" || "#f=" || "#cs=" || "#cf=":
+          // how many results on lhs are equal to rhs?
           return v == target;
-        case '#':
-        case '#s':
-        case '#f':
-        case '#cs':
-        case '#cf':
+        case '#' || '#s' || '#f' || '#cs' || '#cf':
           if (rhsEmptyAndSimpleCount) {
             // if missing rhs, we're just counting results
             // that is, '3d6#' should return 3
@@ -536,22 +515,15 @@ class RerollDice extends BinaryDice {
 
     bool test(int val) {
       switch (name) {
-        case 'r': // equality
-        case 'ro': // equality
-        case 'r=':
-        case 'ro=':
+        case 'r' || 'ro' || 'r=' || 'ro=':
           return val == target;
-        case 'r<':
-        case 'ro<':
+        case 'r<' || 'ro<':
           return val < target;
-        case 'r>':
-        case 'ro>':
+        case 'r>' || 'ro>':
           return val > target;
-        case 'r<=':
-        case 'ro<=':
+        case 'r<=' || 'ro<=':
           return val <= target;
-        case 'r>=':
-        case 'ro>=':
+        case 'r>=' || 'ro>=':
           return val >= target;
         default:
           throw FormatException(
@@ -618,22 +590,15 @@ class CompoundingDice extends BinaryDice {
     final target = rhs.totalOrDefault(() => lhs.nsides);
     bool test(int val) {
       switch (name) {
-        case '!!': // equality
-        case '!!=':
-        case '!!o':
-        case '!!o=':
+        case '!!' || '!!=' || '!!o' || '!!o=':
           return val == target;
-        case '!!<':
-        case '!!o<':
+        case '!!<' || '!!o<':
           return val < target;
-        case '!!>':
-        case '!!o>':
+        case '!!>' || '!!o>':
           return val > target;
-        case '!!<=':
-        case '!!o<=':
+        case '!!<=' || '!!o<=':
           return val <= target;
-        case '!!>=':
-        case '!!o>=':
+        case '!!>=' || '!!o>=':
           return val >= target;
         default:
           throw FormatException(
@@ -707,22 +672,15 @@ class ExplodingDice extends BinaryDice {
 
     bool test(int val) {
       switch (name) {
-        case '!': // equality
-        case '!=':
-        case '!o':
-        case '!o=':
+        case '!' || '!=' || '!o' || '!o=':
           return val == target;
-        case '!<':
-        case '!o<':
+        case '!<' || '!o<':
           return val < target;
-        case '!>':
-        case '!o>':
+        case '!>' || '!o>':
           return val > target;
-        case '!<=':
-        case '!o<=':
+        case '!<=' || '!o<=':
           return val <= target;
-        case '!>=':
-        case '!o>=':
+        case '!>=' || '!o>=':
           return val >= target;
         default:
           throw FormatException(
