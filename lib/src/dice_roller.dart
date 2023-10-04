@@ -33,7 +33,7 @@ class DiceRoller {
     RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
     // nextInt is zero-inclusive; add 1 so result will be in range 1-nsides
     final results = [
-      for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1
+      for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1,
     ];
     _log.finest(() => "roll ${ndice}d$nsides => $results $msg");
     return RollResult(
@@ -51,7 +51,7 @@ class DiceRoller {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     final results = [
       for (var i = 0; i < ndice; i++)
-        _fudgeVals[_random.nextInt(_fudgeVals.length)]
+        _fudgeVals[_random.nextInt(_fudgeVals.length)],
     ];
     _log.finest(() => "roll ${ndice}dF => $results");
 

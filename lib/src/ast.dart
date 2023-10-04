@@ -466,7 +466,7 @@ class D66Dice extends UnaryDice {
     final ndice = lhs.totalOrDefault(() => 1);
     final results = [
       for (var i = 0; i < ndice; i++)
-        roller.roll(1, 6).total * 10 + roller.roll(1, 6).total
+        roller.roll(1, 6).total * 10 + roller.roll(1, 6).total,
     ];
     return RollResult(
       expression: toString(),

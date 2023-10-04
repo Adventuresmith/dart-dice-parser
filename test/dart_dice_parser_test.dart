@@ -471,7 +471,7 @@ void main() {
             'results': [2],
             'metadata': {},
             'left': null,
-            'right': null
+            'right': null,
           },
           'right': {
             'expression': '6',
@@ -481,8 +481,8 @@ void main() {
             'results': [6],
             'metadata': {},
             'left': null,
-            'right': null
-          }
+            'right': null,
+          },
         }),
       );
       final out = json.encode(obj);
@@ -534,7 +534,7 @@ void main() {
                 'results': [4],
                 'metadata': {},
                 'left': null,
-                'right': null
+                'right': null,
               },
               'right': {
                 'expression': '6',
@@ -544,8 +544,8 @@ void main() {
                 'results': [6],
                 'metadata': {},
                 'left': null,
-                'right': null
-              }
+                'right': null,
+              },
             },
             'right': {
               'expression': '',
@@ -555,8 +555,8 @@ void main() {
               'results': [],
               'metadata': {},
               'left': null,
-              'right': null
-            }
+              'right': null,
+            },
           },
           'right': {
             'expression': '',
@@ -566,8 +566,8 @@ void main() {
             'results': [],
             'metadata': {},
             'left': null,
-            'right': null
-          }
+            'right': null,
+          },
         }),
       );
       final out = json.encode(obj);
@@ -612,8 +612,8 @@ void main() {
             9: 9,
             10: 7,
             11: 2,
-            12: 3
-          }
+            12: 3,
+          },
         }),
       );
     });
