@@ -114,6 +114,9 @@ for use cases where security doesn't matter, you may want to use Random().
   * `4d6 -=1` -- roll 4d6, drop any results equal to 1
   * NOTE: the drop operators have higher precedence than
     the arithmetic operators; `4d10-L2+2` is equivalent to `(4d10-L2)+2`
+  * NOTE: drop is not subtraction. 
+    * `4d6 - 3` -- roll 4d6, subtract 3
+    * `4d6 - 2d6` -- roll 4d6, subtract the result of rolling 2d6
 * cap/clamp:
   * `4d20 C<5` -- roll 4d20, change any value < 5 to 5
   * `4d20 C>15` -- roll 4d20, change any value > 15 to 15
@@ -130,7 +133,7 @@ for use cases where security doesn't matter, you may want to use Random().
   * counting (critical) success/failures 
     * A normal count operation `#` discards the rolled dice and changes the result to be the count
       * For example, `2d6#<=3` rolls `[3,4]` then counts which results are `<=3` , returning `[1]`
-    * But, sometimes you want to be able to count successes/failures without discarding the rolls. 
+    * But, sometimes you want to be able to count successes/failures without discarding the dice rolls. 
       In this case, use modifiers `#s`, `#f`, `#cs`, `#cf` to add metadata to the results.
       * `6d6 #f<=2 #s>=5 #cs6` -- roll 6d6, count results <= 2 as failures, >= 5 as successes, and =6 as critical successes.
         * returns a result like: `RollResult(total: 22, results: [6, 2, 1, 5, 3, 5] {failures: {count: 2, target: #f<=2}, successes: {count: 3, target: #s>=5}, critSuccesses: {count: 1, target: #cs6}})`
