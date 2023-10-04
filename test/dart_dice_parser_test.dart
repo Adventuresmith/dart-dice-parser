@@ -289,7 +289,7 @@ void main() {
     test("missing nsides", () {
       expect(
         () => DiceExpression.create("6d", seededRandom).roll(),
-        throwsRangeError,
+        throwsFormatException,
       );
     });
   });

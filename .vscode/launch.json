@@ -20,6 +20,16 @@
       "name": "explode",
       "program": "example/main.dart",
       "args": [
+        "10d4!",
+        "-v",
+      ],
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "explode - old syntax",
+      "program": "example/main.dart",
+      "args": [
         "10d!4",
         "-v",
       ],

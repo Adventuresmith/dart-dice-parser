@@ -398,6 +398,15 @@ class FudgeDice extends UnaryDice {
     final lhs = left();
     final ndice = lhs.totalOrDefault(() => 1);
 
+    // redundant w/ RangeError checks in the DiceRoller. But we can construct better error messages here.
+    if (ndice < DiceRoller.minDice || ndice > DiceRoller.maxDice) {
+      throw FormatException(
+        "Invalid number of dice ($ndice)",
+        toString(),
+        left.toString().length,
+      );
+    }
+
     return RollResult.fromRollResult(
       roller.rollFudge(ndice),
       expression: toString(),
@@ -455,19 +464,21 @@ class StdDice extends BinaryDice {
     final ndice = lhs.totalOrDefault(() => 1);
     final nsides = rhs.totalOrDefault(() => 1);
 
-    // redundant w/ RangeError checks in the DiceRoller. Here they'll give better error msg
-    RangeError.checkValueInInterval(
-      ndice,
-      DiceRoller.minDice,
-      DiceRoller.maxDice,
-      '$this: ndice=$ndice',
-    );
-    RangeError.checkValueInInterval(
-      nsides,
-      DiceRoller.minSides,
-      DiceRoller.maxSides,
-      '$this: nsides=$nsides',
-    );
+    // redundant w/ RangeError checks in the DiceRoller. But we can construct better error messages here.
+    if (ndice < DiceRoller.minDice || ndice > DiceRoller.maxDice) {
+      throw FormatException(
+        "Invalid number of dice ($ndice)",
+        toString(),
+        left.toString().length,
+      );
+    }
+    if (nsides < DiceRoller.minSides || nsides > DiceRoller.maxSides) {
+      throw FormatException(
+        "Invalid number of sides ($nsides)",
+        toString(),
+        left.toString().length + name.length + 1,
+      );
+    }
 
     return RollResult.fromRollResult(
       roller.roll(ndice, nsides),
