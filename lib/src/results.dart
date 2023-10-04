@@ -33,8 +33,8 @@ enum RollMetadata {
 /// should (mostly) reflect the structure of AST.
 ///
 /// In general, most users will just care about the root node of the tree.
-/// But, depending on the information you want to from the evaluated dice rolls,
-/// you may need to traverse the tree to find all the events.
+/// But, depending on the information you want from the evaluated dice rolls,
+/// you may need to traverse the tree to inspect all the events.
 
 class RollResult with EquatableMixin {
   RollResult({
@@ -76,7 +76,7 @@ class RollResult with EquatableMixin {
   ///
   /// in the returned results, nsides will be max(nsides, other.nsides).
   /// this is so we can explode a dice expr like `(2d6 + 1)!`.
-  /// A side-effect of this decision is `(2d6 + 2d10)!` will explode with 10s, not 6s.
+  /// NOTE: A side-effect of this decision is `(2d6 + 2d10)!` will explode with 10s, not 6s.
   RollResult operator +(RollResult other) {
     return RollResult(
       expression: "($expression+${other.expression})",
