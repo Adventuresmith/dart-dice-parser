@@ -1,3 +1,7 @@
+# 6.0.2
+- more readme fixes
+- cleanup error handling / exceptions
+
 # 6.0.1
 - fix deprecation
 - minor readme language changes
