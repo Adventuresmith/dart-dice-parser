@@ -72,23 +72,23 @@ for use cases where security doesn't matter, you may want to use Random().
   
 * exploding dice
   * `4d6!` -- roll `4` `6`-sided dice, explode if max (`6`) is rolled (re-roll and include in results)
-    * `4d6!=5` or `4d6!5` -- explode a roll if equal to 5 
-    * `4d6!>=4` - explode if >= 4
-    * `4d6!<=2` - explode if <=2
-    * `4d6!>5` - explode if > 5
-    * `4d6!<2` - explode if <2
+    * `4d6 !=5` or `4d6!5` -- explode a roll if equal to 5 
+    * `4d6 !>=4` - explode if >= 4
+    * `4d6 !<=2` - explode if <=2
+    * `4d6 !>5` - explode if > 5
+    * `4d6 !<2` - explode if <2
     * To explode only once, use syntax `!o` 
-      * `4d6!o<5`
+      * `4d6 !o<5`
 * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each
   dice are added together as a single "roll"
-  * `5d6!!` -- roll `5` `6`-sided dice, compound
-    * `5d6!!=5` or `5d6!5` -- compound a roll if equal to 5 
-    * `5d6!!>=4` - compound if >= 4
-    * `5d6!!<=4` - compound if <= 4
-    * `5d6!!>5` - compound if > 5
-    * `5d6!!<3` - compound if < 3
+  * `5d6 !!` -- roll `5` `6`-sided dice, compound
+    * `5d6 !!=5` or `5d6!5` -- compound a roll if equal to 5 
+    * `5d6 !!>=4` - compound if >= 4
+    * `5d6 !!<=4` - compound if <= 4
+    * `5d6 !!>5` - compound if > 5
+    * `5d6 !!<3` - compound if < 3
     * To compound only once, use syntax `!!o` 
-      * `5d6!!o<2`
+      * `5d6 !!o<2`
 * re-rolling dice:
   * `4d4 r2` -- roll 4d4, re-roll any result = 2
   * `4d4 r=2` -- roll 4d4, re-roll any result = 2
@@ -96,8 +96,8 @@ for use cases where security doesn't matter, you may want to use Random().
   * `4d4 r>=3` -- roll 4d4, re-roll any >= 3
   * `4d4 r<2` -- roll 4d4, re-roll any < 2
   * `4d4 r>3` -- roll 4d4, re-roll any > 3
-  * To reroll only once, use syntax `!!o` 
-    * `4d4!!o<2`
+  * To reroll only once, use syntax `ro` 
+    * `4d4 ro<2`
 * keeping dice:
   * `3d20 k 2` -- roll 3d20, keep 2 highest
   * `3d20 kh 2` -- roll 3d20, keep 2 highest
