@@ -5,15 +5,16 @@ import 'package:petitparser/petitparser.dart';
 
 Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   final builder = ExpressionBuilder<DiceExpression>();
-  builder.group()
-    ..primitive(
-      digit().star().flatten('integer expected').trim().map((v) => Value(v)),
-    )
-    ..wrapper(
-      char('(').trim(),
-      char(')').trim(),
-      (left, value, right) => value,
-    );
+  // numbers
+  builder.primitive(
+    digit().star().flatten('integer expected').trim().map((v) => Value(v)),
+  );
+  // parens
+  builder.group().wrapper(
+        char('(').trim(),
+        char(')').trim(),
+        (left, value, right) => value,
+      );
   // special dice handling need to have higher precedence than 'd'
   builder.group()
     ..postfix(

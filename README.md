@@ -3,6 +3,8 @@
 [![Dart](https://github.com/Adventuresmith/dart-dice-parser/actions/workflows/dart.yml/badge.svg)](https://github.com/Adventuresmith/dart-dice-parser/actions/workflows/dart.yml)
 [![codecov](https://codecov.io/gh/Adventuresmith/dart-dice-parser/branch/main/graph/badge.svg?token=YG5OYN9VY1)](https://codecov.io/gh/Adventuresmith/dart-dice-parser)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+[![style: lint](https://img.shields.io/badge/style-lint-4BC0F5.svg)](https://pub.dev/packages/lint)
+
 
 
 A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, exploding die, and other variations.
@@ -119,7 +121,7 @@ for use cases where security doesn't matter, you may want to use Random().
 * operations on dice rolls:
   * counting:
     * `4d6 #` -- how many results? 
-      * For example, you might use this to count # of dice above a target. `(5d10-<6)#` -- roll 5 d10, drop any 5 or under, count results
+      * For example, you might use this to count # of dice above a target. `(5d10 -<6)#` -- roll 5 d10, drop any less than 6, count results
     * `4d6 #>3` -- roll 4d6, count any > 3
     * `4d6 #<3` -- roll 4d6, count any < 3
     * `4d6 #>=5` -- roll 4d6, count any >= 5
@@ -138,7 +140,7 @@ for use cases where security doesn't matter, you may want to use Random().
     * Addition of integers is the usual sum
       * `4+5` 
       * `2d6 + 1`
-    * Addition of roll results combines the results (use parens to ensure the order of operations is as you expect)
+    * Addition of roll results combines the results (use parens to ensure the order of operations is what you desire)
       * `(5d6+5d10)-L2` -- roll 5d6 and 5d10, and from aggregate results drop the lowest 2.
       * `5d6+5d10-L2` -- roll 5d6 and 5d10, and from only the 5d10 results drop the lowest 2. equivalent to `5d6+(5d10-L2)`
   * `*` for multiplication

@@ -1,3 +1,7 @@
+# 6.0.1
+- fix deprecation
+- minor readme language changes
+
 # 6.0.0
 - dart 3.0 requirement
 - upgrade deps
