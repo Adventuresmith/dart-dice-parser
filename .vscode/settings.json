@@ -31,9 +31,9 @@
   // file when a language service does not provide its own completions. This results in
   // code completion suggesting words when editing comments and strings. This setting
   // will prevent that.
-  "editor.wordBasedSuggestions": false,
+  "editor.wordBasedSuggestions": "off",
   // Force all files to have a trailing newline for consistency and reduced diffs when
   // adding new lines at the bottom of the file.
   "files.insertFinalNewline": true,
-  "dart.sdkPath": "/Users/steve/.asdf/installs/dart/3.1.3/"
+  "dart.sdkPath": "/Users/steve/.asdf/installs/dart/3.2.4/"
 }
