@@ -273,12 +273,6 @@ class DropOp extends Binary {
 class DropHighLowOp extends Binary {
   DropHighLowOp(super.name, super.left, super.right);
 
-  // override call so we can log from within the op method -- that way, we can have single log line that shows results & dropped
-  @override
-  RollResult call() {
-    return eval();
-  }
-
   @override
   RollResult eval() {
     final lhs = left();
