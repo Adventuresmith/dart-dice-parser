@@ -45,6 +45,7 @@ class StatsCollector {
   }
 
   num get _variance => _count > 1 ? _sq / _count : 0.0;
+
   num get _stddev => sqrt(_variance);
 
   /// retrieve stats as map

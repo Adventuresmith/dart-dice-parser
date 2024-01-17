@@ -43,6 +43,7 @@ abstract class DiceOp extends DiceExpression with LoggingMixin {
 /// base class for unary operations
 abstract class Unary extends DiceOp {
   Unary(this.name, this.left);
+
   final String name;
   final DiceExpression left;
 
@@ -53,6 +54,7 @@ abstract class Unary extends DiceOp {
 /// base class for binary operations
 abstract class Binary extends DiceOp {
   Binary(this.name, this.left, this.right);
+
   final String name;
   final DiceExpression left;
   final DiceExpression right;
@@ -374,12 +376,14 @@ class ClampOp extends Binary {
 /// base class for unary dice operations
 abstract class UnaryDice extends Unary {
   UnaryDice(super.name, super.left, this.roller);
+
   final DiceRoller roller;
 }
 
 /// base class for binary dice expressions
 abstract class BinaryDice extends Binary {
   BinaryDice(super.name, super.left, super.right, this.roller);
+
   final DiceRoller roller;
 }
 
@@ -495,6 +499,7 @@ class RerollDice extends BinaryDice {
       limit = 1;
     }
   }
+
   int limit;
 
   @override
@@ -578,6 +583,7 @@ class CompoundingDice extends BinaryDice {
       limit = 1;
     }
   }
+
   int limit;
 
   @override

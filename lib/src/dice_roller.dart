@@ -1,15 +1,14 @@
 import 'dart:math';
 
 import 'package:dart_dice_parser/dart_dice_parser.dart';
-import 'package:logging/logging.dart';
+import 'package:dart_dice_parser/src/utils.dart';
 
 /// A dice roller for M dice of N sides (e.g. `2d6`).
 /// A roll returns a list of ints.
-class DiceRoller {
+class DiceRoller with LoggingMixin {
   /// Constructs a dice roller
   DiceRoller([Random? r]) : _random = r ?? Random.secure();
 
-  final Logger _log = Logger("DiceRoller");
   final Random _random;
 
   /// minimum dice to roll (0)
@@ -35,7 +34,7 @@ class DiceRoller {
     final results = [
       for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1,
     ];
-    _log.finest(() => "roll ${ndice}d$nsides => $results $msg");
+    logger.finest(() => "roll ${ndice}d$nsides => $results $msg");
     return RollResult(
       expression: "${ndice}d$nsides",
       ndice: ndice,
@@ -53,7 +52,7 @@ class DiceRoller {
       for (var i = 0; i < ndice; i++)
         _fudgeVals[_random.nextInt(_fudgeVals.length)],
     ];
-    _log.finest(() => "roll ${ndice}dF => $results");
+    logger.finest(() => "roll ${ndice}dF => $results");
 
     return RollResult(
       expression: "${ndice}dF",
