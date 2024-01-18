@@ -155,6 +155,17 @@ void main() {
         RollMetadata.failures.name: 1,
       },
     );
+    seededRandTest(
+      "critical success is also a success",
+      "4d6 #s>=5 #cs=6 #f=1",
+      14,
+      results: [6, 2, 1, 5],
+      metadata: {
+        RollMetadata.successes.name: 2,
+        RollMetadata.critSuccesses.name: 1,
+        RollMetadata.failures.name: 1,
+      },
+    );
   });
 
   group("counting operations", () {
