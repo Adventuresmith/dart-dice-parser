@@ -10,7 +10,7 @@ import 'package:petitparser/petitparser.dart';
 
 /// An abstract expression that can be evaluated.
 abstract class DiceExpression {
-  static final expr_logger = Logger('DiceExpression');
+  static final exprLogger = Logger('DiceExpression');
 
   /// Parse the given input into a DiceExpression
   ///
@@ -40,7 +40,7 @@ abstract class DiceExpression {
   @nonVirtual
   RollResult roll() {
     final result = this();
-    expr_logger.fine(() => "$result");
+    exprLogger.fine(() => "$result");
     return result;
   }
 

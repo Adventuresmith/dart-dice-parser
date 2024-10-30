@@ -11,7 +11,7 @@
 ///   stdout.writeln("$i : $result");
 /// }
 /// ```
-library dart_dice_parser;
+library;
 
 export 'src/dice_expression.dart';
 export 'src/dice_roller.dart';
