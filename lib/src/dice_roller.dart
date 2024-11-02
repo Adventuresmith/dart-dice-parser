@@ -34,9 +34,9 @@ class DiceRoller with LoggingMixin {
     final results = [
       for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1,
     ];
-    logger.finest(() => "roll ${ndice}d$nsides => $results $msg");
+    logger.finest(() => 'roll ${ndice}d$nsides => $results $msg');
     return RollResult(
-      expression: "${ndice}d$nsides",
+      expression: '${ndice}d$nsides',
       ndice: ndice,
       nsides: nsides,
       results: results,
@@ -52,10 +52,10 @@ class DiceRoller with LoggingMixin {
       for (var i = 0; i < ndice; i++)
         _fudgeVals[_random.nextInt(_fudgeVals.length)],
     ];
-    logger.finest(() => "roll ${ndice}dF => $results");
+    logger.finest(() => 'roll ${ndice}dF => $results');
 
     return RollResult(
-      expression: "${ndice}dF",
+      expression: '${ndice}dF',
       ndice: ndice,
       results: results,
     );

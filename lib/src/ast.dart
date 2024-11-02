@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
-import 'package:dart_dice_parser/src/dice_expression.dart';
-import 'package:dart_dice_parser/src/dice_roller.dart';
-import 'package:dart_dice_parser/src/results.dart';
-import 'package:dart_dice_parser/src/utils.dart';
+import 'dice_expression.dart';
+import 'dice_roller.dart';
+import 'results.dart';
+import 'utils.dart';
 
 /// default limit for rerolls/exploding/compounding to avoid getting stuck in loop
 const defaultRerollLimit = 1000;
@@ -35,7 +35,7 @@ abstract class DiceOp extends DiceExpression with LoggingMixin {
   @override
   RollResult call() {
     final results = eval();
-    logger.finer(() => "$results");
+    logger.finer(() => '$results');
     return results;
   }
 }
@@ -151,7 +151,7 @@ class CountOp extends Binary {
             return 1;
           default:
             throw FormatException(
-              "Invalid count operation. Missing count target",
+              'Invalid count operation. Missing count target',
               toString(),
               toString().length,
             );
@@ -160,19 +160,19 @@ class CountOp extends Binary {
     );
     bool test(int v) {
       switch (name) {
-        case "#>=" || "#s>=" || "#f>=" || "#cs>=" || "#cf>=":
+        case '#>=' || '#s>=' || '#f>=' || '#cs>=' || '#cf>=':
           // how many results on lhs are greater than or equal to rhs?
           return v >= target;
-        case "#<=" || "#s<=" || "#f<=" || "#cs<=" || "#cf<=":
+        case '#<=' || '#s<=' || '#f<=' || '#cs<=' || '#cf<=':
           // how many results on lhs are less than or equal to rhs?
           return v <= target;
-        case "#>" || "#s>" || "#f>" || "#cs>" || "#cf>":
+        case '#>' || '#s>' || '#f>' || '#cs>' || '#cf>':
           // how many results on lhs are greater than rhs?
           return v > target;
-        case "#<" || "#s<" || "#f<" || "#cs<" || "#cf<":
+        case '#<' || '#s<' || '#f<' || '#cs<' || '#cf<':
           // how many results on lhs are less than rhs?
           return v < target;
-        case "#=" || "#s=" || "#f=" || "#cs=" || "#cf=":
+        case '#=' || '#s=' || '#f=' || '#cs=' || '#cf=':
           // how many results on lhs are equal to rhs?
           return v == target;
         case '#' || '#s' || '#f' || '#cs' || '#cf':
@@ -224,7 +224,7 @@ class DropOp extends Binary {
 
     final target = rhs.totalOrDefault(() {
       throw FormatException(
-        "Invalid drop operation. Missing drop target",
+        'Invalid drop operation. Missing drop target',
         toString(),
         toString().length,
       );
@@ -331,7 +331,7 @@ class ClampOp extends Binary {
     final rhs = right();
     final target = rhs.totalOrDefault(() {
       throw FormatException(
-        "Invalid clamp operation. Missing clamp target",
+        'Invalid clamp operation. Missing clamp target',
         toString(),
         toString().length,
       );
@@ -339,7 +339,7 @@ class ClampOp extends Binary {
 
     List<int> results;
     switch (name) {
-      case "c>": // change any value > rhs to rhs
+      case 'c>': // change any value > rhs to rhs
         results = lhs.results.map((v) {
           if (v > target) {
             return target;
@@ -347,7 +347,7 @@ class ClampOp extends Binary {
             return v;
           }
         }).toList();
-      case "c<": // change any value < rhs to rhs
+      case 'c<': // change any value < rhs to rhs
         results = lhs.results.map((v) {
           if (v < target) {
             return target;
@@ -399,7 +399,7 @@ class FudgeDice extends UnaryDice {
     // redundant w/ RangeError checks in the DiceRoller. But we can construct better error messages here.
     if (ndice < DiceRoller.minDice || ndice > DiceRoller.maxDice) {
       throw FormatException(
-        "Invalid number of dice ($ndice)",
+        'Invalid number of dice ($ndice)',
         toString(),
         left.toString().length,
       );
@@ -465,14 +465,14 @@ class StdDice extends BinaryDice {
     // redundant w/ RangeError checks in the DiceRoller. But we can construct better error messages here.
     if (ndice < DiceRoller.minDice || ndice > DiceRoller.maxDice) {
       throw FormatException(
-        "Invalid number of dice ($ndice)",
+        'Invalid number of dice ($ndice)',
         toString(),
         left.toString().length,
       );
     }
     if (nsides < DiceRoller.minSides || nsides > DiceRoller.maxSides) {
       throw FormatException(
-        "Invalid number of sides ($nsides)",
+        'Invalid number of sides ($nsides)',
         toString(),
         left.toString().length + name.length + 1,
       );
@@ -516,7 +516,7 @@ class RerollDice extends BinaryDice {
     }
     final target = rhs.totalOrDefault(() {
       throw FormatException(
-        "Invalid reroll operation. Missing reroll target",
+        'Invalid reroll operation. Missing reroll target',
         toString(),
         toString().length,
       );
@@ -550,7 +550,7 @@ class RerollDice extends BinaryDice {
         int rerollCount = 0;
         do {
           rerolled = roller
-              .roll(1, lhs.nsides, "(reroll ind $i,  #$rerollCount)")
+              .roll(1, lhs.nsides, '(reroll ind $i,  #$rerollCount)')
               .total;
           rerollCount++;
         } while (test(rerolled) && rerollCount < limit);
@@ -579,7 +579,7 @@ class CompoundingDice extends BinaryDice {
     super.roller, {
     this.limit = defaultRerollLimit,
   }) {
-    if (name.startsWith("!!o")) {
+    if (name.startsWith('!!o')) {
       limit = 1;
     }
   }
@@ -628,7 +628,7 @@ class CompoundingDice extends BinaryDice {
         int numCompounded = 0;
         do {
           rerolled = roller
-              .roll(1, lhs.nsides, "(compound ind $i,  #$numCompounded)")
+              .roll(1, lhs.nsides, '(compound ind $i,  #$numCompounded)')
               .total;
           sum += rerolled;
           numCompounded++;
@@ -709,7 +709,7 @@ class ExplodingDice extends BinaryDice {
       final results = roller.roll(
         numToRoll,
         lhs.nsides,
-        "(explode #${explodeCount + 1})",
+        '(explode #${explodeCount + 1})',
       );
       accumulated.addAll(results.results);
       numToRoll = results.results.where(test).length;

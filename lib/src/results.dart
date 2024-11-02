@@ -79,7 +79,7 @@ class RollResult with EquatableMixin {
   /// NOTE: A side-effect of this decision is `(2d6 + 2d10)!` will explode with 10s, not 6s.
   RollResult operator +(RollResult other) {
     return RollResult(
-      expression: "($expression+${other.expression})",
+      expression: '($expression+${other.expression})',
       results: results + other.results,
       nsides: max(nsides, other.nsides),
       left: this,
@@ -93,7 +93,7 @@ class RollResult with EquatableMixin {
   ///
   RollResult operator *(RollResult other) {
     return RollResult(
-      expression: "($expression*${other.expression})",
+      expression: '($expression*${other.expression})',
       results: [totalOrDefault(() => 0) * other.totalOrDefault(() => 0)],
       left: this,
       right: other,
@@ -106,7 +106,7 @@ class RollResult with EquatableMixin {
   ///
   RollResult operator -(RollResult other) {
     return RollResult(
-      expression: "($expression-${other.expression})",
+      expression: '($expression-${other.expression})',
       results: results + other.results.map((v) => v * -1).toList(),
       nsides: max(nsides, other.nsides),
       left: this,
