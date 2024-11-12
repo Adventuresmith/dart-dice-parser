@@ -7,7 +7,7 @@
 
 
 
-A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, counting success/failures, 
+A dart library for parsing dice notation (`2d6+4`). Supports advantage/disadvantage, counting success/failures, 
 exploding, compounding, and other variations.
 
 # Example
