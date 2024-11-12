@@ -658,7 +658,9 @@ void main() {
     test('toString', () {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create(
-          '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f', seededRandom);
+        '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f',
+        seededRandom,
+      );
       final out = dice.roll().toString();
       expect(
         out,
@@ -670,7 +672,9 @@ void main() {
     test('toStringPretty', () {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create(
-          '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f', seededRandom);
+        '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f',
+        seededRandom,
+      );
       final out = dice.roll().toStringPretty();
       expect(
         out,
