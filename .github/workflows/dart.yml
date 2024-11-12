@@ -21,16 +21,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;dart:stable"
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Note: This workflow uses the latest stable version of the Dart SDK.
       # You can specify other versions if desired, see documentation here:
       # https://github.com/dart-lang/setup-dart/blob/main/README.md
-      - uses: dart-lang/setup-dart@v1.3
+      - uses: dart-lang/setup-dart@v1
         with:
           sdk: stable
 
@@ -52,4 +52,4 @@ jobs:
           dart pub global activate coverage
           dart pub global run coverage:test_with_coverage --branch-coverage
       - name: "Upload coverage"
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
