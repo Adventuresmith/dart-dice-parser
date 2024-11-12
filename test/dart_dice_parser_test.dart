@@ -306,6 +306,57 @@ void main() {
     });
   });
 
+  group('listeners', () {
+    test('basic', () {
+      final dice = DiceExpression.create('2d6 kh', seededRandom);
+      final results = <RollResult>[];
+      final summaries = <RollSummary>[];
+      dice.roll(
+        onRoll: (rr) {
+          results.add(rr);
+        },
+        onSummary: (rs) {
+          summaries.add(rs);
+        },
+      );
+      const rrRoll = const RollResult(
+        expression: '(2d6)',
+        opType: OpType.rollDice,
+        nsides: 6,
+        ndice: 2,
+        results: [2, 6],
+        metadata: RollMetadata(
+          rolled: [2, 6],
+        ),
+      );
+      const rrDrop = RollResult(
+        expression: '((2d6) kh )',
+        opType: OpType.drop,
+        nsides: 6,
+        ndice: 2,
+        results: [6],
+        metadata: RollMetadata(
+          discarded: [2],
+        ),
+        left: rrRoll,
+      );
+      final expectedSummary = RollSummary(detailedResults: rrDrop);
+      expect(
+        results,
+        equals([
+          rrRoll,
+          rrDrop,
+        ]),
+      );
+      expect(
+        summaries,
+        equals([
+          expectedSummary,
+        ]),
+      );
+    });
+  });
+
   group('addition combines', () {
     // mocked responses should return rolls of 6, 2, 1, 5
     seededRandTest(
@@ -621,11 +672,11 @@ void main() {
     });
 
     test('rollN test', () async {
-      // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create('2d6', seededRandom);
 
       final results =
           await dice.rollN(2).map((result) => result.total).toList();
+      // mocked responses should return rolls of 6, 2, 1, 5
       expect(results, equals([8, 6]));
     });
 

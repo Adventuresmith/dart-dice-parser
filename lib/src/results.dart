@@ -206,7 +206,7 @@ class RollSummary extends Equatable {
         total,
         expression,
         results,
-        detailedResults,
+        //detailedResults,
         metadata,
       ];
 
@@ -355,9 +355,9 @@ class RollResult extends Equatable {
         ndice,
         results,
         metadata,
-        left,
-        right,
         opType,
+        //left,
+        //right,
       ];
 
   /// Get the total, or if results are empty return result of calling [defaultCb].
