@@ -15,12 +15,15 @@ abstract class DiceExpression {
   static List<Function(RollResult)> listeners = [defaultListener];
   static List<Function(RollSummary)> summaryListeners = [];
 
-  static void registerListener(Function(RollResult rollResult) callback) {
+  static void registerListener(
+    Function(RollResult rollResult) callback,
+  ) {
     listeners.add(callback);
   }
 
   static void registerSummaryListener(
-      Function(RollSummary rollSummary) callback) {
+    Function(RollSummary rollSummary) callback,
+  ) {
     summaryListeners.add(callback);
   }
 
