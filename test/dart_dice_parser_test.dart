@@ -655,6 +655,37 @@ void main() {
       });
     }
 
+    test('toString', () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      final dice = DiceExpression.create('4d6 #s #f #cf #cs', seededRandom);
+      final out = dice.roll().toString();
+      expect(
+        out,
+        equals(
+          '(((((4d6) #s ) #f ) #cf ) #cs ) ===> RollSummary(total: 14, results: [6, 2, 1, 5], metadata: {rolled: [6, 2, 1, 5], score: {successes: [6], failures: [1], critSuccesses: [6], critFailures: [1]}})',
+        ),
+      );
+    });
+    test('toString', () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      final dice = DiceExpression.create('4d6 #s #f #cf #cs', seededRandom);
+      final out = dice.roll().toStringPretty();
+      expect(
+        out,
+        equals(
+          '''
+(((((4d6) #s ) #f ) #cf ) #cs ) ===> RollSummary(total: 14, results: [6, 2, 1, 5], metadata: {rolled: [6, 2, 1, 5], score: {successes: [6], failures: [1], critSuccesses: [6], critFailures: [1]}})
+  (((((4d6) #s ) #f ) #cf ) #cs ) =count=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {score: {critSuccesses: [6]}})
+      ((((4d6) #s ) #f ) #cf ) =count=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {score: {critFailures: [1]}})
+          (((4d6) #s ) #f ) =count=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {score: {failures: [1]}})
+              ((4d6) #s ) =count=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {score: {successes: [6]}})
+                  (4d6) =rollDice=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {rolled: [6, 2, 1, 5]})
+
+        '''
+              .trim(),
+        ),
+      );
+    });
     test('toJson', () {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create('4d6', seededRandom);

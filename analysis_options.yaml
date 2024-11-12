@@ -32,6 +32,7 @@ linter:
     - comment_references
     - directives_ordering
     - invalid_case_patterns
+    - leading_newlines_in_multiline_strings
     - missing_code_block_language_in_doc_comment
     - no_self_assignments
     - omit_local_variable_types
