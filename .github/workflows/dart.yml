@@ -12,12 +12,19 @@ on:
     branches: [ "main" ]
   schedule:
     - cron: "0 0 * * 0"
+defaults:
+  run:
+    shell: bash
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/cache@v3
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:stable"
       - uses: actions/checkout@v3
 
       # Note: This workflow uses the latest stable version of the Dart SDK.
@@ -28,13 +35,13 @@ jobs:
           sdk: stable
 
       - name: Install dependencies
-        run: dart pub get
+        run: dart pub upgrade --no-precompile
 
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
       - name: Analyze project source
-        run: dart analyze --fatal-warnings .
+        run: dart analyze --fatal-infos .
 
       - name: "VM Tests"
         run: dart test --platform vm
