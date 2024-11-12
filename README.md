@@ -7,7 +7,8 @@
 
 
 
-A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, exploding die, and other variations.
+A dart library for parsing dice notation (e.g. "2d6+4"). Supports advantage/disadvantage, counting success/failures, 
+exploding, compounding, and other variations.
 
 # Example
 
@@ -21,27 +22,12 @@ void main() {
 
   stdout.writeln(d20adv.roll());
   // outputs:
-  //   ((2d20)kh) => RollResult(total: 15, results: [15] , metadata: {dropped: [8], rolled: [8, 15]})
+  //  ((2d20) kh ) ===> RollSummary(total: 16, results: [16], metadata: {rolled: [4, 16], discarded: [4]})
 
   stdout.writeln(d20adv.roll());
   // outputs:
-  //   ((2d20)kh) => RollResult(total: 20, results: [20] , metadata: {dropped: [5], rolled: [5, 20]})
+  //  ((2d20) kh ) ===> RollSummary(total: 19, results: [19], metadata: {rolled: [13, 19], discarded: [13]})
 }
-```
-
-## Random Number Generator
-
-By default, Random.secure() is used. You can select other RNGs when creating the
-dice expression. Random() is faster than Random.secure(), so if you're doing lots of rolls
-for use cases where security doesn't matter, you may want to use Random().
-
-```dart 
-  // uses Random.secure()
-  final diceExpr1 = DiceExpression.create('2d20 kh');
-  
-  // uses supplied RNG.
-  final diceExpr2 = DiceExpression.create('2d20 kh', Random());
-
 ```
 
 # Dice Notation
@@ -80,7 +66,7 @@ for use cases where security doesn't matter, you may want to use Random().
     * To explode only once, use syntax `!o` 
       * `4d6 !o<5`
 * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each
-  dice are added together as a single "roll"
+  dice are added together as a single "roll". The original roll is replaced by the sum of it and any additional rolls.
   * `5d6 !!` -- roll `5` `6`-sided dice, compound
     * `5d6 !!=5` or `5d6!5` -- compound a roll if equal to 5 
     * `5d6 !!>=4` - compound if >= 4
@@ -121,7 +107,7 @@ for use cases where security doesn't matter, you may want to use Random().
   * `4d20 C<5` -- roll 4d20, change any value < 5 to 5
   * `4d20 C>15` -- roll 4d20, change any value > 15 to 15
 
-* operations on dice rolls:
+* scoring dice rolls:
   * counting:
     * `4d6 #` -- how many results? 
       * For example, you might use this to count # of dice above a target. `(5d10 -<6)#` -- roll 5 d10, drop any less than 6, count results
@@ -130,13 +116,18 @@ for use cases where security doesn't matter, you may want to use Random().
     * `4d6 #>=5` -- roll 4d6, count any >= 5
     * `4d6 #<=2` -- roll 4d6, count any <= 2
     * `4d6 #=5` -- roll 4d6, count any equal to 5
-  * counting (critical) success/failures 
-    * A normal count operation `#` discards the rolled dice and changes the result to be the count
+  * successes and failures 
+    * A normal count operation `#` discards the rolled dice and changes the result to be the count 
       * For example, `2d6#<=3` rolls `[3,4]` then counts which results are `<=3` , returning `[1]`
     * But, sometimes you want to be able to count successes/failures without discarding the dice rolls. 
       In this case, use modifiers `#s`, `#f`, `#cs`, `#cf` to add metadata to the results.
-      * `6d6 #f<=2 #s>=5 #cs6` -- roll 6d6, count results <= 2 as failures, >= 5 as successes, and =6 as critical successes.
-        * returns a result like: `RollResult(total: 22, results: [6, 2, 1, 5, 3, 5] {failures: {count: 2, target: #f<=2}, successes: {count: 3, target: #s>=5}, critSuccesses: {count: 1, target: #cs6}})`
+      * `6d6 #f<=2 #s>=5 #cs6 #cf1` -- roll 6d6, count results <= 2 as failures, >= 5 as successes, =6 as critical successes, =1 as critical failures
+        * The above returns a result like: `RollSummary(total: 22, results: [6, 2, 1, 5, 3, 5], metadata: {rolled: [6, 2, 1, 5, 3, 5], score: {successes: [6, 5, 5], failures: [2, 1], critSuccesses: [6], critFailures: [1]}})`
+    * NOTE: order matters
+      * `2d20 kh #cf #cs` -- roll 2d20, keep the highest, count critical successes & failures. If this 
+         rolled `[1,18]`, the `1` is dropped and the result metadata won't record a critical failure.
+         If that's not the behavior you want, move the counts prior to the drop (`2d20 #cf #cs kh`).
+      
 * arithmetic operations
   * parenthesis for order of operations
   * addition is a little special -- could be a sum of ints, or it can be used to aggregate results of multiple dice rolls
@@ -150,31 +141,244 @@ for use cases where security doesn't matter, you may want to use Random().
   * `-` for subtraction
   * numbers must be integers
   * division is not supported.
+
+
+# Random Number Generator
+
+By default, Random.secure() is used. You can select other RNGs when creating the
+dice expression. Random() will be faster than Random.secure(); if you're doing lots of rolls
+for use cases where security doesn't matter, you will want to use Random().
+
+For example, you might create a dice-rolling app that both provides rolls _and_ displays statistics
+(mean, stddev, etc) about the dice expression. To do that, you might create two separate
+`DiceExpression` objects for the same user-input -- one with the secure RNG (run whenever a user
+clicks a button), and the second to display min/max/mean/stddev/etc
+
+```dart 
+  final diceExpr_SecureRNG = DiceExpression.create('2d6');
+  final diceExpr_FastRNG = DiceExpression.create('2d6', Random());
   
+  //....
+  // on button-click, roll the dice
+  final roll = diceExpr_SecureRNG.roll();
+  
+  //....
+  // when dice expr changes, update the stats graph. 
+  final stats = await diceExpr_FastRNG.stats();
+  // output of stats: {mean: 6.98, stddev: 2.41, min: 2, max: 12, count: 10000, histogram: {2: 310, 3: 557, 4: 787, 5: 1090, 6: 1450, 7: 1646, 8: 1395, 9: 1147, 10: 825, 11: 526, 12: 267}}
+
+```
 
 # CLI Usage
 
 There's no executable in bin, but there's an example CLI at `example/main.dart`. 
 
+Usage:
+```
+❯ dart run example/main.dart -h
+Usage:
+-n, --num                       Number of times to roll the expression
+                                (defaults to "1")
+-o, --output                    output type
+
+          [json]                output JSON
+          [plain] (default)     output using toString
+          [pretty]              output result summary and detailed results of evaluating the expression tree
+
+-r, --random                    Random number generator to use.
+
+          [<integer>]           pseudorandom generator initialized with given seed
+          [pseudo] (default)    pseudorandom generator
+          [secure]              secure random
+
+-v, --[no-]verbose              Enable verbose logging
+-s, --[no-]stats                Output statistics for the given dice expression. Uses n=10000 unless overridden
+-h, --[no-]help                 
+
+```
+
+Examples:
+
 ```console
 ❯ dart example/main.dart '3d6'
-(3d6) => RollResult(total: 9, results: [4, 3, 2])
+(3d6) ===> RollSummary(total: 13, results: [3, 6, 4], metadata: {rolled: [3, 6, 4]})
 
 
 # run N number of rolls
-❯ dart example/main.dart -n6 '3d6'
-(3d6) => RollResult(total: 14, results: [6, 6, 2])
-(3d6) => RollResult(total: 8, results: [2, 5, 1])
-(3d6) => RollResult(total: 12, results: [3, 5, 4])
-(3d6) => RollResult(total: 16, results: [5, 5, 6])
-(3d6) => RollResult(total: 15, results: [3, 6, 6])
-(3d6) => RollResult(total: 6, results: [1, 1, 4])
+❯ dart run example/main.dart -n5 '3d6'
+(3d6) ===> RollSummary(total: 10, results: [2, 2, 6], metadata: {rolled: [2, 2, 6]})
+(3d6) ===> RollSummary(total: 12, results: [6, 4, 2], metadata: {rolled: [6, 4, 2]})
+(3d6) ===> RollSummary(total: 5, results: [2, 1, 2], metadata: {rolled: [2, 1, 2]})
+(3d6) ===> RollSummary(total: 10, results: [5, 3, 2], metadata: {rolled: [5, 3, 2]})
+(3d6) ===> RollSummary(total: 13, results: [4, 5, 4], metadata: {rolled: [4, 5, 4]})
+
 
 
 # show statistics for a dice expression
 ❯ dart example/main.dart  -s '3d6'
 {mean: 10.5, stddev: 2.97, min: 3, max: 18, count: 10000, histogram: {3: 49, 4: 121, 5: 273, 6: 461, 7: 727, 8: 961, 9: 1153, 10: 1182, 11: 1272, 12: 1151, 13: 952, 14: 733, 15: 486, 16: 289, 17: 154, 18: 36}}
 
+```
+
+Sometimes it's nice to change the output so you can see the graph of results:
+```console
+# show the result graph:
+❯ dart run example/main.dart -o pretty '3d6 #cs #cf'
+(((3d6) #cs ) #cf ) ===> RollSummary(total: 13, results: [1, 6, 6], metadata: {rolled: [1, 6, 6], score: {critSuccesses: [6, 6], critFailures: [1]}})
+  (((3d6) #cs ) #cf ) =count=> RollResult(total: 13, results: [1, 6, 6], metadata: {score: {critFailures: [1]}})
+      ((3d6) #cs ) =count=> RollResult(total: 13, results: [1, 6, 6], metadata: {score: {critSuccesses: [6, 6]}})
+          (3d6) =rollDice=> RollResult(total: 13, results: [1, 6, 6], metadata: {rolled: [1, 6, 6]})
+
+
+❯ dart run example/main.dart -o json '3d6 #cs #cf'
+{"expression":"(((3d6) #cs ) #cf )","total":9,"results":[2,3,4],"detailedResults":{"expression":"(((3d6) #cs ) #cf )","opType":"count","nsides":6,"ndice":3,"results":[2,3,4],"left":{"expression":"((3d6) #cs )","opType":"count","nsides":6,"ndice":3,"results":[2,3,4],"left":{"expression":"(3d6)","opType":"rollDice","nsides":6,"ndice":3,"results":[2,3,4],"metadata":{"rolled":[2,3,4]}}}},"metadata":{"rolled":[2,3,4]}}
+
+
+```
+
+# Reacting to dice rolls in your application
+
+If you're using this package within an app, you probably want to display dice-rolling events to the user.
+
+There's a couple ways for you to act on roll results. Depending on your use-case, one or more will hopefully fit your needs.
+
+## Traversing the result graph
+Use the 'left' and 'right' fields of each RollResult node to walk the graph. For an example, see [simple.dart](example/simple.dart)
+
+When a dice expression is parsed, it creates a binary tree to evaluate the roll. 
+
+For example, the expression `(3d6 + 3d6!) kh3` means "roll 3d6 and 3d6!, combine results. Keep the 3 highest"
+and it creates a graph like:
+
+```mermaid
+flowchart TD;
+    DROP --> ADD;
+    ADD --> ROLLB;
+    ADD --> EXPLODE;
+    EXPLODE --> ROLLA;
+    
+    DROP(["(3d6 + 3d6!) kh 3"]);
+    ADD(["(3d6 + 3d6!)"]);
+    ROLLB(["3d6"]);
+    EXPLODE(["(3d6)!"]);
+    ROLLA(["3d6"]);
+```
+
+When you roll the dice expression, it traverses the tree from the bottom up and rolls dice or performs the 
+requested operations.
+
+```mermaid
+flowchart TD
+   
+    DROP --> ADD;
+    ADD --> ROLLB;
+    ADD --> EXPLODE;
+    EXPLODE --> ROLLA;
+
+    SUMMARY ---|details| DROP_RESULT;
+    DROP_RESULT -->|left| ADD_RESULT;
+    ADD_RESULT -->|left| ROLLB_RESULT;
+    ADD_RESULT -->|right| EXPLODE_RESULT;
+    EXPLODE_RESULT -->|left| ROLLA_RESULT;
+    
+    ROLLA -.->|#1| ROLLA_RESULT@{ shape: doc, label: "RollResult <br/><br/>results: 2,3,6<br/>rolled:2,3,6" };
+    EXPLODE -.->|#2| EXPLODE_RESULT@{ shape: doc, label: "RollResult <br/><br/>results: 2,3,6,4<br/>rolled:4"};
+    ROLLB -.->|#3| ROLLB_RESULT@{ shape: doc, label: "RollResult <br/><br/>results: 1,5,2<br/>rolled:1,5,2"};
+    ADD -.->|#4| ADD_RESULT@{ shape: doc, label: "RollResult <br/><br/>results: 2,3,6,4,1,5,2"};
+    DROP -.->|#5| DROP_RESULT@{ shape: doc, label: "RollResult<br/><br/>results: 6,5,4<br/>discarded: 2,3,1,2"};
+    
+    DROP(["(3d6 + 3d6!) kh 3"]);
+    ADD(["(3d6 + 3d6!)"]);
+    ROLLB(["3d6"]);
+    EXPLODE(["(3d6)!"]);
+    ROLLA(["3d6"]);
+    SUMMARY@{ shape: doc, label: "RollSummary<br/><br/>Total: 15 <br/>results:6,5,4<br/><br/>rolled: 2,3,6,4,1,5,2 <br/>discarded: 2,3,1,2" };
+```
+
+## Convert RollResult to JSON 
+
+```dart
+  Map<String,dynamic> rollResultAsJson = DiceExpression.create('2d20kh').roll().toJson();
+```
+
+The returned objects will look roughly like: 
+```json 
+{
+  "expression": "((2d20) kh )",
+  "total": 16,
+  "results": [
+    16
+  ],
+  "detailedResults": {
+    "expression": "((2d20) kh )",
+    "opType": "drop",
+    "nsides": 20,
+    "ndice": 2,
+    "results": [
+      16
+    ],
+    "metadata": {
+      "discarded": [
+        4
+      ]
+    },
+    "left": {
+      "expression": "(2d20)",
+      "opType": "rollDice",
+      "nsides": 20,
+      "ndice": 2,
+      "results": [
+        4,
+        16
+      ],
+      "metadata": {
+        "rolled": [
+          4,
+          16
+        ]
+      }
+    }
+  },
+  "metadata": {
+    "rolled": [
+      4,
+      16
+    ],
+    "discarded": [
+      4
+    ]
+  }
+}
+
+
+```
+
+
+## Listen to RollResult events
+
+You can register one or more listeners that will be informed of roll events.
+There is a default logging listener that logs at FINE level.
+```dart 
+
+    // if you want to listen to every individual operation within the expression
+    DiceExpression.registerListener((rollResult) {
+      stdout.writeln('${rollResult.opType.name} -> $rollResult');
+    });
+
+    // if you want to listen for the RollSummary
+    DiceExpression.registerSummaryListener((rollSummary) {
+      stdout.writeln('$rollSummary');
+    });
+
+```
+
+Alternatively, you may not want to know _all_ roll events, and are only interested in
+the events for your specific roll. In that case, pass an 'onRoll' method to the `roll()` method
+```dart 
+  DiceExpression.create('2d20kh').roll(
+    onRoll: (rr) => stdout.writeln('roll - $rr'),
+    onSummary: (summary) => stdout.writeln('summary - $summary')
+  );
 ```
 
 

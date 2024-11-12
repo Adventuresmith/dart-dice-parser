@@ -1,3 +1,21 @@
+# 7.0.0
+
+- clean up roll response, and add docs to README about how to use the result objects
+- analysis cleanups & dep upgrades
+
+## ⚠️⚠️ Breaking changes ⚠️⚠️
+
+The roll results have changed significantly. Now, there's a RollSummary object that includes
+a tree of results from evaluating the dice expression. See the README for examples of how to
+traverse the graph.
+
+## 📈 Enhancements
+- new API for registering roll listeners.
+
+## 🛠️ Bug fixes
+- propagate the roll metadata up to the top of the graph
+
+
 # 6.0.2
 - more readme fixes
 - cleanup error handling / exceptions

@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+
 import 'dice_expression.dart';
 import 'dice_roller.dart';
 import 'results.dart';
@@ -9,10 +10,11 @@ const defaultRerollLimit = 1000;
 
 /// A value expression. The token we read from input will be a String,
 /// it must parse as an int, and an empty string will return empty set.
-class Value extends DiceExpression {
-  Value(this.value)
+class SimpleValue extends DiceExpression {
+  SimpleValue(this.value)
       : _results = RollResult(
           expression: value,
+          opType: OpType.value,
           results: value.isEmpty ? [] : [int.parse(value)],
         );
 
@@ -27,6 +29,8 @@ class Value extends DiceExpression {
 }
 
 /// All our operations will inherit from this class.
+/// The `call()` method will be called by the parent node.
+/// The `eval()` method is called from the node
 abstract class DiceOp extends DiceExpression with LoggingMixin {
   // each child class should override this to implement their operation
   RollResult eval();
@@ -34,9 +38,9 @@ abstract class DiceOp extends DiceExpression with LoggingMixin {
   // all children can share this call operator -- and it'll let us be consistent w/ regard to logging
   @override
   RollResult call() {
-    final results = eval();
-    logger.finer(() => '$results');
-    return results;
+    final result = eval();
+    logger.finer(() => '$result');
+    return result;
   }
 }
 
@@ -60,7 +64,7 @@ abstract class Binary extends DiceOp {
   final DiceExpression right;
 
   @override
-  String toString() => '($left$name$right)';
+  String toString() => '($left $name $right)';
 }
 
 /// multiply operation (flattens results)
@@ -68,9 +72,7 @@ class MultiplyOp extends Binary {
   MultiplyOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
-    return left() * right();
-  }
+  RollResult eval() => left() * right();
 }
 
 /// add operation
@@ -78,9 +80,7 @@ class AddOp extends Binary {
   AddOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
-    return left() + right();
-  }
+  RollResult eval() => left() + right();
 }
 
 /// subtraction operation
@@ -88,21 +88,7 @@ class SubOp extends Binary {
   SubOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
-    return left() - right();
-  }
-}
-
-enum CountType {
-  count(RollMetadata.count),
-  success(RollMetadata.successes),
-  failure(RollMetadata.failures),
-  critSuccess(RollMetadata.critSuccesses),
-  critFailure(RollMetadata.critFailures);
-
-  const CountType(this.metadataKey);
-
-  final RollMetadata metadataKey;
+  RollResult eval() => left() - right();
 }
 
 /// variation on count -- count how many results from lhs are =,<,> rhs.
@@ -133,7 +119,7 @@ class CountOp extends Binary {
     final lhs = left();
     final rhs = right();
 
-    bool rhsEmptyAndSimpleCount = false;
+    var rhsEmptyAndSimpleCount = false;
     final target = rhs.totalOrDefault(
       () {
         // if missing RHS, we can make assumptions depending on operator.
@@ -194,22 +180,39 @@ class CountOp extends Binary {
       }
     }
 
-    final count = lhs.results.where(test).length;
-    final metadata = <String, Object>{};
-    metadata.addAll(lhs.metadata);
-    metadata.addAll({
-      countType.metadataKey.name: count,
-    });
+    final filteredResults = lhs.results.where(test);
 
-    return RollResult(
-      expression: toString(),
-      metadata: metadata,
-      results: countType == CountType.count ? [count] : lhs.results,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
-      left: lhs,
-      right: rhs,
-    );
+    if (countType == CountType.count) {
+      // if counting, the count becomes the new result
+
+      return RollResult(
+        expression: toString(),
+        opType: OpType.count,
+        metadata: RollMetadata(
+          discarded: lhs.results,
+        ),
+        results: [filteredResults.length],
+        ndice: lhs.ndice,
+        nsides: lhs.nsides,
+        left: lhs,
+        right: rhs,
+      );
+    } else {
+      // if counting success/failures, the results are unchanged
+
+      return RollResult(
+        expression: toString(),
+        results: lhs.results,
+        opType: OpType.count,
+        metadata: RollMetadata(
+          score: RollScore.forCountType(countType, List.of(filteredResults)),
+        ),
+        ndice: lhs.ndice,
+        nsides: lhs.nsides,
+        left: lhs,
+        right: rhs,
+      );
+    }
   }
 }
 
@@ -258,13 +261,13 @@ class DropOp extends Binary {
 
     return RollResult(
       expression: toString(),
+      opType: OpType.drop,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      metadata: {
-        RollMetadata.dropped.name: dropped,
-        RollMetadata.rolled.name: lhs.results,
-      },
+      metadata: RollMetadata(
+        discarded: dropped,
+      ),
       left: lhs,
       right: rhs,
     );
@@ -308,13 +311,13 @@ class DropHighLowOp extends Binary {
     }
     return RollResult(
       expression: toString(),
+      opType: OpType.drop,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      metadata: {
-        RollMetadata.dropped.name: dropped,
-        RollMetadata.rolled.name: sorted,
-      },
+      metadata: RollMetadata(
+        discarded: dropped,
+      ),
       left: lhs,
       right: rhs,
     );
@@ -338,10 +341,14 @@ class ClampOp extends Binary {
     });
 
     List<int> results;
+    final discarded = <int>[];
+    final added = <int>[];
     switch (name) {
       case 'c>': // change any value > rhs to rhs
         results = lhs.results.map((v) {
           if (v > target) {
+            discarded.add(v);
+            added.add(target);
             return target;
           } else {
             return v;
@@ -350,6 +357,8 @@ class ClampOp extends Binary {
       case 'c<': // change any value < rhs to rhs
         results = lhs.results.map((v) {
           if (v < target) {
+            discarded.add(v);
+            added.add(target);
             return target;
           } else {
             return v;
@@ -364,9 +373,14 @@ class ClampOp extends Binary {
     }
     return RollResult(
       expression: toString(),
+      opType: OpType.clamp,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
+      metadata: RollMetadata(
+        discarded: discarded,
+        rolled: added,
+      ),
       left: lhs,
       right: rhs,
     );
@@ -378,6 +392,9 @@ abstract class UnaryDice extends Unary {
   UnaryDice(super.name, super.left, this.roller);
 
   final DiceRoller roller;
+
+  @override
+  String toString() => '($left$name)';
 }
 
 /// base class for binary dice expressions
@@ -404,10 +421,14 @@ class FudgeDice extends UnaryDice {
         left.toString().length,
       );
     }
-
+    final roll = roller.rollFudge(ndice);
     return RollResult.fromRollResult(
-      roller.rollFudge(ndice),
+      roll,
       expression: toString(),
+      opType: roll.opType,
+      metadata: RollMetadata(
+        rolled: roll.results,
+      ),
       left: lhs,
     );
   }
@@ -422,9 +443,14 @@ class PercentDice extends UnaryDice {
     final lhs = left();
     const nsides = 100;
     final ndice = lhs.totalOrDefault(() => 1);
+    final roll = roller.roll(ndice, nsides);
     return RollResult.fromRollResult(
-      roller.roll(ndice, nsides),
+      roll,
       expression: toString(),
+      opType: OpType.rollPercent,
+      metadata: RollMetadata(
+        rolled: roll.results,
+      ),
       left: lhs,
     );
   }
@@ -440,12 +466,16 @@ class D66Dice extends UnaryDice {
     final ndice = lhs.totalOrDefault(() => 1);
     final results = [
       for (var i = 0; i < ndice; i++)
-        roller.roll(1, 6).total * 10 + roller.roll(1, 6).total,
+        roller.roll(1, 6).results.sum * 10 + roller.roll(1, 6).results.sum,
     ];
     return RollResult(
       expression: toString(),
+      opType: OpType.rollD66,
       ndice: ndice,
       results: results,
+      metadata: RollMetadata(
+        rolled: results,
+      ),
       left: lhs,
     );
   }
@@ -454,6 +484,9 @@ class D66Dice extends UnaryDice {
 /// roll N dice of Y sides.
 class StdDice extends BinaryDice {
   StdDice(super.name, super.left, super.right, super.roller);
+
+  @override
+  String toString() => '($left$name$right)';
 
   @override
   RollResult eval() {
@@ -477,10 +510,14 @@ class StdDice extends BinaryDice {
         left.toString().length + name.length + 1,
       );
     }
-
+    final roll = roller.roll(ndice, nsides);
     return RollResult.fromRollResult(
-      roller.roll(ndice, nsides),
+      roll,
       expression: toString(),
+      opType: roll.opType,
+      metadata: RollMetadata(
+        rolled: roll.results,
+      ),
       left: lhs,
       right: rhs,
     );
@@ -522,6 +559,8 @@ class RerollDice extends BinaryDice {
       );
     });
     final results = <int>[];
+    final discarded = <int>[];
+    final added = <int>[];
 
     bool test(int val) {
       switch (name) {
@@ -547,14 +586,17 @@ class RerollDice extends BinaryDice {
     lhs.results.forEachIndexed((i, v) {
       if (test(v)) {
         int rerolled;
-        int rerollCount = 0;
+        var rerollCount = 0;
         do {
           rerolled = roller
               .roll(1, lhs.nsides, '(reroll ind $i,  #$rerollCount)')
-              .total;
+              .results
+              .sum;
           rerollCount++;
         } while (test(rerolled) && rerollCount < limit);
         results.add(rerolled);
+        discarded.add(v);
+        added.add(rerolled);
       } else {
         results.add(v);
       }
@@ -562,9 +604,14 @@ class RerollDice extends BinaryDice {
 
     return RollResult(
       expression: toString(),
+      opType: OpType.reroll,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
+      metadata: RollMetadata(
+        rolled: added,
+        discarded: discarded,
+      ),
       left: lhs,
       right: rhs,
     );
@@ -621,19 +668,24 @@ class CompoundingDice extends BinaryDice {
     }
 
     final results = <int>[];
+    final discarded = <int>[];
+    final added = <int>[];
     lhs.results.forEachIndexed((i, v) {
       if (test(v)) {
-        int sum = v;
+        var sum = v;
         int rerolled;
-        int numCompounded = 0;
+        var numCompounded = 0;
         do {
           rerolled = roller
               .roll(1, lhs.nsides, '(compound ind $i,  #$numCompounded)')
-              .total;
+              .results
+              .sum;
           sum += rerolled;
           numCompounded++;
         } while (test(rerolled) && numCompounded < limit);
         results.add(sum);
+        discarded.add(v);
+        added.add(sum);
       } else {
         results.add(v);
       }
@@ -641,9 +693,14 @@ class CompoundingDice extends BinaryDice {
 
     return RollResult(
       expression: toString(),
+      opType: OpType.compound,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
+      metadata: RollMetadata(
+        rolled: added,
+        discarded: discarded,
+      ),
       left: lhs,
       right: rhs,
     );
@@ -679,7 +736,8 @@ class ExplodingDice extends BinaryDice {
     }
     final target = rhs.totalOrDefault(() => lhs.nsides);
 
-    final accumulated = <int>[];
+    final allResults = <int>[];
+    final newResults = <int>[];
 
     bool test(int val) {
       switch (name) {
@@ -702,7 +760,7 @@ class ExplodingDice extends BinaryDice {
       }
     }
 
-    accumulated.addAll(lhs.results);
+    allResults.addAll(lhs.results);
     var numToRoll = lhs.results.where(test).length;
     var explodeCount = 0;
     while (numToRoll > 0 && explodeCount < limit) {
@@ -711,16 +769,19 @@ class ExplodingDice extends BinaryDice {
         lhs.nsides,
         '(explode #${explodeCount + 1})',
       );
-      accumulated.addAll(results.results);
+      newResults.addAll(results.results);
       numToRoll = results.results.where(test).length;
       explodeCount++;
     }
+    allResults.addAll(newResults);
 
     return RollResult(
       expression: toString(),
+      opType: OpType.explode,
       ndice: lhs.ndice,
       nsides: lhs.nsides,
-      results: accumulated,
+      results: allResults,
+      metadata: RollMetadata(rolled: newResults),
       left: lhs,
       right: rhs,
     );

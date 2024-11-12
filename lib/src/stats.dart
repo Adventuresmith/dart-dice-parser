@@ -1,5 +1,5 @@
-import "dart:collection";
-import "dart:math";
+import 'dart:collection';
+import 'dart:math';
 
 /// Uses Welford's algorithm to compute variance for stddev along
 /// with other stats.
@@ -49,14 +49,12 @@ class StatsCollector {
   num get _stddev => sqrt(_variance);
 
   /// retrieve stats as map
-  Map<String, dynamic> asMap({int precision = 3}) {
-    return {
-      'mean': double.parse(_mean.toStringAsPrecision(precision)),
-      'stddev': double.parse(_stddev.toStringAsPrecision(precision)),
-      'min': _minVal,
-      'max': _maxVal,
-      'count': _count,
-      'histogram': _histogram,
-    };
-  }
+  Map<String, dynamic> toJson({int precision = 3}) => {
+        'mean': double.parse(_mean.toStringAsPrecision(precision)),
+        'stddev': double.parse(_stddev.toStringAsPrecision(precision)),
+        'min': _minVal,
+        'max': _maxVal,
+        'count': _count,
+        'histogram': _histogram,
+      };
 }

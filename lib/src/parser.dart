@@ -1,13 +1,14 @@
-import 'package:dart_dice_parser/src/ast.dart';
-import 'package:dart_dice_parser/src/dice_expression.dart';
-import 'package:dart_dice_parser/src/dice_roller.dart';
 import 'package:petitparser/petitparser.dart';
+
+import 'ast.dart';
+import 'dice_expression.dart';
+import 'dice_roller.dart';
 
 Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   final builder = ExpressionBuilder<DiceExpression>();
   // numbers
   builder.primitive(
-    digit().star().flatten('integer expected').trim().map((v) => Value(v)),
+    digit().star().flatten('integer expected').trim().map(SimpleValue.new),
   );
   // parens
   builder.group().wrapper(

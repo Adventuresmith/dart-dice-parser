@@ -22,30 +22,36 @@ void main(List<String> arguments) async {
       );
     }
   });
-  Random random = Random.secure();
+  var random = Random.secure();
+
+  DiceExpression.registerListener((rollResult) {
+    //stdout.writeln('${rollResult.opType.name} -> $rollResult');
+  });
 
   final argParser = ArgParser()
     ..addOption(
-      "num",
-      abbr: "n",
-      help: "Number of times to roll the expression",
-      defaultsTo: "1",
+      'num',
+      abbr: 'n',
+      help: 'Number of times to roll the expression',
+      defaultsTo: '1',
     )
     ..addOption(
-      "output",
-      abbr: "o",
+      'output',
+      abbr: 'o',
       defaultsTo: 'plain',
       help: 'output type',
       allowedHelp: {
-        'plain': 'output using RollResult.toString()',
+        'plain': 'output using toString',
         'json': 'output JSON',
+        'pretty':
+            'output result summary and detailed results of evaluating the expression tree',
       },
     )
     ..addOption(
-      "random",
-      abbr: "r",
+      'random',
+      abbr: 'r',
       defaultsTo: 'pseudo',
-      help: "Random number generator to use.",
+      help: 'Random number generator to use.',
       allowedHelp: {
         'secure': 'secure random',
         'pseudo': 'pseudorandom generator',
@@ -53,9 +59,9 @@ void main(List<String> arguments) async {
       },
       callback: (val) {
         switch (val?.toLowerCase()) {
-          case "pseudo":
+          case 'pseudo':
             random = Random();
-          case "secure":
+          case 'secure':
             random = Random.secure();
           default:
             try {
@@ -68,9 +74,9 @@ void main(List<String> arguments) async {
       },
     )
     ..addFlag(
-      "verbose",
-      abbr: "v",
-      help: "Enable verbose logging",
+      'verbose',
+      abbr: 'v',
+      help: 'Enable verbose logging',
       callback: (verbose) {
         if (verbose) {
           Logger.root.level = Level.FINEST;
@@ -80,21 +86,21 @@ void main(List<String> arguments) async {
       },
     )
     ..addFlag(
-      "stats",
-      abbr: "s",
+      'stats',
+      abbr: 's',
       help:
-          "Output statistics for the given dice expression. Uses n=$defaultStatsNum unless overridden",
+          'Output statistics for the given dice expression. Uses n=$defaultStatsNum unless overridden',
     )
-    ..addFlag("help", abbr: "h");
+    ..addFlag('help', abbr: 'h');
 
   final results = argParser.parse(arguments);
-  if (results["help"] as bool) {
-    stderr.writeln("Usage:");
+  if (results['help'] as bool) {
+    stderr.writeln('Usage:');
     stderr.writeln(argParser.usage);
     exit(1);
   }
 
-  final input = results.rest.join(" ");
+  final input = results.rest.join(' ');
   if (input.isEmpty) {
     stderr.writeln("Supply a dice expression. e.g. '2d6+1'");
     exit(1);
@@ -110,7 +116,7 @@ void main(List<String> arguments) async {
     exit(
       await run(
         expression: diceExpr,
-        numRolls: int.parse(results["num"] as String),
+        numRolls: int.parse(results['num'] as String),
         stats: collectStats,
         output: results['output'] as String,
       ),
@@ -134,6 +140,8 @@ Future<int> run({
     await for (final r in expression.rollN(numRolls)) {
       if (output == 'json') {
         stdout.writeln(json.encode(r));
+      } else if (output == 'pretty') {
+        stdout.writeln(r.toStringPretty());
       } else {
         stdout.writeln(r);
       }

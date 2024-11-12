@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:dart_dice_parser/dart_dice_parser.dart';
-import 'package:dart_dice_parser/src/utils.dart';
+import 'results.dart';
+import 'utils.dart';
 
 /// A dice roller for M dice of N sides (e.g. `2d6`).
 /// A roll returns a list of ints.
@@ -37,6 +37,8 @@ class DiceRoller with LoggingMixin {
     logger.finest(() => 'roll ${ndice}d$nsides => $results $msg');
     return RollResult(
       expression: '${ndice}d$nsides',
+      opType: OpType.rollDice,
+      metadata: RollMetadata(rolled: results),
       ndice: ndice,
       nsides: nsides,
       results: results,
@@ -56,6 +58,8 @@ class DiceRoller with LoggingMixin {
 
     return RollResult(
       expression: '${ndice}dF',
+      opType: OpType.rollFudge,
+      metadata: RollMetadata(rolled: results),
       ndice: ndice,
       results: results,
     );
