@@ -123,6 +123,7 @@ void main(List<String> arguments) async {
     );
   } on FormatException catch (e) {
     stderr.writeln(e.toString());
+    exit(1);
   }
 }
 

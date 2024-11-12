@@ -47,6 +47,10 @@ jobs:
         run: dart test --platform vm
       - name: "Chrome Tests"
         run: dart test --platform chrome
+      - name: "Run example/simple.dart"
+        run: dart run --enable-asserts example/simple.dart
+      - name: "Run example/main.dart"
+        run: "dart run --enable-asserts example/main.dart -n 10 -o pretty '(3d6 + 3d6! + 3d6!!) #cs #cf #s #f'"
       - name: "Collect coverage"
         run: |
           dart pub global activate coverage
