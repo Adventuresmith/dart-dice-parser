@@ -53,5 +53,5 @@ jobs:
           dart pub global run coverage:test_with_coverage --branch-coverage
       - name: "Upload coverage"
         uses: codecov/codecov-action@v4
-        env:
+        env: 
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
