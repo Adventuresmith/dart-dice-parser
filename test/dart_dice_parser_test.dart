@@ -36,6 +36,10 @@ void main() {
     int? expectedTotal, {
     List<int>? expectedResults,
     RollMetadata? expectedMetadata,
+    int? successCount,
+    int? failureCount,
+    int? critSuccessCount,
+    int? critFailureCount,
   }) {
     test('$testName - $inputExpr', () {
       final rollSummary = DiceExpression.create(inputExpr, seededRandom).roll();
@@ -58,6 +62,54 @@ void main() {
           rollSummary.metadata,
           equals(expectedMetadata),
           reason: 'mismatching roll metadata',
+        );
+      }
+      if (successCount != null) {
+        expect(
+          rollSummary.hasSuccesses,
+          equals(successCount > 0),
+          reason: 'summary missing success',
+        );
+        expect(
+          rollSummary.metadata.score.successCount,
+          equals(successCount),
+          reason: 'mismatched success count',
+        );
+      }
+      if (failureCount != null) {
+        expect(
+          rollSummary.hasFailures,
+          equals(failureCount > 0),
+          reason: 'summary missing success',
+        );
+        expect(
+          rollSummary.metadata.score.failureCount,
+          equals(failureCount),
+          reason: 'mismatched success count',
+        );
+      }
+      if (critSuccessCount != null) {
+        expect(
+          rollSummary.hasCritSuccesses,
+          equals(critSuccessCount > 0),
+          reason: 'summary missing success',
+        );
+        expect(
+          rollSummary.metadata.score.critSuccessCount,
+          equals(critSuccessCount),
+          reason: 'mismatched success count',
+        );
+      }
+      if (critFailureCount != null) {
+        expect(
+          rollSummary.hasCritFailures,
+          equals(critFailureCount > 0),
+          reason: 'summary missing success',
+        );
+        expect(
+          rollSummary.metadata.score.critFailureCount,
+          equals(critFailureCount),
+          reason: 'mismatched success count',
         );
       }
     });
@@ -99,6 +151,10 @@ void main() {
           critFailures: [1],
         ),
       ),
+      successCount: 1,
+      failureCount: 1,
+      critSuccessCount: 1,
+      critFailureCount: 1,
     );
     seededRandTest(
       'equal sign can be omitted',
@@ -112,6 +168,10 @@ void main() {
           failures: [1],
         ),
       ),
+      successCount: 1,
+      failureCount: 1,
+      critSuccessCount: 0,
+      critFailureCount: 0,
     );
     seededRandTest(
       'with equal sign',
@@ -125,6 +185,10 @@ void main() {
           failures: [1],
         ),
       ),
+      successCount: 1,
+      failureCount: 1,
+      critSuccessCount: 0,
+      critFailureCount: 0,
     );
 
     seededRandTest(
@@ -141,6 +205,10 @@ void main() {
           critFailures: [1],
         ),
       ),
+      successCount: 2,
+      failureCount: 2,
+      critSuccessCount: 1,
+      critFailureCount: 1,
     );
 
     seededRandTest(

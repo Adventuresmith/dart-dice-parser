@@ -69,7 +69,7 @@ class RollScore extends Equatable {
 
   int get failureCount => failures.length;
 
-  int get critSuccessesCount => critSuccesses.length;
+  int get critSuccessCount => critSuccesses.length;
 
   int get critFailureCount => critFailures.length;
 

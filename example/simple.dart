@@ -47,7 +47,7 @@ Future<void> main() async {
   assert(!result2.hasFailures);
   assert(!result2.hasCritFailures);
   assert(result2.hasCritSuccesses);
-  assert(result2.metadata.score.critSuccessesCount == 1);
+  assert(result2.metadata.score.critSuccessCount == 1);
   assert(
     listEquals(
       result2.metadata.score.critSuccesses,
