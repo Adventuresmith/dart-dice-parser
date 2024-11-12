@@ -319,7 +319,7 @@ void main() {
           summaries.add(rs);
         },
       );
-      const rrRoll = const RollResult(
+      const rrRoll = RollResult(
         expression: '(2d6)',
         opType: OpType.rollDice,
         nsides: 6,
