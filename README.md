@@ -220,7 +220,7 @@ Examples:
 
 ```
 
-Sometimes it's nice to change the output so you can see the graph of results:
+Sometimes it's nice to change the output type so you can see the graph of results:
 ```console
 # show the result graph:
 ❯ dart run example/main.dart -o pretty '3d6 #cs #cf'
@@ -235,6 +235,45 @@ Sometimes it's nice to change the output so you can see the graph of results:
 
 
 ```
+
+## Statistics output
+
+
+I often wonder, "what range of values should I expect?" or "how likely will this roll explode or compound?" 
+
+To explore that, you can use stats output: 
+
+```console
+
+# roll 4d6
+❯ dart run example/main.dart -s '4d6'
+{mean: 14.0, stddev: 3.44, min: 4, max: 24, count: 10000, histogram: {4: 5, 5: 28, 6: 72, 7: 163, 8: 280, 9: 468, 10: 573, 11: 816, 12: 948, 13: 1069, 14: 1047, 15: 1118, 16: 1010, 17: 786, 18: 637, 19: 412, 20: 278, 21: 161, 22: 84, 23: 32, 24: 13}}
+
+
+# roll 4d6 explode 
+❯ dart run example/main.dart -s '4d6!'
+{mean: 16.7, stddev: 6.46, min: 4, max: 54, count: 10000, histogram: {4: 6, 5: 32, 6: 87, 7: 166, 8: 264, 9: 403, 10: 558, 11: 655, 12: 690, 13: 734, 14: 695, 15: 651, 16: 621, 17: 607, 18: 498, 19: 507, 20: 425, 21: 350, 22: 353, 23: 260, 24: 229, 25: 194, 26: 167, 27: 150, 28: 143, 29: 118, 30: 99, 31: 69, 32: 53
+
+# roll 4d5 compounding 
+❯ dart run example/main.dart -s '4d6!!'
+{mean: 16.8, stddev: 6.43, min: 4, max: 58, count: 10000, histogram: {4: 6, 5: 29, 6: 78, 7: 162, 8: 230, 9: 389, 10: 506, 11: 635, 12: 726, 13: 705, 14: 751, 15: 682, 16: 597, 17: 602, 18: 571, 19: 498, 20: 456, 21: 365, 22: 310, 23: 286, 24: 262, 25: 192, 26: 167, 27: 156, 28: 114, 29: 92, 30: 76, 31: 72, 32: 57, 33: 41, 34: 32, 35: 31, 36: 20, 37: 15, 38: 16, 39: 10, 40: 12, 41: 8, 42: 10, 43: 4, 44: 8, 45: 5, 46: 4, 47: 2, 48: 1, 49: 2, 50: 3, 51: 2, 53: 1, 58: 1}}
+
+```
+
+Or, if I wonder, "in those rolls, how many times might I see a roll >=6?". For that case, I can include a count operation
+
+
+```console
+❯ dart run example/main.dart -s '4d6 #>=6'
+{mean: 0.664, stddev: 0.75, min: 0, max: 4, count: 10000, histogram: {0: 4871, 1: 3781, 2: 1192, 3: 144, 4: 12}}
+
+❯ dart run example/main.dart -s '4d6! #>=6'
+{mean: 0.793, stddev: 0.973, min: 0, max: 7, count: 10000, histogram: {0: 4846, 1: 3213, 2: 1328, 3: 449, 4: 116, 5: 40, 6: 4, 7: 4}}
+
+❯ dart run example/main.dart -s '4d6!! #>=6'
+{mean: 0.665, stddev: 0.747, min: 0, max: 4, count: 10000, histogram: {0: 4840, 1: 3845, 2: 1144, 3: 164, 4: 7}}
+```
+
 
 # Reacting to dice rolls in your application
 

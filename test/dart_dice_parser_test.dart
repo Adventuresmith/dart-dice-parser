@@ -657,30 +657,36 @@ void main() {
 
     test('toString', () {
       // mocked responses should return rolls of 6, 2, 1, 5
-      final dice = DiceExpression.create('4d6 #s #f #cf #cs', seededRandom);
+      final dice = DiceExpression.create(
+          '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f', seededRandom);
       final out = dice.roll().toString();
       expect(
         out,
         equals(
-          '(((((4d6) #s ) #f ) #cf ) #cs ) ===> RollSummary(total: 14, results: [6, 2, 1, 5], metadata: {rolled: [6, 2, 1, 5], score: {successes: [6], failures: [1], critSuccesses: [6], critFailures: [1]}})',
+          '(((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {rolled: [6, 2, 1, 5, 3, 5, 1, 4, 6], score: {successes: [6, 6], failures: [1, 1], critSuccesses: [6, 6], critFailures: [1, 1]}})',
         ),
       );
     });
-    test('toString', () {
+    test('toStringPretty', () {
       // mocked responses should return rolls of 6, 2, 1, 5
-      final dice = DiceExpression.create('4d6 #s #f #cf #cs', seededRandom);
+      final dice = DiceExpression.create(
+          '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f', seededRandom);
       final out = dice.roll().toStringPretty();
       expect(
         out,
         equals(
           '''
-(((((4d6) #s ) #f ) #cf ) #cs ) ===> RollSummary(total: 14, results: [6, 2, 1, 5], metadata: {rolled: [6, 2, 1, 5], score: {successes: [6], failures: [1], critSuccesses: [6], critFailures: [1]}})
-  (((((4d6) #s ) #f ) #cf ) #cs ) =count=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {score: {critSuccesses: [6]}})
-      ((((4d6) #s ) #f ) #cf ) =count=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {score: {critFailures: [1]}})
-          (((4d6) #s ) #f ) =count=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {score: {failures: [1]}})
-              ((4d6) #s ) =count=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {score: {successes: [6]}})
-                  (4d6) =rollDice=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {rolled: [6, 2, 1, 5]})
-
+(((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {rolled: [6, 2, 1, 5, 3, 5, 1, 4, 6], score: {successes: [6, 6], failures: [1, 1], critSuccesses: [6, 6], critFailures: [1, 1]}})
+  (((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) =count=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {score: {failures: [1, 1]}})
+      ((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) =count=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {score: {successes: [6, 6]}})
+          (((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) =count=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {score: {critFailures: [1, 1]}})
+              ((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) =count=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {score: {critSuccesses: [6, 6]}})
+                  (((4d(3 + 3)) ! ) + ((2 + 2)d6)) =add=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6])
+                      ((4d(3 + 3)) ! ) =explode=> RollResult(total: 17, results: [6, 2, 1, 5, 3], metadata: {rolled: [3]})
+                          (4d(3 + 3)) =rollDice=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {rolled: [6, 2, 1, 5]})
+                              (3 + 3) =add=> RollResult(total: 6, results: [3, 3])
+                      ((2 + 2)d6) =rollDice=> RollResult(total: 16, results: [5, 1, 4, 6], metadata: {rolled: [5, 1, 4, 6]})
+                          (2 + 2) =add=> RollResult(total: 4, results: [2, 2])
         '''
               .trim(),
         ),
