@@ -308,17 +308,20 @@ requested operations.
 
 ```mermaid
 flowchart TD
-   
-    DROP --> ADD;
-    ADD --> ROLLB;
-    ADD --> EXPLODE;
-    EXPLODE --> ROLLA;
+    subgraph dice expr
+        DROP --> ADD;
+        ADD --> ROLLB;
+        ADD --> EXPLODE;
+        EXPLODE --> ROLLA;
+    end
 
-    SUMMARY ---|details| DROP_RESULT;
-    DROP_RESULT -->|left| ADD_RESULT;
-    ADD_RESULT -->|left| ROLLB_RESULT;
-    ADD_RESULT -->|right| EXPLODE_RESULT;
-    EXPLODE_RESULT -->|left| ROLLA_RESULT;
+    subgraph results
+        SUMMARY ---|details| DROP_RESULT;
+        DROP_RESULT -->|left| ADD_RESULT;
+        ADD_RESULT -->|left| ROLLB_RESULT;
+        ADD_RESULT -->|right| EXPLODE_RESULT;
+        EXPLODE_RESULT -->|left| ROLLA_RESULT;
+    end 
     
     ROLLA -.->|#1| ROLLA_RESULT@{ shape: doc, label: "RollResult <br/><br/>results: 2,3,6<br/>rolled:2,3,6" };
     EXPLODE -.->|#2| EXPLODE_RESULT@{ shape: doc, label: "RollResult <br/><br/>results: 2,3,6,4<br/>rolled:4"};
