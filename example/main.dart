@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:dart_dice_parser/dart_dice_parser.dart';
+import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 
 const defaultStatsNum = 10000;
@@ -68,7 +69,7 @@ void main(List<String> arguments) async {
               random = Random(int.parse(val!));
             } on FormatException {
               stderr.writeln("Invalid random number generator '$val'.");
-              exit(1);
+              exit(ExitCode.usage.code);
             }
         }
       },
@@ -97,13 +98,13 @@ void main(List<String> arguments) async {
   if (results['help'] as bool) {
     stderr.writeln('Usage:');
     stderr.writeln(argParser.usage);
-    exit(1);
+    exit(ExitCode.usage.code);
   }
 
   final input = results.rest.join(' ');
   if (input.isEmpty) {
     stderr.writeln("Supply a dice expression. e.g. '2d6+1'");
-    exit(1);
+    exit(ExitCode.noInput.code);
   }
 
   try {
@@ -123,7 +124,7 @@ void main(List<String> arguments) async {
     );
   } on FormatException catch (e) {
     stderr.writeln(e.toString());
-    exit(1);
+    exit(ExitCode.noInput.code);
   }
 }
 
@@ -144,9 +145,9 @@ Future<int> run({
       } else if (output == 'pretty') {
         stdout.writeln(r.toStringPretty());
       } else {
-        stdout.writeln(r);
+        stdout.writeln(r.toString());
       }
     }
   }
-  return 0;
+  return ExitCode.success.code;
 }
