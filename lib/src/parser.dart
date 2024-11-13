@@ -89,23 +89,23 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     ..left(
       (pattern('Kk') & pattern('LlHh').optional()).flatten().trim(),
       (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
-    )
-    // count >=, <=, <, >, =,
-    // #s, #cs, #f, #cf -- count (critical) successes / failures
-    ..left(
-      (char('#') &
-              char('c').optional() &
-              pattern('sf').optional() &
-              pattern('<>').optional() &
-              char('=').optional())
-          .flatten()
-          .trim(),
-      (a, op, b) => CountOp(op.toLowerCase(), a, b),
     );
 
   builder.group().left(char('*').trim(), (a, op, b) => MultiplyOp(op, a, b));
   builder.group()
     ..left(char('+').trim(), (a, op, b) => AddOp(op, a, b))
     ..left(char('-').trim(), (a, op, b) => SubOp(op, a, b));
+  // count >=, <=, <, >, =,
+  // #s, #cs, #f, #cf -- count (critical) successes / failures
+  builder.group().left(
+        (char('#') &
+                char('c').optional() &
+                pattern('sf').optional() &
+                pattern('<>').optional() &
+                char('=').optional())
+            .flatten()
+            .trim(),
+        (a, op, b) => CountOp(op.toLowerCase(), a, b),
+      );
   return builder.build().end();
 }

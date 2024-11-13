@@ -129,7 +129,7 @@ void main() {
          If that's not the behavior you want, move the counts prior to the drop (`2d20 #cf #cs kh`).
       
 * arithmetic operations
-  * parenthesis for order of operations
+  * parenthesis to force a certain order of operations
   * addition is a little special -- could be a sum of ints, or it can be used to aggregate results of multiple dice rolls
     * Addition of integers is the usual sum
       * `4+5` 

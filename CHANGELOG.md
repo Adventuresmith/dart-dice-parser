@@ -1,3 +1,10 @@
+# 7.0.3
+
+## 🛠️ Bug fixes
+- Previously, `4d6 + 3d6 #s #f` would only count success/failures of the 3d6 rolls, since counting
+  had higher priority than the plus operation. You could workaround that with parens `(4d6 + 3d6) #s #f`
+  In 7.0.3 and later, the counting operations now have the lowest priority.
+
 # 7.0.2
 - remove demo code accidentally added
 

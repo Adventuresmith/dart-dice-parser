@@ -628,7 +628,7 @@ void main() {
 
     test('string method returns expr', () {
       final dice = DiceExpression.create('2d6# + 5d6!>=5 + 5D66', seededRandom);
-      expect(dice.toString(), '((((2d6) # ) + ((5d6) !>= 5)) + (5D66))');
+      expect(dice.toString(), '((2d6) # (( + ((5d6) !>= 5)) + (5D66)))');
     });
 
     test('invalid dice str', () {
