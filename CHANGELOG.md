@@ -1,7 +1,7 @@
+# 7.0.2
+- remove demo code accidentally added
+
 # 7.0.1
-
-
-## 📈 Enhancements
 - remove direct dependency on `meta`
 
 # 7.0.0
