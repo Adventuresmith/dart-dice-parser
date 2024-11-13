@@ -12,6 +12,7 @@ analyzer:
     strict-casts: true
     strict-raw-types: true
   exclude:
+    - dice_parser_demo/**
     #- '**.freezed.dart'
     #- '**.g.dart'
 
