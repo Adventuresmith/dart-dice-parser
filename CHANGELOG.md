@@ -1,3 +1,9 @@
+# 7.0.1
+
+
+## 📈 Enhancements
+- remove direct dependency on `meta`
+
 # 7.0.0
 
 ## ⚠️⚠️ Breaking changes ⚠️⚠️

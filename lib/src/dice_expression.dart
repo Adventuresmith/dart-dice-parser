@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
 
 import 'dice_roller.dart';
@@ -81,7 +80,6 @@ abstract class DiceExpression {
   /// Rolls the dice expression
   ///
   /// Throws [FormatException]
-  @nonVirtual
   RollSummary roll({
     Function(RollResult rollResult) onRoll = noopListener,
     Function(RollSummary rollSummary) onSummary = noopSummaryListener,
@@ -101,7 +99,6 @@ abstract class DiceExpression {
   /// Lazy iterable of rolling [num] times. Results returned as stream.
   ///
   /// Throws [FormatException]
-  @nonVirtual
   Stream<RollSummary> rollN(int num) async* {
     for (var i = 0; i < num; i++) {
       yield roll();
@@ -111,7 +108,6 @@ abstract class DiceExpression {
   /// Performs [num] rolls and outputs stats (stddev, mean, min/max, and a histogram)
   ///
   /// Throws [FormatException]
-  @nonVirtual
   Future<Map<String, dynamic>> stats({
     int num = 1000,
   }) async {
