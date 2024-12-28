@@ -1,3 +1,8 @@
+# 7.1.1
+## 🛠️ Bug fixes
+- fix typo in readme
+
+
 # 7.1.0
 
 ## 📈 Enhancements

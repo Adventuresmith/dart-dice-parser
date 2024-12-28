@@ -55,7 +55,7 @@ void main() {
   * `1d%` -- roll `1` percentile dice (equivalent to `1d100`)
   * `1D66` -- roll `1` D66, aka `1d6*10 + 1d6` 
     * **_NOTE_**: you _must_ use uppercase `D66`, lowercase `d66` will be interpreted as a 66-sided die
-  * `2d[2,3,5,7,11,13]`-- roll 2 dice with 5 values -- `[2,3,5,7,11,13]`
+  * `2d[2,3,5,7]`-- roll 2 dice with values `[2,3,5,7]`
   
 * exploding dice
   * `4d6!` -- roll `4` `6`-sided dice, explode if max (`6`) is rolled (re-roll and include in results)
