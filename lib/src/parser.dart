@@ -29,6 +29,18 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     ..postfix(
       string('d%').trim(),
       (a, op) => PercentDice(op, a, roller),
+    )
+    ..postfix(
+      seq4(
+        char('d').trim(),
+        char('[').trim(),
+        (char('-').optional() & digit().plus())
+            .flatten()
+            .plusSeparated(char(',').trim())
+            .trim(),
+        char(']').trim(),
+      ),
+      (a, op) => CSVDice(op.toString(), a, roller, op.$3),
     );
   builder.group().left(
         char('d').trim(),

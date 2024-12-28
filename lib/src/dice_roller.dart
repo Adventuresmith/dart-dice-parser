@@ -47,18 +47,37 @@ class DiceRoller with LoggingMixin {
 
   static const _fudgeVals = [-1, -1, 0, 0, 1, 1];
 
+  /// select n items from the list of values
+  List<T> selectN<T>(int n, List<T> vals) => [
+        for (var i = 0; i < n; i++) vals[_random.nextInt(vals.length)],
+      ];
+
   /// Roll N fudge dice, return results
   RollResult rollFudge(int ndice) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
-    final results = [
-      for (var i = 0; i < ndice; i++)
-        _fudgeVals[_random.nextInt(_fudgeVals.length)],
-    ];
+    final results = selectN(ndice, _fudgeVals);
+
     logger.finest(() => 'roll ${ndice}dF => $results');
 
     return RollResult(
       expression: '${ndice}dF',
       opType: OpType.rollFudge,
+      metadata: RollMetadata(rolled: results),
+      ndice: ndice,
+      results: results,
+    );
+  }
+
+  /// Roll N fudge dice, return results
+  RollResult rollVals(int ndice, List<int> sideVals) {
+    RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
+    final results = selectN(ndice, sideVals);
+
+    logger.finest(() => 'roll ${ndice}d$sideVals => $results');
+
+    return RollResult(
+      expression: '${ndice}d$sideVals',
+      opType: OpType.rollVals,
       metadata: RollMetadata(rolled: results),
       ndice: ndice,
       results: results,

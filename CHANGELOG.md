@@ -1,3 +1,11 @@
+# 7.1.0
+
+## 📈 Enhancements
+- upgrade to dart 3.6.0
+- add roll notation to support defining your own values. `1d[val1,val2,val3]`
+  For example, to roll 2 dice of primes under 20, use: `2d[2,3,5,7,11,13,17,19]` 
+
+
 # 7.0.3
 
 ## 🛠️ Bug fixes

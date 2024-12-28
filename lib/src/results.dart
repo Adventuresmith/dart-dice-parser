@@ -15,6 +15,7 @@ enum OpType {
   rollFudge,
   rollPercent,
   rollD66,
+  rollVals,
   reroll,
   compound,
   explode,

@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:petitparser/parser.dart';
 
 import 'dice_expression.dart';
 import 'dice_roller.dart';
@@ -429,6 +430,30 @@ class FudgeDice extends UnaryDice {
       metadata: RollMetadata(
         rolled: roll.results,
       ),
+      left: lhs,
+    );
+  }
+}
+
+class CSVDice extends UnaryDice {
+  CSVDice(super.op, super.left, super.roller, this.vals);
+
+  final SeparatedList<String, String> vals;
+
+  @override
+  String toString() => '(${left}d${vals.elements})';
+
+  @override
+  RollResult eval() {
+    final lhs = left();
+    final ndice = lhs.totalOrDefault(() => 1);
+
+    final roll = roller.rollVals(ndice, vals.elements.map(int.parse).toList());
+
+    return RollResult.fromRollResult(
+      roll,
+      expression: toString(),
+      opType: OpType.rollVals,
       left: lhs,
     );
   }

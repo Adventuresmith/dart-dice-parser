@@ -270,6 +270,28 @@ void main() {
     );
   });
 
+  group('rollVals', () {
+    seededRandTest(
+      '4d6 equivalent',
+      '4d[1,2,3,4,5,6]',
+      14,
+      expectedResults: [6, 2, 1, 5],
+    );
+    seededRandTest(
+      '4d6 equivalent - with whitespace',
+      '4 d    \n[1,2 ,3,4,5,6]',
+      14,
+      expectedResults: [6, 2, 1, 5],
+    );
+
+    seededRandTest(
+      '4d6 equivalent -- with negatives',
+      '4d[-1,2,3,4,5,-6]',
+      0,
+      expectedResults: [-6, 2, -1, 5],
+    );
+  });
+
   group('counting operations', () {
     // mocked responses should return rolls of 6, 2, 1, 5
     seededRandTest('count >', '4d6#>3', 2);
