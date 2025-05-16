@@ -429,6 +429,7 @@ class FudgeDice extends UnaryDice {
       opType: roll.opType,
       metadata: RollMetadata(
         rolled: roll.results,
+        diceUsed: {'dF': ndice}
       ),
       left: lhs,
     );
@@ -475,6 +476,7 @@ class PercentDice extends UnaryDice {
       opType: OpType.rollPercent,
       metadata: RollMetadata(
         rolled: roll.results,
+        diceUsed: {'d$nsides': ndice}
       ),
       left: lhs,
     );
@@ -500,6 +502,7 @@ class D66Dice extends UnaryDice {
       results: results,
       metadata: RollMetadata(
         rolled: results,
+        diceUsed: {'d66': ndice}
       ),
       left: lhs,
     );
@@ -542,6 +545,7 @@ class StdDice extends BinaryDice {
       opType: roll.opType,
       metadata: RollMetadata(
         rolled: roll.results,
+        diceUsed: {'d$nsides': ndice}
       ),
       left: lhs,
       right: rhs,
@@ -636,6 +640,7 @@ class RerollDice extends BinaryDice {
       metadata: RollMetadata(
         rolled: added,
         discarded: discarded,
+        diceUsed: lhs.metadata.diceUsed
       ),
       left: lhs,
       right: rhs,
@@ -725,6 +730,7 @@ class CompoundingDice extends BinaryDice {
       metadata: RollMetadata(
         rolled: added,
         discarded: discarded,
+        diceUsed: lhs.metadata.diceUsed
       ),
       left: lhs,
       right: rhs,

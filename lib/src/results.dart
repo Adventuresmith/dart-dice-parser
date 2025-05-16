@@ -125,11 +125,12 @@ class RollMetadata extends Equatable {
     this.rolled = const [],
     this.discarded = const [],
     this.score = const RollScore(),
-  });
+    this.diceUsed = const {}});
 
   final List<int> rolled;
   final List<int> discarded;
   final RollScore score;
+  final Map<String, int> diceUsed;
 
   bool get isEmpty => rolled.isEmpty && discarded.isEmpty && score.isEmpty;
 
@@ -137,10 +138,11 @@ class RollMetadata extends Equatable {
 
   @override
   List<Object?> get props => [
-        rolled,
-        discarded,
-        score,
-      ];
+    rolled,
+    discarded,
+    score,
+    diceUsed
+  ];
 
   @override
   String toString() => '${toJson()}';
@@ -149,15 +151,27 @@ class RollMetadata extends Equatable {
         'rolled': rolled,
         'discarded': discarded,
         'score': score.toJson(),
+        'diceUsed': diceUsed
       }..removeWhere(
           (k, v) => (v is List && v.isEmpty) || (v is Map && v.isEmpty),
         );
 
-  RollMetadata operator +(RollMetadata other) => RollMetadata(
+  RollMetadata operator +(RollMetadata other) {
+    final combinedDice = <String, int>{};
+    combinedDice.addAll(diceUsed);
+    other.diceUsed.forEach((key, value) {
+      if (combinedDice.containsKey(key)) {
+        combinedDice[key] = combinedDice[key]! + value;
+      } else {
+        combinedDice[key] = value;
+      }
+    });
+    return RollMetadata(
         rolled: rolled + other.rolled,
         discarded: discarded + other.discarded,
         score: score + other.score,
-      );
+        diceUsed: combinedDice);
+  }
 }
 
 /// [RollSummary] is the final result of rolling a dice expression.

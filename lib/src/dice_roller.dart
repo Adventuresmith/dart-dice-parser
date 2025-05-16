@@ -38,7 +38,10 @@ class DiceRoller with LoggingMixin {
     return RollResult(
       expression: '${ndice}d$nsides',
       opType: OpType.rollDice,
-      metadata: RollMetadata(rolled: results),
+      metadata: RollMetadata(
+        rolled: results,
+        diceUsed: {'d$nsides': ndice}
+      ),
       ndice: ndice,
       nsides: nsides,
       results: results,
@@ -62,7 +65,10 @@ class DiceRoller with LoggingMixin {
     return RollResult(
       expression: '${ndice}dF',
       opType: OpType.rollFudge,
-      metadata: RollMetadata(rolled: results),
+      metadata: RollMetadata(
+        rolled: results,
+        diceUsed: {'dF': ndice}
+      ),
       ndice: ndice,
       results: results,
     );
@@ -78,7 +84,10 @@ class DiceRoller with LoggingMixin {
     return RollResult(
       expression: '${ndice}d$sideVals',
       opType: OpType.rollVals,
-      metadata: RollMetadata(rolled: results),
+      metadata: RollMetadata(
+        rolled: results,
+        diceUsed: {'dF': ndice}
+      ),
       ndice: ndice,
       results: results,
     );
