@@ -8,7 +8,7 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   final builder = ExpressionBuilder<DiceExpression>();
   // numbers
   builder.primitive(
-    digit().star().flatten('integer expected').trim().map(SimpleValue.new),
+    digit().star().flatten(message: 'integer expected').trim().map(SimpleValue.new),
   );
   // parens
   builder.group().wrapper(
@@ -50,7 +50,7 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   // compounding dice (has to be in separate group from exploding)
   builder.group().left(
         (string('!!') &
-                pattern('oO').optional() &
+                pattern('o', ignoreCase: true).optional() &
                 pattern('<>').optional() &
                 char('=').optional())
             .flatten()
@@ -60,8 +60,8 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   builder.group()
     // reroll & reroll once
     ..left(
-      (pattern('rR') &
-              pattern('oO').optional() &
+      (pattern('r', ignoreCase: true) &
+              pattern('o', ignoreCase: true).optional() &
               pattern('<>').optional() &
               char('=').optional())
           .flatten()
@@ -71,7 +71,7 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     // exploding
     ..left(
       (char('!') &
-              pattern('oO').optional() &
+              pattern('o', ignoreCase: true).optional() &
               pattern('<>').optional() &
               char('=').optional())
           .flatten()
@@ -80,7 +80,7 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     )
     // cap/clamp >,<
     ..left(
-      (pattern('cC') & pattern('<>').optional()).flatten().trim(),
+      (pattern('c', ignoreCase: true) & pattern('<>').optional()).flatten().trim(),
       (a, op, b) => ClampOp(op.toLowerCase(), a, b),
     )
     // drop >=,<=,>,<
@@ -94,12 +94,12 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     )
     // drop(-) low, high
     ..left(
-      (char('-') & pattern('LlHh')).flatten().trim(),
+      (char('-') & pattern('lh', ignoreCase: true)).flatten().trim(),
       (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
     )
     // keep low/high
     ..left(
-      (pattern('Kk') & pattern('LlHh').optional()).flatten().trim(),
+      (pattern('k', ignoreCase: true) & pattern('lh',ignoreCase: true).optional()).flatten().trim(),
       (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
     );
 

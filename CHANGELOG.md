@@ -1,7 +1,18 @@
+# 8.0.0
+## ⚠️⚠️ Breaking changes ⚠️⚠️
+
+Roll results have changed significantly (again). It's amazing what having users will do to a package! 
+
+Rather than the result collection being a simple list of integers, each roll is a 
+
+
+## 📈 Enhancements
+- upgrade to dart 3.8.0
+- upgrade to petitparser 7.0.0
+
 # 7.1.1
 ## 🛠️ Bug fixes
 - fix typo in readme
-
 
 # 7.1.0
 
