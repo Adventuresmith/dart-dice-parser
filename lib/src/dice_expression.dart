@@ -14,9 +14,7 @@ abstract class DiceExpression {
   static List<Function(RollResult)> listeners = [defaultListener];
   static List<Function(RollSummary)> summaryListeners = [];
 
-  static void registerListener(
-    Function(RollResult rollResult) callback,
-  ) {
+  static void registerListener(Function(RollResult rollResult) callback) {
     listeners.add(callback);
   }
 
@@ -58,10 +56,7 @@ abstract class DiceExpression {
   /// Parse the given input into a DiceExpression
   ///
   /// Throws [FormatException] if invalid
-  static DiceExpression create(
-    String input, [
-    Random? random,
-  ]) {
+  static DiceExpression create(String input, [Random? random]) {
     final builder = parserBuilder(DiceRoller(random));
     final result = builder.parse(input);
     if (result is Failure) {
@@ -108,9 +103,7 @@ abstract class DiceExpression {
   /// Performs [num] rolls and outputs stats (stddev, mean, min/max, and a histogram)
   ///
   /// Throws [FormatException]
-  Future<Map<String, dynamic>> stats({
-    int num = 1000,
-  }) async {
+  Future<Map<String, dynamic>> stats({int num = 1000}) async {
     final stats = StatsCollector();
 
     await for (final r in rollN(num)) {

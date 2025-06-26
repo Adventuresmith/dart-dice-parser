@@ -21,15 +21,9 @@ enum OpType {
   explode,
 }
 
-enum CountType {
-  count,
-  success,
-  failure,
-  critSuccess,
-  critFailure;
-}
+enum CountType { count, success, failure, critSuccess, critFailure }
 
-/// RollScore represents the # of successes and failures.
+/// RollScore represents the number of successes and failures.
 class RollScore extends Equatable {
   const RollScore({
     this.successes = const [],
@@ -41,21 +35,13 @@ class RollScore extends Equatable {
   factory RollScore.forCountType(CountType countType, List<int> vals) {
     switch (countType) {
       case CountType.success:
-        return RollScore(
-          successes: vals,
-        );
+        return RollScore(successes: vals);
       case CountType.failure:
-        return RollScore(
-          failures: vals,
-        );
+        return RollScore(failures: vals);
       case CountType.critSuccess:
-        return RollScore(
-          critSuccesses: vals,
-        );
+        return RollScore(critSuccesses: vals);
       case CountType.critFailure:
-        return RollScore(
-          critFailures: vals,
-        );
+        return RollScore(critFailures: vals);
       case CountType.count:
         throw UnimplementedError();
     }
@@ -91,29 +77,24 @@ class RollScore extends Equatable {
   bool get hasCritFailures => critFailures.isNotEmpty;
 
   @override
-  List<Object?> get props => [
-        successes,
-        failures,
-        critSuccesses,
-        critFailures,
-      ];
+  List<Object?> get props => [successes, failures, critSuccesses, critFailures];
 
   @override
   String toString() => '${toJson()}';
 
   Map<String, dynamic> toJson() => {
-        'successes': successes,
-        'failures': failures,
-        'critSuccesses': critSuccesses,
-        'critFailures': critFailures,
-      }..removeWhere((k, v) => (v is List && v.isEmpty));
+    'successes': successes,
+    'failures': failures,
+    'critSuccesses': critSuccesses,
+    'critFailures': critFailures,
+  }..removeWhere((k, v) => (v is List && v.isEmpty));
 
   RollScore operator +(RollScore other) => RollScore(
-        successes: successes + other.successes,
-        failures: failures + other.failures,
-        critSuccesses: critSuccesses + other.critSuccesses,
-        critFailures: critFailures + other.critFailures,
-      );
+    successes: successes + other.successes,
+    failures: failures + other.failures,
+    critSuccesses: critSuccesses + other.critSuccesses,
+    critFailures: critFailures + other.critFailures,
+  );
 }
 
 /// RollMetadata represents 'interesting' things that happens during certain operations.
@@ -136,28 +117,22 @@ class RollMetadata extends Equatable {
   bool get isNotEmpty => !isEmpty;
 
   @override
-  List<Object?> get props => [
-        rolled,
-        discarded,
-        score,
-      ];
+  List<Object?> get props => [rolled, discarded, score];
 
   @override
   String toString() => '${toJson()}';
 
   Map<String, dynamic> toJson() => {
-        'rolled': rolled,
-        'discarded': discarded,
-        'score': score.toJson(),
-      }..removeWhere(
-          (k, v) => (v is List && v.isEmpty) || (v is Map && v.isEmpty),
-        );
+    'rolled': rolled,
+    'discarded': discarded,
+    'score': score.toJson(),
+  }..removeWhere((k, v) => (v is List && v.isEmpty) || (v is Map && v.isEmpty));
 
   RollMetadata operator +(RollMetadata other) => RollMetadata(
-        rolled: rolled + other.rolled,
-        discarded: discarded + other.discarded,
-        score: score + other.score,
-      );
+    rolled: rolled + other.rolled,
+    discarded: discarded + other.discarded,
+    score: score + other.score,
+  );
 }
 
 /// [RollSummary] is the final result of rolling a dice expression.
@@ -173,9 +148,7 @@ class RollMetadata extends Equatable {
 /// you may need to traverse the tree to inspect all the events.
 
 class RollSummary extends Equatable {
-  RollSummary({
-    required this.detailedResults,
-  }) {
+  RollSummary({required this.detailedResults}) {
     total = detailedResults.results.sum;
     results = detailedResults.results;
     expression = detailedResults.expression;
@@ -204,12 +177,12 @@ class RollSummary extends Equatable {
 
   @override
   List<Object?> get props => [
-        total,
-        expression,
-        results,
-        //detailedResults,
-        metadata,
-      ];
+    total,
+    expression,
+    results,
+    //detailedResults,
+    metadata,
+  ];
 
   @override
   String toString() {
@@ -223,20 +196,21 @@ class RollSummary extends Equatable {
     return buffer.toString();
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         'expression': expression,
         'total': total,
         'results': results,
         'detailedResults': detailedResults.toJson(),
         'metadata': metadata.toJson(),
       }..removeWhere(
-          (k, v) =>
-              v == null ||
-              (v is Map && v.isEmpty) ||
-              (v is List && v.isEmpty) ||
-              (v is RollScore && v.isEmpty) ||
-              (v is int && v == 0),
-        );
+        (k, v) =>
+            v == null ||
+            (v is Map && v.isEmpty) ||
+            (v is List && v.isEmpty) ||
+            (v is RollScore && v.isEmpty) ||
+            (v is int && v == 0),
+      );
 
   String toStringPretty() {
     final buffer = StringBuffer();
@@ -275,17 +249,16 @@ class RollResult extends Equatable {
     RollMetadata metadata = const RollMetadata(),
     RollResult? left,
     RollResult? right,
-  }) =>
-      RollResult(
-        expression: expression,
-        ndice: ndice ?? other.ndice,
-        nsides: nsides ?? other.nsides,
-        results: results ?? other.results,
-        opType: opType ?? other.opType,
-        metadata: metadata,
-        left: left ?? other.left,
-        right: right ?? other.right,
-      );
+  }) => RollResult(
+    expression: expression,
+    ndice: ndice ?? other.ndice,
+    nsides: nsides ?? other.nsides,
+    results: results ?? other.results,
+    opType: opType ?? other.opType,
+    metadata: metadata,
+    left: left ?? other.left,
+    right: right ?? other.right,
+  );
 
   /// addition operator for [RollResult].
   ///
@@ -293,41 +266,41 @@ class RollResult extends Equatable {
   /// this is so we can explode a dice expr like `(2d6 + 1)!`.
   /// NOTE: A side-effect of this decision is `(2d6 + 2d10)!` will explode with 10s, not 6s.
   RollResult operator +(RollResult other) => RollResult.fromRollResult(
-        other,
-        expression: '($expression + ${other.expression})',
-        results: results + other.results,
-        nsides: max(nsides, other.nsides),
-        opType: OpType.add,
-        left: this,
-        right: other,
-      );
+    other,
+    expression: '($expression + ${other.expression})',
+    results: results + other.results,
+    nsides: max(nsides, other.nsides),
+    opType: OpType.add,
+    left: this,
+    right: other,
+  );
 
   /// multiplication operator for [RollResult].
   ///
   /// Results are collapsed into a single value (the result of multiplication).
   ///
   RollResult operator *(RollResult other) => RollResult.fromRollResult(
-        other,
-        expression: '($expression * ${other.expression})',
-        results: [results.sum * other.results.sum],
-        opType: OpType.multiply,
-        left: this,
-        right: other,
-      );
+    other,
+    expression: '($expression * ${other.expression})',
+    results: [results.sum * other.results.sum],
+    opType: OpType.multiply,
+    left: this,
+    right: other,
+  );
 
   /// subtraction operator for [RollResult].
   ///
   /// Results create new list lhs.results + (-1)*(other.results).
   ///
   RollResult operator -(RollResult other) => RollResult.fromRollResult(
-        other,
-        expression: '($expression - ${other.expression})',
-        opType: OpType.subtract,
-        results: results + other.results.map((v) => v * -1).toList(),
-        nsides: max(nsides, other.nsides),
-        left: this,
-        right: other,
-      );
+    other,
+    expression: '($expression - ${other.expression})',
+    opType: OpType.subtract,
+    results: results + other.results.map((v) => v * -1).toList(),
+    nsides: max(nsides, other.nsides),
+    left: this,
+    right: other,
+  );
 
   /// the parsed expression
   final String expression;
@@ -350,16 +323,16 @@ class RollResult extends Equatable {
 
   @override
   List<Object?> get props => [
-        expression,
-        opType,
-        nsides,
-        ndice,
-        results,
-        metadata,
-        opType,
-        //left,
-        //right,
-      ];
+    expression,
+    opType,
+    nsides,
+    ndice,
+    results,
+    metadata,
+    opType,
+    //left,
+    //right,
+  ];
 
   /// Get the total, or if results are empty return result of calling [defaultCb].
   int totalOrDefault(int Function() defaultCb) {
@@ -388,7 +361,8 @@ class RollResult extends Equatable {
 
   String toStringPretty({String indent = ''}) => pprint(this, indent: indent);
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         'expression': expression,
         'opType': opType.name,
         'nsides': nsides,
@@ -402,12 +376,12 @@ class RollResult extends Equatable {
             ? right?.toJson()
             : null,
       }..removeWhere(
-          (k, v) =>
-              v == null ||
-              (v is Map && v.isEmpty) ||
-              (v is List && v.isEmpty) ||
-              (v is int && v == 0),
-        );
+        (k, v) =>
+            v == null ||
+            (v is Map && v.isEmpty) ||
+            (v is List && v.isEmpty) ||
+            (v is int && v == 0),
+      );
 }
 
 String pprint(RollResult? rr, {String indent = ''}) {
@@ -424,12 +398,7 @@ String pprint(RollResult? rr, {String indent = ''}) {
   if (rr.right != null && rr.right?.opType != OpType.value) {
     buffer
       ..write('\n')
-      ..write(
-        pprint(
-          rr.right,
-          indent: '$indent    ',
-        ),
-      );
+      ..write(pprint(rr.right, indent: '$indent    '));
   }
 
   return buffer.toString();

@@ -1,9 +1,7 @@
 # 8.0.0
 ## ⚠️⚠️ Breaking changes ⚠️⚠️
 
-Roll results have changed significantly (again). It's amazing what having users will do to a package! 
-
-Rather than the result collection being a simple list of integers, each roll is a 
+Roll results have changed significantly (again). It's amazing what having users will do to a package!
 
 
 ## 📈 Enhancements
@@ -18,7 +16,7 @@ Rather than the result collection being a simple list of integers, each roll is 
 
 ## 📈 Enhancements
 - upgrade to dart 3.6.0
-- add roll notation to support defining your own values. `1d[val1,val2,val3]`
+- add roll notation to support defining your own values. `1d[val1,val2,val3]`.
   For example, to roll 2 dice of primes under 20, use: `2d[2,3,5,7,11,13,17,19]` 
 
 
@@ -253,4 +251,3 @@ traverse the graph.
 # 0.0.1
 
 - Initial version, created by Steve Christensen
-

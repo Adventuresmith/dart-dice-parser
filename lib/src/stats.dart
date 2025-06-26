@@ -50,11 +50,11 @@ class StatsCollector {
 
   /// retrieve stats as map
   Map<String, dynamic> toJson({int precision = 3}) => {
-        'mean': double.parse(_mean.toStringAsPrecision(precision)),
-        'stddev': double.parse(_stddev.toStringAsPrecision(precision)),
-        'min': _minVal,
-        'max': _maxVal,
-        'count': _count,
-        'histogram': _histogram,
-      };
+    'mean': double.parse(_mean.toStringAsPrecision(precision)),
+    'stddev': double.parse(_stddev.toStringAsPrecision(precision)),
+    'min': _minVal,
+    'max': _maxVal,
+    'count': _count,
+    'histogram': _histogram,
+  };
 }

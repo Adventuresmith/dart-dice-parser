@@ -49,8 +49,8 @@ class DiceRoller with LoggingMixin {
 
   /// select n items from the list of values
   List<T> selectN<T>(int n, List<T> vals) => [
-        for (var i = 0; i < n; i++) vals[_random.nextInt(vals.length)],
-      ];
+    for (var i = 0; i < n; i++) vals[_random.nextInt(vals.length)],
+  ];
 
   /// Roll N fudge dice, return results
   RollResult rollFudge(int ndice) {

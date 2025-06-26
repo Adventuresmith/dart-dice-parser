@@ -36,24 +36,14 @@ Future<void> main() async {
 
   // demonstrate navigation of the result graph
   assert(result2.total == 39);
-  assert(
-    listEquals(
-      result2.results,
-      [20, 19],
-    ),
-  );
+  assert(listEquals(result2.results, [20, 19]));
   // read the score-related properties
   assert(!result2.hasSuccesses);
   assert(!result2.hasFailures);
   assert(!result2.hasCritFailures);
   assert(result2.hasCritSuccesses);
   assert(result2.metadata.score.critSuccessCount == 1);
-  assert(
-    listEquals(
-      result2.metadata.score.critSuccesses,
-      [20],
-    ),
-  );
+  assert(listEquals(result2.metadata.score.critSuccesses, [20]));
 
   // look at the expression tree :
   // ((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 39, results: [20, 19], metadata: {rolled: [1, 12, 19, 20], discarded: [12, 1], score: {critSuccesses: [20]}})
@@ -65,12 +55,7 @@ Future<void> main() async {
   final top = result2.detailedResults;
   assert(top.opType == OpType.count);
   assert(
-    top.metadata ==
-        const RollMetadata(
-          score: RollScore(
-            critSuccesses: [20],
-          ),
-        ),
+    top.metadata == const RollMetadata(score: RollScore(critSuccesses: [20])),
   );
   // next level is the count critical failures node of the graph
   // NOTE: despite there being a 1 rolled, the criticalFailure expression is _after_ the `1` is discarded by the lower expression
@@ -78,27 +63,12 @@ Future<void> main() async {
   assert(top.left!.metadata.score.hasCritFailures == false);
 
   assert(top.left!.left!.opType == OpType.drop);
-  assert(
-    listEquals(
-      top.left!.left!.metadata.discarded,
-      [12, 1],
-    ),
-  );
+  assert(listEquals(top.left!.left!.metadata.discarded, [12, 1]));
 
   assert(top.left!.left!.left!.opType == OpType.rollDice);
 
-  assert(
-    listEquals(
-      top.left!.left!.left!.results,
-      [1, 12, 19, 20],
-    ),
-  );
-  assert(
-    listEquals(
-      top.left!.left!.left!.metadata.rolled,
-      [1, 12, 19, 20],
-    ),
-  );
+  assert(listEquals(top.left!.left!.left!.results, [1, 12, 19, 20]));
+  assert(listEquals(top.left!.left!.left!.metadata.rolled, [1, 12, 19, 20]));
 
   final stats = await DiceExpression.create('2d6', Random(1234)).stats();
   // output:

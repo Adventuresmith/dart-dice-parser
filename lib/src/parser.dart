@@ -8,28 +8,23 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   final builder = ExpressionBuilder<DiceExpression>();
   // numbers
   builder.primitive(
-    digit().star().flatten(message: 'integer expected').trim().map(SimpleValue.new),
+    digit()
+        .star()
+        .flatten(message: 'integer expected')
+        .trim()
+        .map(SimpleValue.new),
   );
   // parens
   builder.group().wrapper(
-        char('(').trim(),
-        char(')').trim(),
-        (left, value, right) => value,
-      );
+    char('(').trim(),
+    char(')').trim(),
+    (left, value, right) => value,
+  );
   // special dice handling need to have higher precedence than 'd'
   builder.group()
-    ..postfix(
-      string('dF').trim(),
-      (a, op) => FudgeDice(op, a, roller),
-    )
-    ..postfix(
-      string('D66').trim(),
-      (a, op) => D66Dice(op, a, roller),
-    )
-    ..postfix(
-      string('d%').trim(),
-      (a, op) => PercentDice(op, a, roller),
-    )
+    ..postfix(string('dF').trim(), (a, op) => FudgeDice(op, a, roller))
+    ..postfix(string('D66').trim(), (a, op) => D66Dice(op, a, roller))
+    ..postfix(string('d%').trim(), (a, op) => PercentDice(op, a, roller))
     ..postfix(
       seq4(
         char('d').trim(),
@@ -43,20 +38,20 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
       (a, op) => CSVDice(op.toString(), a, roller, op.$3),
     );
   builder.group().left(
-        char('d').trim(),
-        (a, op, b) => StdDice(op, a, b, roller),
-      );
+    char('d').trim(),
+    (a, op, b) => StdDice(op, a, b, roller),
+  );
 
   // compounding dice (has to be in separate group from exploding)
   builder.group().left(
-        (string('!!') &
-                pattern('o', ignoreCase: true).optional() &
-                pattern('<>').optional() &
-                char('=').optional())
-            .flatten()
-            .trim(),
-        (a, op, b) => CompoundingDice(op.toLowerCase(), a, b, roller),
-      );
+    (string('!!') &
+            pattern('o', ignoreCase: true).optional() &
+            pattern('<>').optional() &
+            char('=').optional())
+        .flatten()
+        .trim(),
+    (a, op, b) => CompoundingDice(op.toLowerCase(), a, b, roller),
+  );
   builder.group()
     // reroll & reroll once
     ..left(
@@ -80,7 +75,9 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     )
     // cap/clamp >,<
     ..left(
-      (pattern('c', ignoreCase: true) & pattern('<>').optional()).flatten().trim(),
+      (pattern('c', ignoreCase: true) & pattern('<>').optional())
+          .flatten()
+          .trim(),
       (a, op, b) => ClampOp(op.toLowerCase(), a, b),
     )
     // drop >=,<=,>,<
@@ -99,7 +96,10 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     )
     // keep low/high
     ..left(
-      (pattern('k', ignoreCase: true) & pattern('lh',ignoreCase: true).optional()).flatten().trim(),
+      (pattern('k', ignoreCase: true) &
+              pattern('lh', ignoreCase: true).optional())
+          .flatten()
+          .trim(),
       (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
     );
 
@@ -110,14 +110,14 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   // count >=, <=, <, >, =,
   // #s, #cs, #f, #cf -- count (critical) successes / failures
   builder.group().left(
-        (char('#') &
-                char('c').optional() &
-                pattern('sf').optional() &
-                pattern('<>').optional() &
-                char('=').optional())
-            .flatten()
-            .trim(),
-        (a, op, b) => CountOp(op.toLowerCase(), a, b),
-      );
+    (char('#') &
+            char('c').optional() &
+            pattern('sf').optional() &
+            pattern('<>').optional() &
+            char('=').optional())
+        .flatten()
+        .trim(),
+    (a, op, b) => CountOp(op.toLowerCase(), a, b),
+  );
   return builder.build().end();
 }

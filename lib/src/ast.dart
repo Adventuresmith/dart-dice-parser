@@ -13,11 +13,11 @@ const defaultRerollLimit = 1000;
 /// it must parse as an int, and an empty string will return empty set.
 class SimpleValue extends DiceExpression {
   SimpleValue(this.value)
-      : _results = RollResult(
-          expression: value,
-          opType: OpType.value,
-          results: value.isEmpty ? [] : [int.parse(value)],
-        );
+    : _results = RollResult(
+        expression: value,
+        opType: OpType.value,
+        results: value.isEmpty ? [] : [int.parse(value)],
+      );
 
   final String value;
   final RollResult _results;
@@ -121,30 +121,28 @@ class CountOp extends Binary {
     final rhs = right();
 
     var rhsEmptyAndSimpleCount = false;
-    final target = rhs.totalOrDefault(
-      () {
-        // if missing RHS, we can make assumptions depending on operator.
-        //
-        switch (name) {
-          case '#':
-            // example: '3d6#' should be 3. target is ignored in case statement below.
-            rhsEmptyAndSimpleCount = true;
-            return 0;
-          case '#s' || '#cs':
-            // example: '3d6#s' -- assume target is nsides (maximum)
-            return lhs.nsides;
-          case '#f' || '#cf':
-            // example: '3d6#f' -- assume target is 1 (minimum)
-            return 1;
-          default:
-            throw FormatException(
-              'Invalid count operation. Missing count target',
-              toString(),
-              toString().length,
-            );
-        }
-      },
-    );
+    final target = rhs.totalOrDefault(() {
+      // if missing RHS, we can make assumptions depending on operator.
+      //
+      switch (name) {
+        case '#':
+          // example: '3d6#' should be 3. target is ignored in case statement below.
+          rhsEmptyAndSimpleCount = true;
+          return 0;
+        case '#s' || '#cs':
+          // example: '3d6#s' -- assume target is nsides (maximum)
+          return lhs.nsides;
+        case '#f' || '#cf':
+          // example: '3d6#f' -- assume target is 1 (minimum)
+          return 1;
+        default:
+          throw FormatException(
+            'Invalid count operation. Missing count target',
+            toString(),
+            toString().length,
+          );
+      }
+    });
     bool test(int v) {
       switch (name) {
         case '#>=' || '#s>=' || '#f>=' || '#cs>=' || '#cf>=':
@@ -189,9 +187,7 @@ class CountOp extends Binary {
       return RollResult(
         expression: toString(),
         opType: OpType.count,
-        metadata: RollMetadata(
-          discarded: lhs.results,
-        ),
+        metadata: RollMetadata(discarded: lhs.results),
         results: [filteredResults.length],
         ndice: lhs.ndice,
         nsides: lhs.nsides,
@@ -266,9 +262,7 @@ class DropOp extends Binary {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      metadata: RollMetadata(
-        discarded: dropped,
-      ),
+      metadata: RollMetadata(discarded: dropped),
       left: lhs,
       right: rhs,
     );
@@ -316,9 +310,7 @@ class DropHighLowOp extends Binary {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      metadata: RollMetadata(
-        discarded: dropped,
-      ),
+      metadata: RollMetadata(discarded: dropped),
       left: lhs,
       right: rhs,
     );
@@ -378,10 +370,7 @@ class ClampOp extends Binary {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      metadata: RollMetadata(
-        discarded: discarded,
-        rolled: added,
-      ),
+      metadata: RollMetadata(discarded: discarded, rolled: added),
       left: lhs,
       right: rhs,
     );
@@ -427,9 +416,7 @@ class FudgeDice extends UnaryDice {
       roll,
       expression: toString(),
       opType: roll.opType,
-      metadata: RollMetadata(
-        rolled: roll.results,
-      ),
+      metadata: RollMetadata(rolled: roll.results),
       left: lhs,
     );
   }
@@ -473,9 +460,7 @@ class PercentDice extends UnaryDice {
       roll,
       expression: toString(),
       opType: OpType.rollPercent,
-      metadata: RollMetadata(
-        rolled: roll.results,
-      ),
+      metadata: RollMetadata(rolled: roll.results),
       left: lhs,
     );
   }
@@ -498,9 +483,7 @@ class D66Dice extends UnaryDice {
       opType: OpType.rollD66,
       ndice: ndice,
       results: results,
-      metadata: RollMetadata(
-        rolled: results,
-      ),
+      metadata: RollMetadata(rolled: results),
       left: lhs,
     );
   }
@@ -540,9 +523,7 @@ class StdDice extends BinaryDice {
       roll,
       expression: toString(),
       opType: roll.opType,
-      metadata: RollMetadata(
-        rolled: roll.results,
-      ),
+      metadata: RollMetadata(rolled: roll.results),
       left: lhs,
       right: rhs,
     );
@@ -633,10 +614,7 @@ class RerollDice extends BinaryDice {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      metadata: RollMetadata(
-        rolled: added,
-        discarded: discarded,
-      ),
+      metadata: RollMetadata(rolled: added, discarded: discarded),
       left: lhs,
       right: rhs,
     );
@@ -722,10 +700,7 @@ class CompoundingDice extends BinaryDice {
       ndice: lhs.ndice,
       nsides: lhs.nsides,
       results: results,
-      metadata: RollMetadata(
-        rolled: added,
-        discarded: discarded,
-      ),
+      metadata: RollMetadata(rolled: added, discarded: discarded),
       left: lhs,
       right: rhs,
     );
