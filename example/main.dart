@@ -26,7 +26,7 @@ void main(List<String> arguments) async {
   var random = Random.secure();
 
   DiceExpression.registerListener((rollResult) {
-    //stdout.writeln('${rollResult.opType.name} -> $rollResult');
+    //stdout.writeln('cb: ${rollResult.opType.name} -> $rollResult');
   });
 
   final argParser = ArgParser()
@@ -110,6 +110,8 @@ void main(List<String> arguments) async {
   try {
     final collectStats = results['stats'] as bool;
     if (collectStats) {
+      // if the user wants to collect stats, always use a non-secure RNG
+      // (aka fast and non-seeded)
       random = Random();
     }
     final diceExpr = DiceExpression.create(input, random);
@@ -135,8 +137,9 @@ Future<int> run({
   required String output,
 }) async {
   if (stats) {
-    final stats =
-        await expression.stats(num: numRolls == 1 ? defaultStatsNum : numRolls);
+    final stats = await expression.stats(
+      num: numRolls == 1 ? defaultStatsNum : numRolls,
+    );
     stdout.writeln(stats);
   } else {
     await for (final r in expression.rollN(numRolls)) {
