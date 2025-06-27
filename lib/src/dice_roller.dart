@@ -38,14 +38,11 @@ class DiceRoller with LoggingMixin {
     return RollResult(
       expression: '${ndice}d$nsides',
       opType: OpType.rollDice,
-      metadata: RollMetadata(rolled: results),
-      ndice: ndice,
-      nsides: nsides,
-      results: results,
+      results: [
+        ...results.map((i) => RolledDie.polyhedral(result: i, nsides: nsides)),
+      ],
     );
   }
-
-  static const _fudgeVals = [-1, -1, 0, 0, 1, 1];
 
   /// select n items from the list of values
   List<T> selectN<T>(int n, List<T> vals) => [
@@ -55,16 +52,14 @@ class DiceRoller with LoggingMixin {
   /// Roll N fudge dice, return results
   RollResult rollFudge(int ndice) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
-    final results = selectN(ndice, _fudgeVals);
+    final results = selectN(ndice, RolledDie.defaultFudgeVals);
 
     logger.finest(() => 'roll ${ndice}dF => $results');
 
     return RollResult(
       expression: '${ndice}dF',
       opType: OpType.rollFudge,
-      metadata: RollMetadata(rolled: results),
-      ndice: ndice,
-      results: results,
+      results: [...results.map((i) => RolledDie.fudge(result: i))],
     );
   }
 
@@ -78,9 +73,16 @@ class DiceRoller with LoggingMixin {
     return RollResult(
       expression: '${ndice}d$sideVals',
       opType: OpType.rollVals,
-      metadata: RollMetadata(rolled: results),
-      ndice: ndice,
-      results: results,
+      results: [
+        ...results.map(
+          (i) => RolledDie(
+            result: i,
+            nsides: sideVals.length,
+            dieType: DieType.special,
+            potentialValues: sideVals,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -31,44 +31,65 @@ Future<void> main() async {
   stdout.writeln(result1);
   stdout.writeln(result2);
   // outputs:
-  //  ((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 34, results: [17, 17], metadata: {rolled: [11, 12, 17, 17], discarded: [12, 11]})
-  //  ((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 39, results: [20, 19], metadata: {rolled: [1, 12, 19, 20], discarded: [12, 1], score: {critSuccesses: [20]}})
+  //  ((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 34, results: [17(d20), 17(d20), 12(d20)⛔︎, 11(d20)⛔︎])
+  //  ((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 39, results: [20(d20)☘, 19(d20), 12(d20)⛔︎, 1(d20)⛔︎], {critSuccessCount: 1})
 
   // demonstrate navigation of the result graph
   assert(result2.total == 39);
-  assert(listEquals(result2.results, [20, 19]));
+  assert(
+    listEquals(result2.results.notDiscarded.map((d) => d.result).toList(), [
+      20,
+      19,
+    ]),
+  );
   // read the score-related properties
-  assert(!result2.hasSuccesses);
-  assert(!result2.hasFailures);
-  assert(!result2.hasCritFailures);
-  assert(result2.hasCritSuccesses);
-  assert(result2.metadata.score.critSuccessCount == 1);
-  assert(listEquals(result2.metadata.score.critSuccesses, [20]));
+  assert(result2.successCount == 0);
+  assert(result2.failureCount == 0);
+  assert(result2.critFailureCount == 0);
+  assert(result2.critSuccessCount == 1);
+  assert(
+    result2.results.notDiscarded.where((d) => d.critSuccess).first.result == 20,
+  );
 
   // look at the expression tree :
-  // ((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 39, results: [20, 19], metadata: {rolled: [1, 12, 19, 20], discarded: [12, 1], score: {critSuccesses: [20]}})
-  //   ((((4d20) kh 2) #cf ) #cs ) =count=> RollResult(total: 39, results: [20, 19], metadata: {score: {critSuccesses: [20]}})
-  //       (((4d20) kh 2) #cf ) =count=> RollResult(total: 39, results: [20, 19])
-  //           ((4d20) kh 2) =drop=> RollResult(total: 39, results: [20, 19], metadata: {discarded: [12, 1]})
-  //               (4d20) =rollDice=> RollResult(total: 52, results: [1, 12, 19, 20], metadata: {rolled: [1, 12, 19, 20]})
   // at the top level, it's a 'count' operation that counted the critical success
   final top = result2.detailedResults;
   assert(top.opType == OpType.count);
-  assert(
-    top.metadata == const RollMetadata(score: RollScore(critSuccesses: [20])),
-  );
+
   // next level is the count critical failures node of the graph
   // NOTE: despite there being a 1 rolled, the criticalFailure expression is _after_ the `1` is discarded by the lower expression
-  assert(top.left!.opType == OpType.count);
-  assert(top.left!.metadata.score.hasCritFailures == false);
+  final critFailureResult = top.left;
+  assert(critFailureResult!.opType == OpType.count);
+  assert(critFailureResult!.critFailureCount == 0);
 
-  assert(top.left!.left!.opType == OpType.drop);
-  assert(listEquals(top.left!.left!.metadata.discarded, [12, 1]));
+  final dropResult = critFailureResult!.left;
+  assert(dropResult!.opType == OpType.drop);
 
-  assert(top.left!.left!.left!.opType == OpType.rollDice);
+  assert(
+    listEquals(result2.results.discarded.map((d) => d.result).toList(), [
+      12,
+      1,
+    ]),
+  );
 
-  assert(listEquals(top.left!.left!.left!.results, [1, 12, 19, 20]));
-  assert(listEquals(top.left!.left!.left!.metadata.rolled, [1, 12, 19, 20]));
+  assert(
+    listEquals(dropResult!.results.discarded.map((d) => d.result).toList(), [
+      12,
+      1,
+    ]),
+  );
+
+  final rollResult = dropResult!.left;
+  assert(rollResult!.opType == OpType.rollDice);
+
+  assert(
+    listEquals(rollResult!.results.notDiscarded.map((d) => d.result).toList(), [
+      20,
+      19,
+      1,
+      12,
+    ]),
+  );
 
   final stats = await DiceExpression.create('2d6', Random(1234)).stats();
   // output:

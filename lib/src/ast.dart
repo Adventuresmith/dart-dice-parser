@@ -16,7 +16,9 @@ class SimpleValue extends DiceExpression {
     : _results = RollResult(
         expression: value,
         opType: OpType.value,
-        results: value.isEmpty ? [] : [int.parse(value)],
+        results: value.isEmpty
+            ? []
+            : [RolledDie.singleVal(result: int.parse(value))],
       );
 
   final String value;
@@ -120,30 +122,30 @@ class CountOp extends Binary {
     final lhs = left();
     final rhs = right();
 
-    var rhsEmptyAndSimpleCount = false;
-    final target = rhs.totalOrDefault(() {
-      // if missing RHS, we can make assumptions depending on operator.
-      //
-      switch (name) {
-        case '#':
-          // example: '3d6#' should be 3. target is ignored in case statement below.
-          rhsEmptyAndSimpleCount = true;
-          return 0;
-        case '#s' || '#cs':
-          // example: '3d6#s' -- assume target is nsides (maximum)
-          return lhs.nsides;
-        case '#f' || '#cf':
-          // example: '3d6#f' -- assume target is 1 (minimum)
-          return 1;
-        default:
-          throw FormatException(
-            'Invalid count operation. Missing count target',
-            toString(),
-            toString().length,
-          );
-      }
-    });
-    bool test(int v) {
+    bool test(RolledDie rolledDie) {
+      var rhsEmptyAndSimpleCount = false;
+      final target = rhs.totalOrDefault(() {
+        // if missing RHS, we can make assumptions depending on operator.
+        switch (name) {
+          case '#':
+            // example: '3d6#' should be 3. target is ignored in case statement below.
+            rhsEmptyAndSimpleCount = true;
+            return 0;
+          case '#s' || '#cs':
+            // example: '3d6#s' -- assume target is nsides (maximum)
+            return rolledDie.nsides;
+          case '#f' || '#cf':
+            // example: '3d6#f' -- assume target is 1 (minimum)
+            return 1;
+          default:
+            throw FormatException(
+              'Invalid count operation. Missing count target',
+              toString(),
+              toString().length,
+            );
+        }
+      });
+      final v = rolledDie.result;
       switch (name) {
         case '#>=' || '#s>=' || '#f>=' || '#cs>=' || '#cf>=':
           // how many results on lhs are greater than or equal to rhs?
@@ -179,7 +181,7 @@ class CountOp extends Binary {
       }
     }
 
-    final filteredResults = lhs.results.where(test);
+    final filteredResults = lhs.results.notDiscarded.where(test);
 
     if (countType == CountType.count) {
       // if counting, the count becomes the new result
@@ -187,25 +189,29 @@ class CountOp extends Binary {
       return RollResult(
         expression: toString(),
         opType: OpType.count,
-        metadata: RollMetadata(discarded: lhs.results),
-        results: [filteredResults.length],
-        ndice: lhs.ndice,
-        nsides: lhs.nsides,
+        results: [
+          RolledDie.singleVal(result: filteredResults.length),
+          ...lhs.results.notDiscarded.map(RolledDie.discard),
+          ...lhs.results.discarded,
+        ],
         left: lhs,
         right: rhs,
       );
     } else {
-      // if counting success/failures, the results are unchanged
+      // if counting success/failures, the results are updated w/ scoring
+
+      final otherResults = lhs.results.notDiscarded.whereNot(test);
 
       return RollResult(
         expression: toString(),
-        results: lhs.results,
         opType: OpType.count,
-        metadata: RollMetadata(
-          score: RollScore.forCountType(countType, List.of(filteredResults)),
-        ),
-        ndice: lhs.ndice,
-        nsides: lhs.nsides,
+        results: [
+          ...filteredResults.map(
+            (v) => RolledDie.scoreForCountType(v, countType: countType),
+          ),
+          ...otherResults,
+          ...lhs.results.discarded,
+        ],
         left: lhs,
         right: rhs,
       );
@@ -230,24 +236,25 @@ class DropOp extends Binary {
       );
     });
 
-    var results = <int>[];
-    var dropped = <int>[];
+    final Iterable<RolledDie> results;
+    final Iterable<RolledDie> dropped;
+    final notDiscarded = lhs.results.notDiscarded;
     switch (name) {
       case '-<': // drop <
-        results = lhs.results.where((v) => v >= target).toList();
-        dropped = lhs.results.where((v) => v < target).toList();
+        results = notDiscarded.where((v) => v.result >= target);
+        dropped = notDiscarded.where((v) => v.result < target);
       case '-<=': // drop <=
-        results = lhs.results.where((v) => v > target).toList();
-        dropped = lhs.results.where((v) => v <= target).toList();
+        results = notDiscarded.where((v) => v.result > target);
+        dropped = notDiscarded.where((v) => v.result <= target);
       case '->': // drop >
-        results = lhs.results.where((v) => v <= target).toList();
-        dropped = lhs.results.where((v) => v > target).toList();
+        results = notDiscarded.where((v) => v.result <= target);
+        dropped = notDiscarded.where((v) => v.result > target);
       case '->=': // drop >=
-        results = lhs.results.where((v) => v < target).toList();
-        dropped = lhs.results.where((v) => v >= target).toList();
+        results = notDiscarded.where((v) => v.result < target);
+        dropped = notDiscarded.where((v) => v.result >= target);
       case '-=': // drop =
-        results = lhs.results.where((v) => v != target).toList();
-        dropped = lhs.results.where((v) => v == target).toList();
+        results = notDiscarded.where((v) => v.result != target);
+        dropped = notDiscarded.where((v) => v.result == target);
       default:
         throw FormatException(
           "unknown drop operation '$name'",
@@ -259,10 +266,11 @@ class DropOp extends Binary {
     return RollResult(
       expression: toString(),
       opType: OpType.drop,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
-      results: results,
-      metadata: RollMetadata(discarded: dropped),
+      results: [
+        ...results,
+        ...dropped.map(RolledDie.discard),
+        ...lhs.results.discarded,
+      ],
       left: lhs,
       right: rhs,
     );
@@ -277,26 +285,26 @@ class DropHighLowOp extends Binary {
   RollResult eval() {
     final lhs = left();
     final rhs = right();
-    final sorted = lhs.results..sort();
+    final sorted = lhs.results.notDiscarded.toList()..sort();
     final numToDrop = rhs.totalOrDefault(() => 1); // if missing, assume '1'
-    var results = <int>[];
-    var dropped = <int>[];
+    final Iterable<RolledDie> results;
+    final Iterable<RolledDie> dropped;
     switch (name) {
       case '-h': // drop high
-        results = sorted.reversed.skip(numToDrop).toList();
-        dropped = sorted.reversed.take(numToDrop).toList();
+        results = sorted.reversed.skip(numToDrop);
+        dropped = sorted.reversed.take(numToDrop);
       case '-l': // drop low
-        results = sorted.skip(numToDrop).toList();
-        dropped = sorted.take(numToDrop).toList();
+        results = sorted.skip(numToDrop);
+        dropped = sorted.take(numToDrop);
       case 'kl':
-        results = sorted.take(numToDrop).toList();
-        dropped = sorted.skip(numToDrop).toList();
+        results = sorted.take(numToDrop);
+        dropped = sorted.skip(numToDrop);
       case 'kh':
-        results = sorted.reversed.take(numToDrop).toList();
-        dropped = sorted.reversed.skip(numToDrop).toList();
+        results = sorted.reversed.take(numToDrop);
+        dropped = sorted.reversed.skip(numToDrop);
       case 'k':
-        results = sorted.reversed.take(numToDrop).toList();
-        dropped = sorted.reversed.skip(numToDrop).toList();
+        results = sorted.reversed.take(numToDrop);
+        dropped = sorted.reversed.skip(numToDrop);
       default:
         throw FormatException(
           "unknown drop operation '$name'",
@@ -307,10 +315,11 @@ class DropHighLowOp extends Binary {
     return RollResult(
       expression: toString(),
       opType: OpType.drop,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
-      results: results,
-      metadata: RollMetadata(discarded: dropped),
+      results: [
+        ...results,
+        ...dropped.map(RolledDie.discard),
+        ...lhs.results.discarded,
+      ],
       left: lhs,
       right: rhs,
     );
@@ -333,44 +342,20 @@ class ClampOp extends Binary {
       );
     });
 
-    List<int> results;
-    final discarded = <int>[];
-    final added = <int>[];
-    switch (name) {
-      case 'c>': // change any value > rhs to rhs
-        results = lhs.results.map((v) {
-          if (v > target) {
-            discarded.add(v);
-            added.add(target);
-            return target;
-          } else {
-            return v;
-          }
-        }).toList();
-      case 'c<': // change any value < rhs to rhs
-        results = lhs.results.map((v) {
-          if (v < target) {
-            discarded.add(v);
-            added.add(target);
-            return target;
-          } else {
-            return v;
-          }
-        }).toList();
-      default:
-        throw FormatException(
-          "unknown clamp operation '$name'",
-          toString(),
-          toString().indexOf(name),
-        );
+    final newResults = <RolledDie>[];
+    for (final d in lhs.results.notDiscarded) {
+      if (name == 'c>' && d.result > target) {
+        newResults.add(RolledDie.copyWith(d, result: target, clampHigh: true));
+      } else if (name == 'c<' && d.result < target) {
+        newResults.add(RolledDie.copyWith(d, result: target, clampLow: true));
+      } else {
+        newResults.add(d);
+      }
     }
     return RollResult(
       expression: toString(),
       opType: OpType.clamp,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
-      results: results,
-      metadata: RollMetadata(discarded: discarded, rolled: added),
+      results: [...newResults, ...lhs.results.discarded],
       left: lhs,
       right: rhs,
     );
@@ -416,7 +401,6 @@ class FudgeDice extends UnaryDice {
       roll,
       expression: toString(),
       opType: roll.opType,
-      metadata: RollMetadata(rolled: roll.results),
       left: lhs,
     );
   }
@@ -435,7 +419,10 @@ class CSVDice extends UnaryDice {
     final lhs = left();
     final ndice = lhs.totalOrDefault(() => 1);
 
-    final roll = roller.rollVals(ndice, vals.elements.map(int.parse).toList());
+    final roll = roller.rollVals(
+      ndice,
+      vals.elements.map(int.parse).toList(growable: false),
+    );
 
     return RollResult.fromRollResult(
       roll,
@@ -453,14 +440,12 @@ class PercentDice extends UnaryDice {
   @override
   RollResult eval() {
     final lhs = left();
-    const nsides = 100;
     final ndice = lhs.totalOrDefault(() => 1);
-    final roll = roller.roll(ndice, nsides);
+    final roll = roller.roll(ndice, 100);
     return RollResult.fromRollResult(
       roll,
       expression: toString(),
       opType: OpType.rollPercent,
-      metadata: RollMetadata(rolled: roll.results),
       left: lhs,
     );
   }
@@ -476,14 +461,12 @@ class D66Dice extends UnaryDice {
     final ndice = lhs.totalOrDefault(() => 1);
     final results = [
       for (var i = 0; i < ndice; i++)
-        roller.roll(1, 6).results.sum * 10 + roller.roll(1, 6).results.sum,
-    ];
+        roller.roll(1, 6).total * 10 + roller.roll(1, 6).total,
+    ].map((i) => RolledDie.d66(result: i));
     return RollResult(
       expression: toString(),
       opType: OpType.rollD66,
-      ndice: ndice,
-      results: results,
-      metadata: RollMetadata(rolled: results),
+      results: [...results],
       left: lhs,
     );
   }
@@ -523,7 +506,6 @@ class StdDice extends BinaryDice {
       roll,
       expression: toString(),
       opType: roll.opType,
-      metadata: RollMetadata(rolled: roll.results),
       left: lhs,
       right: rhs,
     );
@@ -550,13 +532,6 @@ class RerollDice extends BinaryDice {
     final lhs = left();
     final rhs = right();
 
-    if (lhs.nsides == 0) {
-      throw FormatException(
-        "Invalid reroll operation. Cannot determine # sides from '$left'",
-        toString(),
-        left.toString().length,
-      );
-    }
     final target = rhs.totalOrDefault(() {
       throw FormatException(
         'Invalid reroll operation. Missing reroll target',
@@ -564,11 +539,9 @@ class RerollDice extends BinaryDice {
         toString().length,
       );
     });
-    final results = <int>[];
-    final discarded = <int>[];
-    final added = <int>[];
 
-    bool test(int val) {
+    bool test(RolledDie rolledDie) {
+      final val = rolledDie.result;
       switch (name) {
         case 'r' || 'ro' || 'r=' || 'ro=':
           return val == target;
@@ -589,20 +562,20 @@ class RerollDice extends BinaryDice {
       }
     }
 
-    lhs.results.forEachIndexed((i, v) {
+    final results = <RolledDie>[];
+    lhs.results.notDiscarded.forEachIndexed((i, v) {
       if (test(v)) {
-        int rerolled;
+        RolledDie rerolled;
         var rerollCount = 0;
         do {
           rerolled = roller
-              .roll(1, lhs.nsides, '(reroll ind $i,  #$rerollCount)')
-              .results
-              .sum;
+              .roll(1, v.nsides, '(reroll ind $i,  #$rerollCount)')
+              .results[0];
           rerollCount++;
         } while (test(rerolled) && rerollCount < limit);
-        results.add(rerolled);
-        discarded.add(v);
-        added.add(rerolled);
+        results.add(
+          RolledDie.copyWith(v, result: rerolled.result, rerolled: true),
+        );
       } else {
         results.add(v);
       }
@@ -611,10 +584,7 @@ class RerollDice extends BinaryDice {
     return RollResult(
       expression: toString(),
       opType: OpType.reroll,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
-      results: results,
-      metadata: RollMetadata(rolled: added, discarded: discarded),
+      results: [...results, ...lhs.results.discarded],
       left: lhs,
       right: rhs,
     );
@@ -641,15 +611,12 @@ class CompoundingDice extends BinaryDice {
     final lhs = left();
     final rhs = right();
 
-    if (lhs.nsides == 0) {
-      throw FormatException(
-        "Invalid compounding operation. Cannot determine # sides from '$left'",
-        toString(),
-        left.toString().length,
-      );
-    }
-    final target = rhs.totalOrDefault(() => lhs.nsides);
-    bool test(int val) {
+    bool test(RolledDie rolledDie) {
+      final target = rhs.totalOrDefault(() => rolledDie.nsides);
+      final val = rolledDie.result;
+      if (!rolledDie.isCompoundable) {
+        return false;
+      }
       switch (name) {
         case '!!' || '!!=' || '!!o' || '!!o=':
           return val == target;
@@ -670,25 +637,20 @@ class CompoundingDice extends BinaryDice {
       }
     }
 
-    final results = <int>[];
-    final discarded = <int>[];
-    final added = <int>[];
-    lhs.results.forEachIndexed((i, v) {
+    final results = <RolledDie>[];
+    lhs.results.notDiscarded.forEachIndexed((i, v) {
       if (test(v)) {
-        var sum = v;
-        int rerolled;
+        var sum = v.result;
+        RolledDie rerolled;
         var numCompounded = 0;
         do {
           rerolled = roller
-              .roll(1, lhs.nsides, '(compound ind $i,  #$numCompounded)')
-              .results
-              .sum;
-          sum += rerolled;
+              .roll(1, v.nsides, '(compound ind $i,  #$numCompounded)')
+              .results[0];
+          sum += rerolled.result;
           numCompounded++;
         } while (test(rerolled) && numCompounded < limit);
-        results.add(sum);
-        discarded.add(v);
-        added.add(sum);
+        results.add(RolledDie.copyWith(v, result: sum, compounded: true));
       } else {
         results.add(v);
       }
@@ -697,10 +659,7 @@ class CompoundingDice extends BinaryDice {
     return RollResult(
       expression: toString(),
       opType: OpType.compound,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
-      results: results,
-      metadata: RollMetadata(rolled: added, discarded: discarded),
+      results: [...results, ...lhs.results.discarded],
       left: lhs,
       right: rhs,
     );
@@ -727,19 +686,12 @@ class ExplodingDice extends BinaryDice {
     final lhs = left();
     final rhs = right();
 
-    if (lhs.nsides == 0) {
-      throw FormatException(
-        "Invalid exploding operation. Cannot determine # sides from '$left'",
-        toString(),
-        left.toString().length,
-      );
-    }
-    final target = rhs.totalOrDefault(() => lhs.nsides);
-
-    final allResults = <int>[];
-    final newResults = <int>[];
-
-    bool test(int val) {
+    bool test(RolledDie rolledDie) {
+      final target = rhs.totalOrDefault(() => rolledDie.nsides);
+      final val = rolledDie.result;
+      if (!rolledDie.isExplodable) {
+        return false;
+      }
       switch (name) {
         case '!' || '!=' || '!o' || '!o=':
           return val == target;
@@ -760,28 +712,28 @@ class ExplodingDice extends BinaryDice {
       }
     }
 
-    allResults.addAll(lhs.results);
-    var numToRoll = lhs.results.where(test).length;
-    var explodeCount = 0;
-    while (numToRoll > 0 && explodeCount < limit) {
-      final results = roller.roll(
-        numToRoll,
-        lhs.nsides,
-        '(explode #${explodeCount + 1})',
-      );
-      newResults.addAll(results.results);
-      numToRoll = results.results.where(test).length;
-      explodeCount++;
+    final newResults = <RolledDie>[];
+    for (final rolledDie in lhs.results.notDiscarded.where(test)) {
+      var numExplosions = 0;
+      RolledDie rerolledDie;
+      do {
+        rerolledDie = roller
+            .roll(1, rolledDie.nsides, '(explode #${numExplosions + 1})')
+            .results[0];
+        numExplosions++;
+        newResults.add(RolledDie.copyWith(rolledDie, exploded: true));
+        newResults.add(RolledDie.copyWith(rerolledDie, explosion: true));
+      } while (test(rerolledDie) && numExplosions < limit);
     }
-    allResults.addAll(newResults);
 
     return RollResult(
       expression: toString(),
       opType: OpType.explode,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
-      results: allResults,
-      metadata: RollMetadata(rolled: newResults),
+      results: [
+        ...newResults,
+        ...lhs.results.notDiscarded.whereNot(test),
+        ...lhs.results.discarded,
+      ],
       left: lhs,
       right: rhs,
     );

@@ -1,13 +1,12 @@
 # dart_dice_parser
+
 [![Pub Package](https://img.shields.io/pub/v/dart_dice_parser.svg)](https://pub.dartlang.org/packages/dart_dice_parser)
 [![Dart](https://github.com/Adventuresmith/dart-dice-parser/actions/workflows/dart.yml/badge.svg)](https://github.com/Adventuresmith/dart-dice-parser/actions/workflows/dart.yml)
 [![codecov](https://codecov.io/gh/Adventuresmith/dart-dice-parser/branch/main/graph/badge.svg?token=YG5OYN9VY1)](https://codecov.io/gh/Adventuresmith/dart-dice-parser)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 [![style: lint](https://img.shields.io/badge/style-lint-4BC0F5.svg)](https://pub.dev/packages/lint)
 
-
-
-A dart library for parsing dice notation (`2d6+4`). Supports advantage/disadvantage, counting success/failures, 
+A dart library for parsing dice notation (`2d6+4`). Supports advantage/disadvantage, counting success/failures,
 exploding, compounding, and other variations.
 
 # Example
@@ -22,11 +21,11 @@ void main() {
 
   stdout.writeln(d20adv.roll());
   // outputs:
-  //  ((2d20) kh ) ===> RollSummary(total: 16, results: [16], metadata: {rolled: [4, 16], discarded: [4]})
+  //  ((2d20) kh ) ===> RollSummary(total: 16, results: [16(d20), 4(d20)⛔︎])
 
   stdout.writeln(d20adv.roll());
   // outputs:
-  //  ((2d20) kh ) ===> RollSummary(total: 19, results: [19], metadata: {rolled: [13, 19], discarded: [13]})
+  //  ((2d20) kh ) ===> RollSummary(total: 19, results: [19(d20), 13(d20)⛔︎])
 }
 ```
 
@@ -35,10 +34,10 @@ void main() {
 ## Examples:
 
 * `2d20 #cf #cs`
-  * roll 2d20, result will include counts of critical successes (20) and failures (1)
+    * roll 2d20, result will include counts of critical successes (20) and failures (1)
 
 * advantage
-    * `2d20-L` -- drop lowest 
+    * `2d20-L` -- drop lowest
     * `2d20k`, `2d20kh` -- keep highest
 * disadvantage
     * `2d20-H` -- drop highest
@@ -46,103 +45,106 @@ void main() {
 * `(2d10+3d20)-L3` -- roll 2d10 and 3d20, combine the two results lists, and drop lowest 3 results
 * `20d10-<3->8#` -- roll 20 d10, drop any less than 3 or greater than 8 and count the number of remaining dice
 
-
 ## Supported notation
 
 * `2d6` -- roll `2` dice of `6` sides
 * special dice variations:
-  * `4dF` -- roll `4` fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
-  * `1d%` -- roll `1` percentile dice (equivalent to `1d100`)
-  * `1D66` -- roll `1` D66, aka `1d6*10 + 1d6` 
-    * **_NOTE_**: you _must_ use uppercase `D66`, lowercase `d66` will be interpreted as a 66-sided die
-  * `2d[2,3,5,7]`-- roll 2 dice with values `[2,3,5,7]`
-  
+    * `4dF` -- roll `4` fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
+    * `1d%` -- roll `1` percentile dice (equivalent to `1d100`)
+    * `1D66` -- roll `1` D66, aka `1d6*10 + 1d6`
+        * **_NOTE_**: you _must_ use uppercase `D66`, lowercase `d66` will be interpreted as a 66-sided die
+    * `2d[2,3,5,7]`-- roll 2 dice with values `[2,3,5,7]`
+
 * exploding dice
-  * `4d6!` -- roll `4` `6`-sided dice, explode if max (`6`) is rolled (re-roll and include in results)
-    * `4d6 !=5` or `4d6!5` -- explode a roll if equal to 5 
-    * `4d6 !>=4` - explode if >= 4
-    * `4d6 !<=2` - explode if <=2
-    * `4d6 !>5` - explode if > 5
-    * `4d6 !<2` - explode if <2
-    * To explode only once, use syntax `!o` 
-      * `4d6 !o<5`
+    * `4d6!` -- roll `4` `6`-sided dice, explode if max (`6`) is rolled (re-roll and include in results)
+        * `4d6 !=5` or `4d6!5` -- explode a roll if equal to 5
+        * `4d6 !>=4` - explode if >= 4
+        * `4d6 !<=2` - explode if <=2
+        * `4d6 !>5` - explode if > 5
+        * `4d6 !<2` - explode if <2
+        * To explode only once, use syntax `!o`
+            * `4d6 !o<5`
 * compounding dice (Shadowrun, L5R, etc). Similar to exploding, but the additional rolls for each
   dice are added together as a single "roll". The original roll is replaced by the sum of it and any additional rolls.
-  * `5d6 !!` -- roll `5` `6`-sided dice, compound
-    * `5d6 !!=5` or `5d6!5` -- compound a roll if equal to 5 
-    * `5d6 !!>=4` - compound if >= 4
-    * `5d6 !!<=4` - compound if <= 4
-    * `5d6 !!>5` - compound if > 5
-    * `5d6 !!<3` - compound if < 3
-    * To compound only once, use syntax `!!o` 
-      * `5d6 !!o<2`
+    * `5d6 !!` -- roll `5` `6`-sided dice, compound
+        * `5d6 !!=5` or `5d6!5` -- compound a roll if equal to 5
+        * `5d6 !!>=4` - compound if >= 4
+        * `5d6 !!<=4` - compound if <= 4
+        * `5d6 !!>5` - compound if > 5
+        * `5d6 !!<3` - compound if < 3
+        * To compound only once, use syntax `!!o`
+            * `5d6 !!o<2`
 * re-rolling dice:
-  * `4d4 r2` -- roll 4d4, re-roll any result = 2
-  * `4d4 r=2` -- roll 4d4, re-roll any result = 2
-  * `4d4 r<=2` -- roll 4d4, re-roll any <= 2
-  * `4d4 r>=3` -- roll 4d4, re-roll any >= 3
-  * `4d4 r<2` -- roll 4d4, re-roll any < 2
-  * `4d4 r>3` -- roll 4d4, re-roll any > 3
-  * To reroll only once, use syntax `ro` 
-    * `4d4 ro<2`
+    * `4d4 r2` -- roll 4d4, re-roll any result = 2
+    * `4d4 r=2` -- roll 4d4, re-roll any result = 2
+    * `4d4 r<=2` -- roll 4d4, re-roll any <= 2
+    * `4d4 r>=3` -- roll 4d4, re-roll any >= 3
+    * `4d4 r<2` -- roll 4d4, re-roll any < 2
+    * `4d4 r>3` -- roll 4d4, re-roll any > 3
+    * To reroll only once, use syntax `ro`
+        * `4d4 ro<2`
 * keeping dice:
-  * `3d20 k 2` -- roll 3d20, keep 2 highest
-  * `3d20 kh 2` -- roll 3d20, keep 2 highest
-  * `3d20 kl 2` -- roll 3d20, keep 2 lowest
+    * `3d20 k 2` -- roll 3d20, keep 2 highest
+    * `3d20 kh 2` -- roll 3d20, keep 2 highest
+    * `3d20 kl 2` -- roll 3d20, keep 2 lowest
 * dropping dice:
-  * `4d6 -H` -- roll 4d6, drop 1 highest
-  * `4d6 -L` -- roll 4d6, drop 1 lowest
-  * `4d6 -H2` -- roll 4d6, drop 2 highest
-  * `4d6 -L2` -- roll 4d6, drop 2 lowest
-  * `4d6 ->5` -- roll 4d6, drop any results > 5
-  * `4d6 -<2` -- roll 4d6, drop any results < 2
-  * `4d6 ->=5` -- roll 4d6, drop any results >= 5
-  * `4d6 -<=2` -- roll 4d6, drop any results <= 2
-  * `4d6 -=1` -- roll 4d6, drop any results equal to 1
-  * NOTE: the drop operators have higher precedence than
-    the arithmetic operators; `4d10-L2+2` is equivalent to `(4d10-L2)+2`
-  * NOTE: drop is not subtraction. 
-    * `4d6 - 3` -- roll 4d6, subtract 3
-    * `4d6 - 2d6` -- roll 4d6, subtract the result of rolling 2d6
+    * `4d6 -H` -- roll 4d6, drop 1 highest
+    * `4d6 -L` -- roll 4d6, drop 1 lowest
+    * `4d6 -H2` -- roll 4d6, drop 2 highest
+    * `4d6 -L2` -- roll 4d6, drop 2 lowest
+    * `4d6 ->5` -- roll 4d6, drop any results > 5
+    * `4d6 -<2` -- roll 4d6, drop any results < 2
+    * `4d6 ->=5` -- roll 4d6, drop any results >= 5
+    * `4d6 -<=2` -- roll 4d6, drop any results <= 2
+    * `4d6 -=1` -- roll 4d6, drop any results equal to 1
+    * NOTE: the drop operators have higher precedence than
+      the arithmetic operators; `4d10-L2+2` is equivalent to `(4d10-L2)+2`
+    * NOTE: drop is not subtraction.
+        * `4d6 - 3` -- roll 4d6, subtract 3
+        * `4d6 - 2d6` -- roll 4d6, subtract the result of rolling 2d6
 * cap/clamp:
-  * `4d20 C<5` -- roll 4d20, change any value < 5 to 5
-  * `4d20 C>15` -- roll 4d20, change any value > 15 to 15
+    * `4d20 C<5` -- roll 4d20, change any value < 5 to 5
+    * `4d20 C>15` -- roll 4d20, change any value > 15 to 15
 
 * scoring dice rolls:
-  * counting:
-    * `4d6 #` -- how many results? 
-      * For example, you might use this to count # of dice above a target. `(5d10 -<6)#` -- roll 5 d10, drop any less than 6, count results
-    * `4d6 #>3` -- roll 4d6, count any > 3
-    * `4d6 #<3` -- roll 4d6, count any < 3
-    * `4d6 #>=5` -- roll 4d6, count any >= 5
-    * `4d6 #<=2` -- roll 4d6, count any <= 2
-    * `4d6 #=5` -- roll 4d6, count any equal to 5
-  * successes and failures 
-    * A normal count operation `#` discards the rolled dice and changes the result to be the count 
-      * For example, `2d6#<=3` rolls `[3,4]` then counts which results are `<=3` , returning `[1]`
-    * But, sometimes you want to be able to count successes/failures without discarding the dice rolls. 
-      In this case, use modifiers `#s`, `#f`, `#cs`, `#cf` to add metadata to the results.
-      * `6d6 #f<=2 #s>=5 #cs6 #cf1` -- roll 6d6, count results <= 2 as failures, >= 5 as successes, =6 as critical successes, =1 as critical failures
-        * The above returns a result like: `RollSummary(total: 22, results: [6, 2, 1, 5, 3, 5], metadata: {rolled: [6, 2, 1, 5, 3, 5], score: {successes: [6, 5, 5], failures: [2, 1], critSuccesses: [6], critFailures: [1]}})`
-    * NOTE: order matters
-      * `2d20 kh #cf #cs` -- roll 2d20, keep the highest, count critical successes & failures. If this 
-         rolled `[1,18]`, the `1` is dropped and the result metadata won't record a critical failure.
-         If that's not the behavior you want, move the counts prior to the drop (`2d20 #cf #cs kh`).
-      
-* arithmetic operations
-  * parenthesis to force a certain order of operations
-  * addition is a little special -- could be a sum of ints, or it can be used to aggregate results of multiple dice rolls
-    * Addition of integers is the usual sum
-      * `4+5` 
-      * `2d6 + 1`
-    * Addition of roll results combines the results (use parens to ensure the order of operations is what you desire)
-      * `(5d6+5d10)-L2` -- roll 5d6 and 5d10, and from aggregate results drop the lowest 2.
-      * `5d6+5d10-L2` -- roll 5d6 and 5d10, and from only the 5d10 results drop the lowest 2. equivalent to `5d6+(5d10-L2)`
-  * `*` for multiplication
-  * `-` for subtraction
-  * numbers must be integers
-  * division is not supported.
+    * counting:
+        * `4d6 #` -- how many results?
+            * For example, you might use this to count # of dice above a target. `(5d10 -<6)#` -- roll 5 d10, drop any
+              less than 6, count results
+        * `4d6 #>3` -- roll 4d6, count any > 3
+        * `4d6 #<3` -- roll 4d6, count any < 3
+        * `4d6 #>=5` -- roll 4d6, count any >= 5
+        * `4d6 #<=2` -- roll 4d6, count any <= 2
+        * `4d6 #=5` -- roll 4d6, count any equal to 5
+    * successes and failures
+        * A normal count operation `#` discards the rolled dice and changes the result to be the count
+            * For example, `2d6#<=3` rolls `[3,4]` then counts which results are `<=3` , returning `[1]`
+        * But, sometimes you want to be able to count successes/failures without discarding the dice rolls.
+          In this case, use modifiers `#s`, `#f`, `#cs`, `#cf` to add metadata to the results.
+            * `6d6 #f<=2 #s>=5 #cs6 #cf1` -- roll 6d6, count results <= 2 as failures, >= 5 as successes, =6 as critical
+              successes, =1 as critical failures
+                * The above returns a result like:
+                  `RollSummary(total: 22, results: [6, 2, 1, 5, 3, 5], metadata: {rolled: [6, 2, 1, 5, 3, 5], score: {successes: [6, 5, 5], failures: [2, 1], critSuccesses: [6], critFailures: [1]}})`
+        * NOTE: order matters
+            * `2d20 kh #cf #cs` -- roll 2d20, keep the highest, count critical successes & failures. If this
+              rolled `[1,18]`, the `1` is dropped and the result does not record a critical failure.
 
+* arithmetic operations
+    * parenthesis to force a certain order of operations
+    * addition is a little special -- could be a sum of ints, or it can be used to aggregate results of multiple dice
+      rolls
+        * Addition of integers is the usual sum
+            * `4+5`
+            * `2d6 + 1`
+        * Addition of roll results combines the results (use parens to ensure the order of operations is what you
+          desire)
+            * `(5d6+5d10)-L2` -- roll 5d6 and 5d10, and from aggregate results drop the lowest 2.
+            * `5d6+5d10-L2` -- roll 5d6 and 5d10, and from only the 5d10 results drop the lowest 2. equivalent to
+              `5d6+(5d10-L2)`
+    * `*` for multiplication
+    * `-` for subtraction
+    * numbers must be integers
+    * division is not supported.
 
 # Random Number Generator
 
@@ -156,25 +158,29 @@ For example, you might create a dice-rolling app that both provides rolls _and_ 
 clicks a button), and the second to display min/max/mean/stddev/etc
 
 ```dart 
-  final diceExpr_SecureRNG = DiceExpression.create('2d6');
-  final diceExpr_FastRNG = DiceExpression.create('2d6', Random());
-  
-  //....
-  // on button-click, roll the dice
-  final roll = diceExpr_SecureRNG.roll();
-  
-  //....
-  // when dice expr changes, update the stats graph. 
-  final stats = await diceExpr_FastRNG.stats();
-  // output of stats: {mean: 6.98, stddev: 2.41, min: 2, max: 12, count: 10000, histogram: {2: 310, 3: 557, 4: 787, 5: 1090, 6: 1450, 7: 1646, 8: 1395, 9: 1147, 10: 825, 11: 526, 12: 267}}
+
+final diceExpr_SecureRNG = DiceExpression.create('2d6');
+final diceExpr_FastRNG = DiceExpression.create('2d6', Random());
+
+//....
+// on button-click, roll the dice
+final roll = diceExpr_SecureRNG.roll();
+
+//....
+// when dice expr changes, update the stats graph. 
+final stats = await
+diceExpr_FastRNG.stats
+();
+// output of stats: {mean: 6.98, stddev: 2.41, min: 2, max: 12, count: 10000, histogram: {2: 310, 3: 557, 4: 787, 5: 1090, 6: 1450, 7: 1646, 8: 1395, 9: 1147, 10: 825, 11: 526, 12: 267}}
 
 ```
 
 # CLI Usage
 
-There's no executable in bin, but there's an example CLI at `example/main.dart`. 
+There's no executable in bin, but there's an example CLI at `example/main.dart`.
 
 Usage:
+
 ```
 ❯ dart run example/main.dart -h
 Usage:
@@ -202,16 +208,16 @@ Examples:
 
 ```console
 ❯ dart example/main.dart '3d6'
-(3d6) ===> RollSummary(total: 13, results: [3, 6, 4], metadata: {rolled: [3, 6, 4]})
-
+(3d6) ===> RollSummary(total: 9, results: [6(d6), 2(d6), 1(d6)])
 
 # run N number of rolls
 ❯ dart run example/main.dart -n5 '3d6'
-(3d6) ===> RollSummary(total: 10, results: [2, 2, 6], metadata: {rolled: [2, 2, 6]})
-(3d6) ===> RollSummary(total: 12, results: [6, 4, 2], metadata: {rolled: [6, 4, 2]})
-(3d6) ===> RollSummary(total: 5, results: [2, 1, 2], metadata: {rolled: [2, 1, 2]})
-(3d6) ===> RollSummary(total: 10, results: [5, 3, 2], metadata: {rolled: [5, 3, 2]})
-(3d6) ===> RollSummary(total: 13, results: [4, 5, 4], metadata: {rolled: [4, 5, 4]})
+(3d6) ===> RollSummary(total: 6, results: [1(d6), 4(d6), 1(d6)])
+(3d6) ===> RollSummary(total: 9, results: [4(d6), 1(d6), 4(d6)])
+(3d6) ===> RollSummary(total: 14, results: [4(d6), 6(d6), 4(d6)])
+(3d6) ===> RollSummary(total: 10, results: [4(d6), 3(d6), 3(d6)])
+(3d6) ===> RollSummary(total: 6, results: [3(d6), 2(d6), 1(d6)])
+
 
 
 
@@ -222,14 +228,14 @@ Examples:
 ```
 
 Sometimes it's nice to change the output type so you can see the graph of results:
+
 ```console
 # show the result graph:
-❯ dart run example/main.dart -o pretty '3d6 #cs #cf'
-(((3d6) #cs ) #cf ) ===> RollSummary(total: 13, results: [1, 6, 6], metadata: {rolled: [1, 6, 6], score: {critSuccesses: [6, 6], critFailures: [1]}})
-  (((3d6) #cs ) #cf ) =count=> RollResult(total: 13, results: [1, 6, 6], metadata: {score: {critFailures: [1]}})
-      ((3d6) #cs ) =count=> RollResult(total: 13, results: [1, 6, 6], metadata: {score: {critSuccesses: [6, 6]}})
-          (3d6) =rollDice=> RollResult(total: 13, results: [1, 6, 6], metadata: {rolled: [1, 6, 6]})
-
+❯  dart run example/main.dart -o pretty '3d6 #cs #cf'
+(((3d6) #cs ) #cf ) ===> RollSummary(total: 9, results: [1(d6)❌, 3(d6), 5(d6)], critFailureCount: 1)
+  (((3d6) #cs ) #cf ) =count=> RollResult(total: 9, results: [1(d6)❌, 3(d6), 5(d6)])
+      ((3d6) #cs ) =count=> RollResult(total: 9, results: [1(d6), 3(d6), 5(d6)])
+          (3d6) =rollDice=> RollResult(total: 9, results: [1(d6), 3(d6), 5(d6)])
 
 ❯ dart run example/main.dart -o json '3d6 #cs #cf'
 {"expression":"(((3d6) #cs ) #cf )","total":9,"results":[2,3,4],"detailedResults":{"expression":"(((3d6) #cs ) #cf )","opType":"count","nsides":6,"ndice":3,"results":[2,3,4],"left":{"expression":"((3d6) #cs )","opType":"count","nsides":6,"ndice":3,"results":[2,3,4],"left":{"expression":"(3d6)","opType":"rollDice","nsides":6,"ndice":3,"results":[2,3,4],"metadata":{"rolled":[2,3,4]}}}},"metadata":{"rolled":[2,3,4]}}
@@ -239,10 +245,9 @@ Sometimes it's nice to change the output type so you can see the graph of result
 
 ## Statistics output
 
+I often wonder, "what range of values should I expect?" or "how likely will this roll explode or compound?"
 
-I often wonder, "what range of values should I expect?" or "how likely will this roll explode or compound?" 
-
-To explore that, you can use stats output: 
+To explore that, you can use stats output:
 
 ```console
 
@@ -261,8 +266,8 @@ To explore that, you can use stats output:
 
 ```
 
-Or, if I wonder, "in those rolls, how many times might I see a roll >=6?". For that case, I can include a count operation
-
+Or, if I wonder, "in those rolls, how many times might I see a roll >=6?". For that case, I can include a count
+operation
 
 ```console
 ❯ dart run example/main.dart -s '4d6 #>=6'
@@ -275,17 +280,19 @@ Or, if I wonder, "in those rolls, how many times might I see a roll >=6?". For t
 {mean: 0.665, stddev: 0.747, min: 0, max: 4, count: 10000, histogram: {0: 4840, 1: 3845, 2: 1144, 3: 164, 4: 7}}
 ```
 
-
 # Reacting to dice rolls in your application
 
 If you're using this package within an app, you probably want to display dice-rolling events to the user.
 
-There's a couple ways for you to act on roll results. Depending on your use-case, one or more will hopefully fit your needs.
+There's a couple ways for you to act on roll results. Depending on your use-case, one or more will hopefully fit your
+needs.
 
 ## Traversing the result graph
-Use the 'left' and 'right' fields of each RollResult node to walk the graph. For an example, see [simple.dart](example/simple.dart)
 
-When a dice expression is parsed, it creates a binary tree to evaluate the roll. 
+Use the 'left' and 'right' fields of each RollResult node to walk the graph. For an example,
+see [simple.dart](example/simple.dart)
+
+When a dice expression is parsed, it creates a binary tree to evaluate the roll.
 
 For example, the expression `(3d6 + 3d6!) kh3` means "roll 3d6 and 3d6!, combine results. Keep the 3 highest"
 and it creates a graph like:
@@ -304,7 +311,7 @@ flowchart TD;
     ROLLA(["3d6"]);
 ```
 
-When you roll the dice expression, it traverses the tree from the bottom up and rolls dice or performs the 
+When you roll the dice expression, it traverses the tree from the bottom up and rolls dice or performs the
 requested operations.
 
 ```mermaid
@@ -338,13 +345,15 @@ flowchart TD
     SUMMARY@{ shape: doc, label: "RollSummary<br/><br/>Total: 15 <br/>results:6,5,4<br/><br/>rolled: 2,3,6,4,1,5,2 <br/>discarded: 2,3,1,2" };
 ```
 
-## Convert RollResult to JSON 
+## Convert RollResult to JSON
 
 ```dart
-  Map<String,dynamic> rollResultAsJson = DiceExpression.create('2d20kh').roll().toJson();
+
+Map<String, dynamic> rollResultAsJson = DiceExpression.create('2d20kh').roll().toJson();
 ```
 
-The returned objects will look roughly like: 
+The returned objects will look roughly like:
+
 ```json 
 {
   "expression": "((2d20) kh )",
@@ -396,34 +405,43 @@ The returned objects will look roughly like:
 
 ```
 
-
 ## Listen to RollResult events
 
 You can register one or more listeners that will be informed of roll events.
 There is a default logging listener that logs at FINE level.
+
 ```dart 
 
-    // if you want to listen to every individual operation within the expression
-    DiceExpression.registerListener((rollResult) {
-      stdout.writeln('${rollResult.opType.name} -> $rollResult');
-    });
+// if you want to listen to every individual operation within the expression
+DiceExpression.registerListener
+(
+(rollResult) {
+stdout.writeln('${rollResult.opType.name} -> $rollResult');
+});
 
-    // if you want to listen for the RollSummary
-    DiceExpression.registerSummaryListener((rollSummary) {
-      stdout.writeln('$rollSummary');
-    });
+// if you want to listen for the RollSummary
+DiceExpression.registerSummaryListener((rollSummary) {
+stdout.writeln('$rollSummary');
+});
 
 ```
 
 Alternatively, you may not want to know _all_ roll events, and are only interested in
 the events for your specific roll. In that case, pass an 'onRoll' method to the `roll()` method
-```dart 
-  DiceExpression.create('2d20kh').roll(
-    onRoll: (rr) => stdout.writeln('roll - $rr'),
-    onSummary: (summary) => stdout.writeln('summary - $summary')
-  );
-```
 
+```dart 
+  DiceExpression.create
+('2d20kh
+'
+)
+.roll(
+onRoll: (rr) => stdout.writeln('roll - $rr'),
+onSummary: (summary) => stdout.writeln('summary - $
+summary
+'
+)
+);
+```
 
 # Features and bugs
 

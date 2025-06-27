@@ -17,9 +17,7 @@ void main() {
     staticMockRandom = MockRandom();
     // NOTE: this mocks the random number generator to always return '1'
     //    -- that means the dice-roll is '2' (since rolls are 1-based)
-    when(
-      () => staticMockRandom.nextInt(any()),
-    ).thenReturn(1);
+    when(() => staticMockRandom.nextInt(any())).thenReturn(1);
   });
   void staticRandTest(String name, String input, int expectedTotal) {
     test('$name - $input', () {
@@ -35,7 +33,6 @@ void main() {
     String inputExpr,
     int? expectedTotal, {
     List<int>? expectedResults,
-    RollMetadata? expectedMetadata,
     int? successCount,
     int? failureCount,
     int? critSuccessCount,
@@ -51,63 +48,39 @@ void main() {
         );
       }
       if (expectedResults != null) {
+        final actualResults = rollSummary.results.notDiscarded
+            .map((d) => d.result)
+            .toList();
         expect(
-          rollSummary.results,
-          equals(expectedResults),
+          actualResults,
+          unorderedEquals(expectedResults),
           reason: 'mismatching results',
-        );
-      }
-      if (expectedMetadata != null) {
-        expect(
-          rollSummary.metadata,
-          equals(expectedMetadata),
-          reason: 'mismatching roll metadata',
         );
       }
       if (successCount != null) {
         expect(
-          rollSummary.hasSuccesses,
-          equals(successCount > 0),
-          reason: 'summary missing success',
-        );
-        expect(
-          rollSummary.metadata.score.successCount,
+          rollSummary.successCount,
           equals(successCount),
           reason: 'mismatched success count',
         );
       }
       if (failureCount != null) {
         expect(
-          rollSummary.hasFailures,
-          equals(failureCount > 0),
-          reason: 'summary missing success',
-        );
-        expect(
-          rollSummary.metadata.score.failureCount,
+          rollSummary.failureCount,
           equals(failureCount),
           reason: 'mismatched success count',
         );
       }
       if (critSuccessCount != null) {
         expect(
-          rollSummary.hasCritSuccesses,
-          equals(critSuccessCount > 0),
-          reason: 'summary missing success',
-        );
-        expect(
-          rollSummary.metadata.score.critSuccessCount,
+          rollSummary.critSuccessCount,
           equals(critSuccessCount),
           reason: 'mismatched success count',
         );
       }
       if (critFailureCount != null) {
         expect(
-          rollSummary.hasCritFailures,
-          equals(critFailureCount > 0),
-          reason: 'summary missing success',
-        );
-        expect(
-          rollSummary.metadata.score.critFailureCount,
+          rollSummary.critFailureCount,
           equals(critFailureCount),
           reason: 'mismatched success count',
         );
@@ -142,15 +115,6 @@ void main() {
       '4d6#s#f#cs#cf',
       14,
       expectedResults: const [6, 2, 1, 5],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5],
-        score: RollScore(
-          successes: [6],
-          failures: [1],
-          critSuccesses: [6],
-          critFailures: [1],
-        ),
-      ),
       successCount: 1,
       failureCount: 1,
       critSuccessCount: 1,
@@ -161,13 +125,6 @@ void main() {
       '4d6#s6#f1',
       14,
       expectedResults: const [6, 2, 1, 5],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5],
-        score: RollScore(
-          successes: [6],
-          failures: [1],
-        ),
-      ),
       successCount: 1,
       failureCount: 1,
       critSuccessCount: 0,
@@ -178,13 +135,6 @@ void main() {
       '4d6#s=6#f=1',
       14,
       expectedResults: [6, 2, 1, 5],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5],
-        score: RollScore(
-          successes: [6],
-          failures: [1],
-        ),
-      ),
       successCount: 1,
       failureCount: 1,
       critSuccessCount: 0,
@@ -196,15 +146,6 @@ void main() {
       '4d6#s>4#f<=2#cs>5#cf<2',
       14,
       expectedResults: [6, 2, 1, 5],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5],
-        score: RollScore(
-          successes: [6, 5],
-          failures: [2, 1],
-          critSuccesses: [6],
-          critFailures: [1],
-        ),
-      ),
       successCount: 2,
       failureCount: 2,
       critSuccessCount: 1,
@@ -216,13 +157,8 @@ void main() {
       '4d6#s>=4#f<2',
       14,
       expectedResults: [6, 2, 1, 5],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5],
-        score: RollScore(
-          successes: [6, 5],
-          failures: [1],
-        ),
-      ),
+      successCount: 2,
+      failureCount: 1,
     );
 
     seededRandTest(
@@ -230,27 +166,17 @@ void main() {
       '4d6#s<2#f>5',
       14,
       expectedResults: [6, 2, 1, 5],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5],
-        score: RollScore(
-          successes: [1],
-          failures: [6],
-        ),
-      ),
+      successCount: 1,
+      failureCount: 1,
     );
     seededRandTest(
       'critical success is also a success',
       '4d6 #s>=5 #cs=6 #f=1',
       14,
       expectedResults: [6, 2, 1, 5],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5],
-        score: RollScore(
-          successes: [6, 5],
-          failures: [1],
-          critSuccesses: [6],
-        ),
-      ),
+      failureCount: 1,
+      successCount: 2,
+      critSuccessCount: 1,
     );
 
     seededRandTest(
@@ -258,15 +184,10 @@ void main() {
       '4d6 #s>=5 #cs=6 #f<=2 #cf',
       14,
       expectedResults: [6, 2, 1, 5],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5],
-        score: RollScore(
-          successes: [6, 5],
-          failures: [2, 1],
-          critSuccesses: [6],
-          critFailures: [1],
-        ),
-      ),
+      successCount: 2,
+      failureCount: 2,
+      critSuccessCount: 1,
+      critFailureCount: 1,
     );
   });
 
@@ -328,10 +249,7 @@ void main() {
     ];
     for (final v in invalids) {
       test('invalid count - $v', () {
-        expect(
-          () => DiceExpression.create(v).roll(),
-          throwsFormatException,
-        );
+        expect(() => DiceExpression.create(v).roll(), throwsFormatException);
       });
     }
   });
@@ -409,41 +327,31 @@ void main() {
           summaries.add(rs);
         },
       );
-      const rrRoll = RollResult(
+      final rrRoll = RollResult(
         expression: '(2d6)',
         opType: OpType.rollDice,
-        nsides: 6,
-        ndice: 2,
-        results: [2, 6],
-        metadata: RollMetadata(
-          rolled: [2, 6],
-        ),
+        results: [
+          RolledDie.polyhedral(result: 6, nsides: 6),
+          RolledDie.polyhedral(result: 2, nsides: 6),
+        ],
       );
-      const rrDrop = RollResult(
+      final rrDrop = RollResult(
         expression: '((2d6) kh )',
         opType: OpType.drop,
-        nsides: 6,
-        ndice: 2,
-        results: [6],
-        metadata: RollMetadata(
-          discarded: [2],
-        ),
+        results: [
+          RolledDie.polyhedral(result: 6, nsides: 6),
+          const RolledDie(
+            result: 2,
+            nsides: 6,
+            dieType: DieType.polyhedral,
+            discarded: true,
+          ),
+        ],
         left: rrRoll,
       );
       final expectedSummary = RollSummary(detailedResults: rrDrop);
-      expect(
-        results,
-        equals([
-          rrRoll,
-          rrDrop,
-        ]),
-      );
-      expect(
-        summaries,
-        equals([
-          expectedSummary,
-        ]),
-      );
+      expect(results, equals([rrRoll, rrDrop]));
+      expect(summaries, equals([expectedSummary]));
     });
   });
 
@@ -485,13 +393,7 @@ void main() {
       '(((10d6 r=3)kh2 #s>5)#f<2)+2',
       14,
       expectedResults: [6, 6, 2],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5, 3, 5, 1, 4, 6, 5, 6],
-        discarded: [3, 6, 5, 5, 5, 4, 2, 1, 1],
-        score: RollScore(
-          successes: [6, 6],
-        ),
-      ),
+      successCount: 2,
     );
 
     seededRandTest(
@@ -499,14 +401,8 @@ void main() {
       '(4d6#s<=2#f>=5) + 1',
       15,
       expectedResults: [6, 2, 1, 5, 1],
-      expectedMetadata: const RollMetadata(
-        rolled: [6, 2, 1, 5],
-        score: RollScore(
-          // `+ 1` isn't included in success, since it's after parens
-          successes: [2, 1],
-          failures: [6, 5],
-        ),
-      ),
+      successCount: 2,
+      failureCount: 2,
     );
 
     seededRandTest(
@@ -514,10 +410,6 @@ void main() {
       '(((4d6 kh3) + (4d6 kh2))kh3)',
       16,
       expectedResults: [6, 5, 5],
-      expectedMetadata: const RollMetadata(
-        rolled: [1, 2, 5, 6, 1, 3, 4, 5],
-        discarded: [1, 3, 1, 4, 2],
-      ),
     );
   });
 
@@ -628,11 +520,7 @@ void main() {
     seededRandTest('differing nsides addition', '4dF + 6dF', 2);
     // fudge dice can be added to [1, -1, -1, 1]
     seededRandTest('differing nsides addition', '4dF + 1', 1);
-    seededRandTest(
-      'fudge add to d6',
-      '4d6+4dF',
-      14,
-    );
+    seededRandTest('fudge add to d6', '4d6+4dF', 14);
     seededRandTest('fudge add to d6', '4dF+4d6', 13);
 
     test('multiple rolls is multiple results', () {
@@ -659,15 +547,15 @@ void main() {
         throwsFormatException,
       );
     });
-    final invalids = [
-      '4!',
-      '4dF!',
-      '4dF!!',
-      '4dFr',
-      '4D66!',
-      '4D66!!',
-      '4D66 r',
-    ];
+
+    seededRandTest('no-op explode', '4!', 4);
+    seededRandTest('no-op compound', '4!!', 4);
+
+    seededRandTest('no-op explode', '4dF!', 0);
+    seededRandTest('no-op compound', '4dF!!', 0);
+    seededRandTest('no-op explode', '4d66!', 128);
+    seededRandTest('no-op compound', '4d66!!', 128);
+    final invalids = ['4dFr', '4D66 r'];
     for (final i in invalids) {
       test('invalid - $i', () {
         expect(
@@ -687,7 +575,7 @@ void main() {
       expect(
         out,
         equals(
-          '(((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {rolled: [6, 2, 1, 5, 3, 5, 1, 4, 6], score: {successes: [6, 6], failures: [1, 1], critSuccesses: [6, 6], critFailures: [1, 1]}})',
+          '(((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [1(d6)✗❌, 1(d6)✗❌, 6(d6)✓✅, 6(d6)✓✅, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)], successCount: 2, failureCount: 2, critSuccessCount: 2, critFailureCount: 2)',
         ),
       );
     });
@@ -702,18 +590,18 @@ void main() {
         out,
         equals(
           '''
-(((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {rolled: [6, 2, 1, 5, 3, 5, 1, 4, 6], score: {successes: [6, 6], failures: [1, 1], critSuccesses: [6, 6], critFailures: [1, 1]}})
-  (((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) =count=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {score: {failures: [1, 1]}})
-      ((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) =count=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {score: {successes: [6, 6]}})
-          (((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) =count=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {score: {critFailures: [1, 1]}})
-              ((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) =count=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6], metadata: {score: {critSuccesses: [6, 6]}})
-                  (((4d(3 + 3)) ! ) + ((2 + 2)d6)) =add=> RollResult(total: 33, results: [6, 2, 1, 5, 3, 5, 1, 4, 6])
-                      ((4d(3 + 3)) ! ) =explode=> RollResult(total: 17, results: [6, 2, 1, 5, 3], metadata: {rolled: [3]})
-                          (4d(3 + 3)) =rollDice=> RollResult(total: 14, results: [6, 2, 1, 5], metadata: {rolled: [6, 2, 1, 5]})
+(((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [1(d6)✗❌, 1(d6)✗❌, 6(d6)✓✅, 6(d6)✓✅, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)], successCount: 2, failureCount: 2, critSuccessCount: 2, critFailureCount: 2)
+  (((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) =count=> RollResult(total: 33, results: [1(d6)✗❌, 1(d6)✗❌, 6(d6)✓✅, 6(d6)✓✅, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)])
+      ((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) =count=> RollResult(total: 33, results: [6(d6)✓✅, 6(d6)✓✅, 1(d6)❌, 1(d6)❌, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)])
+          (((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) =count=> RollResult(total: 33, results: [1(d6)❌, 1(d6)❌, 6(d6)✅, 6(d6)✅, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)])
+              ((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) =count=> RollResult(total: 33, results: [6(d6)✅, 6(d6)✅, 2(d6), 1(d6), 5(d6), 3(d6)🔥, 5(d6), 1(d6), 4(d6)])
+                  (((4d(3 + 3)) ! ) + ((2 + 2)d6)) =add=> RollResult(total: 33, results: [6(d6), 2(d6), 1(d6), 5(d6), 3(d6)🔥, 5(d6), 1(d6), 4(d6), 6(d6)])
+                      ((4d(3 + 3)) ! ) =explode=> RollResult(total: 17, results: [6(d6), 2(d6), 1(d6), 5(d6), 3(d6)🔥])
+                          (4d(3 + 3)) =rollDice=> RollResult(total: 14, results: [6(d6), 2(d6), 1(d6), 5(d6)])
                               (3 + 3) =add=> RollResult(total: 6, results: [3, 3])
-                      ((2 + 2)d6) =rollDice=> RollResult(total: 16, results: [5, 1, 4, 6], metadata: {rolled: [5, 1, 4, 6]})
+                      ((2 + 2)d6) =rollDice=> RollResult(total: 16, results: [5(d6), 1(d6), 4(d6), 6(d6)])
                           (2 + 2) =add=> RollResult(total: 4, results: [2, 2])
-        '''
+          '''
               .trim(),
         ),
       );
@@ -727,86 +615,116 @@ void main() {
         equals({
           'expression': '(4d6)',
           'total': 14,
-          'results': [6, 2, 1, 5],
+          'results': [
+            {'result': 6, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+          ],
           'detailedResults': {
             'expression': '(4d6)',
             'opType': 'rollDice',
-            'nsides': 6,
-            'ndice': 4,
-            'results': [6, 2, 1, 5],
-            'metadata': {
-              'rolled': [6, 2, 1, 5],
-            },
-          },
-          'metadata': {
-            'rolled': [6, 2, 1, 5],
+            'results': [
+              {'result': 6, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+            ],
+            'total': 14,
           },
         }),
       );
     });
 
-    test('toJson - metadata', () {
+    test('toJson - with scoring', () {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create('4d6 #cf #cs', seededRandom);
       final obj = dice.roll().toJson();
       expect(
         obj,
-        equals(
-          {
-            'expression': '(((4d6) #cf ) #cs )',
-            'total': 14,
-            'results': [6, 2, 1, 5],
-            'detailedResults': {
-              'expression': '(((4d6) #cf ) #cs )',
-              'opType': 'count',
+        equals({
+          'expression': '(((4d6) #cf ) #cs )',
+          'total': 14,
+          'critSuccessCount': 1,
+          'critFailureCount': 1,
+          'results': [
+            {
+              'result': 6,
               'nsides': 6,
-              'ndice': 4,
-              'results': [6, 2, 1, 5],
-              'metadata': {
-                'score': {
-                  'critSuccesses': [6],
-                },
-              },
-              'left': {
-                'expression': '((4d6) #cf )',
-                'opType': 'count',
+              'dieType': 'polyhedral',
+              'critSuccess': true,
+            },
+            {
+              'result': 1,
+              'nsides': 6,
+              'dieType': 'polyhedral',
+              'critFailure': true,
+            },
+            {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+          ],
+          'detailedResults': {
+            'expression': '(((4d6) #cf ) #cs )',
+            'opType': 'count',
+            'results': [
+              {
+                'result': 6,
                 'nsides': 6,
-                'ndice': 4,
-                'results': [6, 2, 1, 5],
-                'metadata': {
-                  'score': {
-                    'critFailures': [1],
-                  },
-                },
-                'left': {
-                  'expression': '(4d6)',
-                  'opType': 'rollDice',
+                'dieType': 'polyhedral',
+                'critSuccess': true,
+              },
+              {
+                'result': 1,
+                'nsides': 6,
+                'dieType': 'polyhedral',
+                'critFailure': true,
+              },
+              {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+            ],
+            'left': {
+              'expression': '((4d6) #cf )',
+              'opType': 'count',
+              'results': [
+                {
+                  'result': 1,
                   'nsides': 6,
-                  'ndice': 4,
-                  'results': [6, 2, 1, 5],
-                  'metadata': {
-                    'rolled': [6, 2, 1, 5],
-                  },
+                  'dieType': 'polyhedral',
+                  'critFailure': true,
                 },
+                {'result': 6, 'nsides': 6, 'dieType': 'polyhedral'},
+                {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+                {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+              ],
+              'left': {
+                'expression': '(4d6)',
+                'opType': 'rollDice',
+                'results': [
+                  {'result': 6, 'nsides': 6, 'dieType': 'polyhedral'},
+                  {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+                  {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+                  {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+                ],
+                'total': 14,
               },
+              'total': 14,
+              'critFailureCount': 1,
             },
-            'metadata': {
-              'rolled': [6, 2, 1, 5],
-              'score': {
-                'critSuccesses': [6],
-                'critFailures': [1],
-              },
-            },
+            'total': 14,
+            'critSuccessCount': 1,
+            'critFailureCount': 1,
           },
-        ),
+        }),
       );
     });
 
     test('rollN test', () async {
       final dice = DiceExpression.create('2d6', seededRandom);
 
-      final results =
-          await dice.rollN(2).map((result) => result.total).toList();
+      final results = await dice
+          .rollN(2)
+          .map((result) => result.total)
+          .toList();
       // mocked responses should return rolls of 6, 2, 1, 5
       expect(results, equals([8, 6]));
     });
