@@ -23,7 +23,7 @@ class SimpleValue extends DiceExpression {
   final RollResult _results;
 
   @override
-  RollResult call() => _results;
+  Future<RollResult> call() async => _results;
 
   @override
   String toString() => value;
@@ -34,11 +34,11 @@ class SimpleValue extends DiceExpression {
 /// The `eval()` method is called from the node
 abstract class DiceOp extends DiceExpression with LoggingMixin {
   // each child class should override this to implement their operation
-  RollResult eval();
+  Future<RollResult> eval();
 
   // all children can share this call operator -- and it'll let us be consistent w/ regard to logging
   @override
-  RollResult call() {
+  Future<RollResult> call() {
     final result = eval();
     logger.finer(() => '$result');
     return result;
@@ -73,7 +73,10 @@ class MultiplyOp extends Binary {
   MultiplyOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() => left() * right();
+  Future<RollResult> eval() async {
+    final results = await Future.wait([left(), right()]);
+    return results[0] * results[1];
+  }
 }
 
 /// add operation
@@ -81,7 +84,10 @@ class AddOp extends Binary {
   AddOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() => left() + right();
+  Future<RollResult> eval() async {
+    final results = await Future.wait([left(), right()]);
+    return results[0] + results[1];
+  }
 }
 
 /// subtraction operation
@@ -89,7 +95,10 @@ class SubOp extends Binary {
   SubOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() => left() - right();
+  Future<RollResult> eval() async {
+    final results = await Future.wait([left(), right()]);
+    return results[0] - results[1];
+  }
 }
 
 /// variation on count -- count how many results from lhs are =,<,> rhs.
@@ -116,12 +125,15 @@ class CountOp extends Binary {
   CountType countType;
 
   @override
-  RollResult eval() {
+  Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
+    final leftRight = await Future.wait([lhs, rhs]);
+    final finalLeft = leftRight[0];
+    final finalRight = leftRight[1];
 
     var rhsEmptyAndSimpleCount = false;
-    final target = rhs.totalOrDefault(
+    final target = finalRight.totalOrDefault(
       () {
         // if missing RHS, we can make assumptions depending on operator.
         //
@@ -132,7 +144,7 @@ class CountOp extends Binary {
             return 0;
           case '#s' || '#cs':
             // example: '3d6#s' -- assume target is nsides (maximum)
-            return lhs.nsides;
+            return finalLeft.nsides;
           case '#f' || '#cf':
             // example: '3d6#f' -- assume target is 1 (minimum)
             return 1;
@@ -181,7 +193,7 @@ class CountOp extends Binary {
       }
     }
 
-    final filteredResults = lhs.results.where(test);
+    final filteredResults = finalLeft.results.where(test);
 
     if (countType == CountType.count) {
       // if counting, the count becomes the new result
@@ -190,28 +202,28 @@ class CountOp extends Binary {
         expression: toString(),
         opType: OpType.count,
         metadata: RollMetadata(
-          discarded: lhs.results,
+          discarded: finalLeft.results,
         ),
         results: [filteredResults.length],
-        ndice: lhs.ndice,
-        nsides: lhs.nsides,
-        left: lhs,
-        right: rhs,
+        ndice: finalLeft.ndice,
+        nsides: finalLeft.nsides,
+        left: finalLeft,
+        right: finalRight,
       );
     } else {
       // if counting success/failures, the results are unchanged
 
       return RollResult(
         expression: toString(),
-        results: lhs.results,
+        results: finalLeft.results,
         opType: OpType.count,
         metadata: RollMetadata(
           score: RollScore.forCountType(countType, List.of(filteredResults)),
         ),
-        ndice: lhs.ndice,
-        nsides: lhs.nsides,
-        left: lhs,
-        right: rhs,
+        ndice: finalLeft.ndice,
+        nsides: finalLeft.nsides,
+        left: finalLeft,
+        right: finalRight,
       );
     }
   }
@@ -222,11 +234,15 @@ class DropOp extends Binary {
   DropOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
+  Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
 
-    final target = rhs.totalOrDefault(() {
+    final leftRight = await Future.wait([lhs, rhs]);
+    final finalLeft = leftRight[0];
+    final finalRight = leftRight[1];
+
+    final target = finalRight.totalOrDefault(() {
       throw FormatException(
         'Invalid drop operation. Missing drop target',
         toString(),
@@ -238,20 +254,20 @@ class DropOp extends Binary {
     var dropped = <int>[];
     switch (name) {
       case '-<': // drop <
-        results = lhs.results.where((v) => v >= target).toList();
-        dropped = lhs.results.where((v) => v < target).toList();
+        results = finalLeft.results.where((v) => v >= target).toList();
+        dropped = finalLeft.results.where((v) => v < target).toList();
       case '-<=': // drop <=
-        results = lhs.results.where((v) => v > target).toList();
-        dropped = lhs.results.where((v) => v <= target).toList();
+        results = finalLeft.results.where((v) => v > target).toList();
+        dropped = finalLeft.results.where((v) => v <= target).toList();
       case '->': // drop >
-        results = lhs.results.where((v) => v <= target).toList();
-        dropped = lhs.results.where((v) => v > target).toList();
+        results = finalLeft.results.where((v) => v <= target).toList();
+        dropped = finalLeft.results.where((v) => v > target).toList();
       case '->=': // drop >=
-        results = lhs.results.where((v) => v < target).toList();
-        dropped = lhs.results.where((v) => v >= target).toList();
+        results = finalLeft.results.where((v) => v < target).toList();
+        dropped = finalLeft.results.where((v) => v >= target).toList();
       case '-=': // drop =
-        results = lhs.results.where((v) => v != target).toList();
-        dropped = lhs.results.where((v) => v == target).toList();
+        results = finalLeft.results.where((v) => v != target).toList();
+        dropped = finalLeft.results.where((v) => v == target).toList();
       default:
         throw FormatException(
           "unknown drop operation '$name'",
@@ -263,14 +279,14 @@ class DropOp extends Binary {
     return RollResult(
       expression: toString(),
       opType: OpType.drop,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
+      ndice: finalLeft.ndice,
+      nsides: finalLeft.nsides,
       results: results,
       metadata: RollMetadata(
         discarded: dropped,
       ),
-      left: lhs,
-      right: rhs,
+      left: finalLeft,
+      right: finalRight,
     );
   }
 }
@@ -280,11 +296,17 @@ class DropHighLowOp extends Binary {
   DropHighLowOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
+  Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
-    final sorted = lhs.results..sort();
-    final numToDrop = rhs.totalOrDefault(() => 1); // if missing, assume '1'
+
+    final leftRight = await Future.wait([lhs, rhs]);
+    final finalLeft = leftRight[0];
+    final finalRight = leftRight[1];
+
+    final sorted = finalLeft.results..sort();
+    final numToDrop =
+        finalRight.totalOrDefault(() => 1); // if missing, assume '1'
     var results = <int>[];
     var dropped = <int>[];
     switch (name) {
@@ -313,14 +335,14 @@ class DropHighLowOp extends Binary {
     return RollResult(
       expression: toString(),
       opType: OpType.drop,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
+      ndice: finalLeft.ndice,
+      nsides: finalLeft.nsides,
       results: results,
       metadata: RollMetadata(
         discarded: dropped,
       ),
-      left: lhs,
-      right: rhs,
+      left: finalLeft,
+      right: finalRight,
     );
   }
 }
@@ -330,10 +352,15 @@ class ClampOp extends Binary {
   ClampOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
+  Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
-    final target = rhs.totalOrDefault(() {
+
+    final leftRight = await Future.wait([lhs, rhs]);
+    final finalLeft = leftRight[0];
+    final finalRight = leftRight[1];
+
+    final target = finalRight.totalOrDefault(() {
       throw FormatException(
         'Invalid clamp operation. Missing clamp target',
         toString(),
@@ -346,7 +373,7 @@ class ClampOp extends Binary {
     final added = <int>[];
     switch (name) {
       case 'c>': // change any value > rhs to rhs
-        results = lhs.results.map((v) {
+        results = finalLeft.results.map((v) {
           if (v > target) {
             discarded.add(v);
             added.add(target);
@@ -356,7 +383,7 @@ class ClampOp extends Binary {
           }
         }).toList();
       case 'c<': // change any value < rhs to rhs
-        results = lhs.results.map((v) {
+        results = finalLeft.results.map((v) {
           if (v < target) {
             discarded.add(v);
             added.add(target);
@@ -375,15 +402,15 @@ class ClampOp extends Binary {
     return RollResult(
       expression: toString(),
       opType: OpType.clamp,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
+      ndice: finalLeft.ndice,
+      nsides: finalLeft.nsides,
       results: results,
       metadata: RollMetadata(
         discarded: discarded,
         rolled: added,
       ),
-      left: lhs,
-      right: rhs,
+      left: finalLeft,
+      right: finalRight,
     );
   }
 }
@@ -410,8 +437,8 @@ class FudgeDice extends UnaryDice {
   FudgeDice(super.name, super.left, super.roller);
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     final ndice = lhs.totalOrDefault(() => 1);
 
     // redundant w/ RangeError checks in the DiceRoller. But we can construct better error messages here.
@@ -422,7 +449,7 @@ class FudgeDice extends UnaryDice {
         left.toString().length,
       );
     }
-    final roll = roller.rollFudge(ndice);
+    final roll = await roller.rollFudge(ndice);
     return RollResult.fromRollResult(
       roll,
       expression: toString(),
@@ -444,11 +471,12 @@ class CSVDice extends UnaryDice {
   String toString() => '(${left}d${vals.elements})';
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     final ndice = lhs.totalOrDefault(() => 1);
 
-    final roll = roller.rollVals(ndice, vals.elements.map(int.parse).toList());
+    final roll =
+        await roller.rollVals(ndice, vals.elements.map(int.parse).toList());
 
     return RollResult.fromRollResult(
       roll,
@@ -464,11 +492,11 @@ class PercentDice extends UnaryDice {
   PercentDice(super.name, super.left, super.roller);
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     const nsides = 100;
     final ndice = lhs.totalOrDefault(() => 1);
-    final roll = roller.roll(ndice, nsides);
+    final roll = await roller.roll(ndice, nsides);
     return RollResult.fromRollResult(
       roll,
       expression: toString(),
@@ -486,13 +514,18 @@ class D66Dice extends UnaryDice {
   D66Dice(super.name, super.left, super.roller);
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     final ndice = lhs.totalOrDefault(() => 1);
-    final results = [
-      for (var i = 0; i < ndice; i++)
-        roller.roll(1, 6).results.sum * 10 + roller.roll(1, 6).results.sum,
-    ];
+    // Roll all dice at once, then compute D66 values.
+    final tensRolls =
+        await Future.wait(List.generate(ndice, (_) => roller.roll(1, 6)));
+    final onesRolls =
+        await Future.wait(List.generate(ndice, (_) => roller.roll(1, 6)));
+    final results = List.generate(
+      ndice,
+      (i) => tensRolls[i].results.sum * 10 + onesRolls[i].results.sum,
+    );
     return RollResult(
       expression: toString(),
       opType: OpType.rollD66,
@@ -514,11 +547,16 @@ class StdDice extends BinaryDice {
   String toString() => '($left$name$right)';
 
   @override
-  RollResult eval() {
+  Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
-    final ndice = lhs.totalOrDefault(() => 1);
-    final nsides = rhs.totalOrDefault(() => 1);
+
+    final leftRight = await Future.wait([lhs, rhs]);
+    final finalLeft = leftRight[0];
+    final finalRight = leftRight[1];
+
+    final ndice = finalLeft.totalOrDefault(() => 1);
+    final nsides = finalRight.totalOrDefault(() => 1);
 
     // redundant w/ RangeError checks in the DiceRoller. But we can construct better error messages here.
     if (ndice < DiceRoller.minDice || ndice > DiceRoller.maxDice) {
@@ -535,7 +573,7 @@ class StdDice extends BinaryDice {
         left.toString().length + name.length + 1,
       );
     }
-    final roll = roller.roll(ndice, nsides);
+    final roll = await roller.roll(ndice, nsides);
     return RollResult.fromRollResult(
       roll,
       expression: toString(),
@@ -543,8 +581,8 @@ class StdDice extends BinaryDice {
       metadata: RollMetadata(
         rolled: roll.results,
       ),
-      left: lhs,
-      right: rhs,
+      left: finalLeft,
+      right: finalRight,
     );
   }
 }
@@ -565,18 +603,22 @@ class RerollDice extends BinaryDice {
   int limit;
 
   @override
-  RollResult eval() {
+  Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
 
-    if (lhs.nsides == 0) {
+    final leftRight = await Future.wait([lhs, rhs]);
+    final finalLeft = leftRight[0];
+    final finalRight = leftRight[1];
+
+    if (finalLeft.nsides == 0) {
       throw FormatException(
         "Invalid reroll operation. Cannot determine # sides from '$left'",
         toString(),
         left.toString().length,
       );
     }
-    final target = rhs.totalOrDefault(() {
+    final target = finalRight.totalOrDefault(() {
       throw FormatException(
         'Invalid reroll operation. Missing reroll target',
         toString(),
@@ -608,37 +650,57 @@ class RerollDice extends BinaryDice {
       }
     }
 
-    lhs.results.forEachIndexed((i, v) {
+    // Prepare a list of futures for all rerolls that need to be performed.
+    final rerollFutures = <Future<int>>[];
+    final rerollIndices = <int>[];
+
+    for (var i = 0; i < finalLeft.results.length; i++) {
+      final v = finalLeft.results[i];
       if (test(v)) {
-        int rerolled;
-        var rerollCount = 0;
-        do {
-          rerolled = roller
-              .roll(1, lhs.nsides, '(reroll ind $i,  #$rerollCount)')
+        // Schedule reroll for this index.
+        rerollIndices.add(i);
+        // Chain rerolls up to the limit.
+        Future<int> rerollFuture(int rerollCount, int lastValue) async {
+          if (rerollCount >= limit || !test(lastValue)) return lastValue;
+          final rerolled = (await roller.roll(
+                  1, finalLeft.nsides, '(reroll ind $i,  #$rerollCount)'))
               .results
               .sum;
-          rerollCount++;
-        } while (test(rerolled) && rerollCount < limit);
+          return rerollFuture(rerollCount + 1, rerolled);
+        }
+
+        rerollFutures.add(rerollFuture(0, v));
+      }
+    }
+
+    // Await all rerolls in parallel.
+    final rerolledValues = await Future.wait(rerollFutures);
+
+    int rerollIdx = 0;
+    for (var i = 0; i < finalLeft.results.length; i++) {
+      final v = finalLeft.results[i];
+      if (test(v)) {
+        final rerolled = rerolledValues[rerollIdx++];
         results.add(rerolled);
         discarded.add(v);
         added.add(rerolled);
       } else {
         results.add(v);
       }
-    });
+    }
 
     return RollResult(
       expression: toString(),
       opType: OpType.reroll,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
+      ndice: finalLeft.ndice,
+      nsides: finalLeft.nsides,
       results: results,
       metadata: RollMetadata(
         rolled: added,
         discarded: discarded,
       ),
-      left: lhs,
-      right: rhs,
+      left: finalLeft,
+      right: finalRight,
     );
   }
 }
@@ -659,18 +721,22 @@ class CompoundingDice extends BinaryDice {
   int limit;
 
   @override
-  RollResult eval() {
+  Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
 
-    if (lhs.nsides == 0) {
+    final leftRight = await Future.wait([lhs, rhs]);
+    final finalLeft = leftRight[0];
+    final finalRight = leftRight[1];
+
+    if (finalLeft.nsides == 0) {
       throw FormatException(
         "Invalid compounding operation. Cannot determine # sides from '$left'",
         toString(),
         left.toString().length,
       );
     }
-    final target = rhs.totalOrDefault(() => lhs.nsides);
+    final target = finalRight.totalOrDefault(() => finalLeft.nsides);
     bool test(int val) {
       switch (name) {
         case '!!' || '!!=' || '!!o' || '!!o=':
@@ -695,39 +761,57 @@ class CompoundingDice extends BinaryDice {
     final results = <int>[];
     final discarded = <int>[];
     final added = <int>[];
-    lhs.results.forEachIndexed((i, v) {
+    // Prepare a list of compound roll futures for all dice that need compounding.
+    final compoundFutures = <Future<int>>[];
+    final compoundIndices = <int>[];
+
+    for (var i = 0; i < finalLeft.results.length; i++) {
+      final v = finalLeft.results[i];
       if (test(v)) {
-        var sum = v;
-        int rerolled;
-        var numCompounded = 0;
-        do {
-          rerolled = roller
-              .roll(1, lhs.nsides, '(compound ind $i,  #$numCompounded)')
+        compoundIndices.add(i);
+        // Chain compounding rolls up to the limit.
+        Future<int> compoundFuture(
+            int compoundCount, int sum, int lastValue) async {
+          if (compoundCount >= limit || !test(lastValue)) return sum;
+          final rolled = (await roller.roll(
+                  1, finalLeft.nsides, '(compound ind $i,  #$compoundCount)'))
               .results
               .sum;
-          sum += rerolled;
-          numCompounded++;
-        } while (test(rerolled) && numCompounded < limit);
-        results.add(sum);
+          return compoundFuture(compoundCount + 1, sum + rolled, rolled);
+        }
+
+        compoundFutures.add(compoundFuture(0, v, v));
+      }
+    }
+
+    // Await all compounding rolls in parallel.
+    final compoundedValues = await Future.wait(compoundFutures);
+
+    int compoundIdx = 0;
+    for (var i = 0; i < finalLeft.results.length; i++) {
+      final v = finalLeft.results[i];
+      if (test(v)) {
+        final compounded = compoundedValues[compoundIdx++];
+        results.add(compounded);
         discarded.add(v);
-        added.add(sum);
+        added.add(compounded);
       } else {
         results.add(v);
       }
-    });
+    }
 
     return RollResult(
       expression: toString(),
       opType: OpType.compound,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
+      ndice: finalLeft.ndice,
+      nsides: finalLeft.nsides,
       results: results,
       metadata: RollMetadata(
         rolled: added,
         discarded: discarded,
       ),
-      left: lhs,
-      right: rhs,
+      left: finalLeft,
+      right: finalRight,
     );
   }
 }
@@ -748,18 +832,22 @@ class ExplodingDice extends BinaryDice {
   int limit;
 
   @override
-  RollResult eval() {
+  Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
 
-    if (lhs.nsides == 0) {
+    final leftRight = await Future.wait([lhs, rhs]);
+    final finalLeft = leftRight[0];
+    final finalRight = leftRight[1];
+
+    if (finalLeft.nsides == 0) {
       throw FormatException(
         "Invalid exploding operation. Cannot determine # sides from '$left'",
         toString(),
         left.toString().length,
       );
     }
-    final target = rhs.totalOrDefault(() => lhs.nsides);
+    final target = finalRight.totalOrDefault(() => finalLeft.nsides);
 
     final allResults = <int>[];
     final newResults = <int>[];
@@ -785,15 +873,17 @@ class ExplodingDice extends BinaryDice {
       }
     }
 
-    allResults.addAll(lhs.results);
-    var numToRoll = lhs.results.where(test).length;
+    allResults.addAll(finalLeft.results);
+    var numToRoll = finalLeft.results.where(test).length;
     var explodeCount = 0;
     while (numToRoll > 0 && explodeCount < limit) {
-      final results = roller.roll(
+      // Roll all dice for this explosion round in parallel
+      final rollFuture = roller.roll(
         numToRoll,
-        lhs.nsides,
+        finalLeft.nsides,
         '(explode #${explodeCount + 1})',
       );
+      final results = await rollFuture;
       newResults.addAll(results.results);
       numToRoll = results.results.where(test).length;
       explodeCount++;
@@ -803,12 +893,12 @@ class ExplodingDice extends BinaryDice {
     return RollResult(
       expression: toString(),
       opType: OpType.explode,
-      ndice: lhs.ndice,
-      nsides: lhs.nsides,
+      ndice: finalLeft.ndice,
+      nsides: finalLeft.nsides,
       results: allResults,
       metadata: RollMetadata(rolled: newResults),
-      left: lhs,
-      right: rhs,
+      left: finalLeft,
+      right: finalRight,
     );
   }
 }

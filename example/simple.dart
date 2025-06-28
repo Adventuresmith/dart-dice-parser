@@ -22,11 +22,11 @@ Future<void> main() async {
   //
   // The following example uses a seeded RNG so that results are the same on every run (so that the asserts below won't fail)
   //
-  final d20adv = DiceExpression.create('4d20 kh2 #cf #cs', Random(4321));
+  final d20adv = DiceExpression.create('4d20 kh2 #cf #cs', diceRoller: DefaultDiceRoller(Random(4321)));
 
   // repeated rolls of the dice expression generate different results
-  final result1 = d20adv.roll();
-  final result2 = d20adv.roll();
+  final result1 = await d20adv.roll();
+  final result2 = await d20adv.roll();
 
   stdout.writeln(result1);
   stdout.writeln(result2);
@@ -100,7 +100,7 @@ Future<void> main() async {
     ),
   );
 
-  final stats = await DiceExpression.create('2d6', Random(1234)).stats();
+  final stats = await DiceExpression.create('2d6', diceRoller: DefaultDiceRoller(Random(1234))).stats();
   // output:
   //   {mean: 6.99, stddev: 2.4, min: 2, max: 12, count: 1000, histogram: {2: 27, 3: 56, 4: 90, 5: 98, 6: 138, 7: 180, 8: 141, 9: 109, 10: 80, 11: 51, 12: 30}}
   stdout.writeln(stats);
