@@ -334,7 +334,7 @@ void main() {
     for (final v in invalids) {
       test('invalid count - $v', () {
         expect(
-          () => DiceExpression.create(v).roll(),
+          () async => DiceExpression.create(v).roll(),
           throwsFormatException,
         );
       });
@@ -404,12 +404,12 @@ void main() {
   });
 
   group('listeners', () {
-    test('basic', () {
+    test('basic', () async {
       final dice = DiceExpression.create('2d6 kh',
           diceRoller: DefaultDiceRoller(seededRandom));
       final results = <RollResult>[];
       final summaries = <RollSummary>[];
-      dice.roll(
+      await dice.roll(
         onRoll: (rr) {
           results.add(rr);
         },
@@ -652,9 +652,9 @@ void main() {
       expect((await dice.roll()).total, 6);
     });
 
-    test('create dice with real random', () {
+    test('create dice with real random', () async {
       final dice = DiceExpression.create('10d100');
-      final result1 = dice.roll();
+      final result1 = await dice.roll();
       // result will never be zero -- this test is verifying creating the expr & doing roll
       expect(result1, isNot(0));
     });
@@ -693,13 +693,13 @@ void main() {
       });
     }
 
-    test('toString', () {
+    test('toString', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create(
         '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f',
         diceRoller: DefaultDiceRoller(seededRandom),
       );
-      final out = dice.roll().toString();
+      final out = (await dice.roll()).toString();
       expect(
         out,
         equals(
