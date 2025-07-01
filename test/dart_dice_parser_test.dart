@@ -48,9 +48,7 @@ void main() {
         );
       }
       if (expectedResults != null) {
-        final actualResults = rollSummary.results.notDiscarded
-            .map((d) => d.result)
-            .toList();
+        final actualResults = rollSummary.results.map((d) => d.result).toList();
         expect(
           actualResults,
           unorderedEquals(expectedResults),
@@ -338,9 +336,9 @@ void main() {
       final rrDrop = RollResult(
         expression: '((2d6) kh )',
         opType: OpType.drop,
-        results: [
-          RolledDie.polyhedral(result: 6, nsides: 6),
-          const RolledDie(
+        results: [RolledDie.polyhedral(result: 6, nsides: 6)],
+        discarded: const [
+          RolledDie(
             result: 2,
             nsides: 6,
             dieType: DieType.polyhedral,
@@ -574,8 +572,8 @@ void main() {
       final out = dice.roll().toString();
       expect(
         out,
-        equals(
-          '(((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [1(d6)✗❌, 1(d6)✗❌, 6(d6)✓✅, 6(d6)✓✅, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)], successCount: 2, failureCount: 2, critSuccessCount: 2, critFailureCount: 2)',
+        equalsIgnoringWhitespace(
+          '(((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [1(d6✗❌), 1(d6✗❌), 6(d6💣✓✅), 6(d6✓✅), 3(d6🔥), 2(d6), 5(d6), 5(d6), 4(d6)], successCount: 2, failureCount: 2, critSuccessCount: 2, critFailureCount: 2)',
         ),
       );
     });
@@ -588,19 +586,19 @@ void main() {
       final out = dice.roll().toStringPretty();
       expect(
         out,
-        equals(
+        equalsIgnoringWhitespace(
           '''
-(((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [1(d6)✗❌, 1(d6)✗❌, 6(d6)✓✅, 6(d6)✓✅, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)], successCount: 2, failureCount: 2, critSuccessCount: 2, critFailureCount: 2)
-  (((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) =count=> RollResult(total: 33, results: [1(d6)✗❌, 1(d6)✗❌, 6(d6)✓✅, 6(d6)✓✅, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)])
-      ((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) =count=> RollResult(total: 33, results: [6(d6)✓✅, 6(d6)✓✅, 1(d6)❌, 1(d6)❌, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)])
-          (((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) =count=> RollResult(total: 33, results: [1(d6)❌, 1(d6)❌, 6(d6)✅, 6(d6)✅, 2(d6), 5(d6), 3(d6)🔥, 5(d6), 4(d6)])
-              ((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) =count=> RollResult(total: 33, results: [6(d6)✅, 6(d6)✅, 2(d6), 1(d6), 5(d6), 3(d6)🔥, 5(d6), 1(d6), 4(d6)])
-                  (((4d(3 + 3)) ! ) + ((2 + 2)d6)) =add=> RollResult(total: 33, results: [6(d6), 2(d6), 1(d6), 5(d6), 3(d6)🔥, 5(d6), 1(d6), 4(d6), 6(d6)])
-                      ((4d(3 + 3)) ! ) =explode=> RollResult(total: 17, results: [6(d6), 2(d6), 1(d6), 5(d6), 3(d6)🔥])
-                          (4d(3 + 3)) =rollDice=> RollResult(total: 14, results: [6(d6), 2(d6), 1(d6), 5(d6)])
-                              (3 + 3) =add=> RollResult(total: 6, results: [3, 3])
-                      ((2 + 2)d6) =rollDice=> RollResult(total: 16, results: [5(d6), 1(d6), 4(d6), 6(d6)])
-                          (2 + 2) =add=> RollResult(total: 4, results: [2, 2])
+ (((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) ===> RollSummary(total: 33, results: [1(d6✗❌), 1(d6✗❌), 6(d6💣✓✅), 6(d6✓✅), 3(d6🔥), 2(d6), 5(d6), 5(d6), 4(d6)], successCount: 2, failureCount: 2, critSuccessCount: 2, critFailureCount: 2)
+              (((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) #f ) =count=> RollResult(total: 33, results: [1(d6✗❌), 1(d6✗❌), 6(d6💣✓✅), 6(d6✓✅), 3(d6🔥), 2(d6), 5(d6), 5(d6), 4(d6)])
+                  ((((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) #s ) =count=> RollResult(total: 33, results: [6(d6💣✓✅), 6(d6✓✅), 1(d6❌), 1(d6❌), 3(d6🔥), 2(d6), 5(d6), 5(d6), 4(d6)])
+                      (((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) #cf ) =count=> RollResult(total: 33, results: [1(d6❌), 1(d6❌), 6(d6💣✅), 6(d6✅), 3(d6🔥), 2(d6), 5(d6), 5(d6), 4(d6)])
+                          ((((4d(3 + 3)) ! ) + ((2 + 2)d6)) #cs ) =count=> RollResult(total: 33, results: [6(d6💣✅), 6(d6✅), 3(d6🔥), 2(d6), 1(d6), 5(d6), 5(d6), 1(d6), 4(d6)])
+                              (((4d(3 + 3)) ! ) + ((2 + 2)d6)) =add=> RollResult(total: 33, results: [6(d6💣), 3(d6🔥), 2(d6), 1(d6), 5(d6), 5(d6), 1(d6), 4(d6), 6(d6)])
+                                  ((4d(3 + 3)) ! ) =explode=> RollResult(total: 17, results: [6(d6💣), 3(d6🔥), 2(d6), 1(d6), 5(d6)])
+                                      (4d(3 + 3)) =rollDice=> RollResult(total: 14, results: [6(d6), 2(d6), 1(d6), 5(d6)])
+                                          (3 + 3) =add=> RollResult(total: 6, results: [3(), 3()])
+                                  ((2 + 2)d6) =rollDice=> RollResult(total: 16, results: [5(d6), 1(d6), 4(d6), 6(d6)])
+                                      (2 + 2) =add=> RollResult(total: 4, results: [2(), 2()])
           '''
               .trim(),
         ),

@@ -4,6 +4,8 @@ import 'ast.dart';
 import 'dice_expression.dart';
 import 'dice_roller.dart';
 
+// TODO: support commas `(<expr>,<expr>,<expr>)kh` -- evaluate each subexpression into a new die result, discarding the ones that had been combined
+
 Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   final builder = ExpressionBuilder<DiceExpression>();
   // numbers

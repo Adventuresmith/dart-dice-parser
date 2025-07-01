@@ -181,7 +181,7 @@ class CountOp extends Binary {
       }
     }
 
-    final filteredResults = lhs.results.notDiscarded.where(test);
+    final filteredResults = lhs.results.where(test);
 
     if (countType == CountType.count) {
       // if counting, the count becomes the new result
@@ -189,18 +189,15 @@ class CountOp extends Binary {
       return RollResult(
         expression: toString(),
         opType: OpType.count,
-        results: [
-          RolledDie.singleVal(result: filteredResults.length),
-          ...lhs.results.notDiscarded.map(RolledDie.discard),
-          ...lhs.results.discarded,
-        ],
+        results: [RolledDie.singleVal(result: filteredResults.length)],
+        discarded: [...lhs.results.map(RolledDie.discard), ...lhs.discarded],
         left: lhs,
         right: rhs,
       );
     } else {
       // if counting success/failures, the results are updated w/ scoring
 
-      final otherResults = lhs.results.notDiscarded.whereNot(test);
+      final nonScoredResults = lhs.results.whereNot(test);
 
       return RollResult(
         expression: toString(),
@@ -209,9 +206,9 @@ class CountOp extends Binary {
           ...filteredResults.map(
             (v) => RolledDie.scoreForCountType(v, countType: countType),
           ),
-          ...otherResults,
-          ...lhs.results.discarded,
+          ...nonScoredResults,
         ],
+        discarded: lhs.discarded,
         left: lhs,
         right: rhs,
       );
@@ -238,23 +235,22 @@ class DropOp extends Binary {
 
     final Iterable<RolledDie> results;
     final Iterable<RolledDie> dropped;
-    final notDiscarded = lhs.results.notDiscarded;
     switch (name) {
       case '-<': // drop <
-        results = notDiscarded.where((v) => v.result >= target);
-        dropped = notDiscarded.where((v) => v.result < target);
+        results = lhs.results.where((v) => v.result >= target);
+        dropped = lhs.results.where((v) => v.result < target);
       case '-<=': // drop <=
-        results = notDiscarded.where((v) => v.result > target);
-        dropped = notDiscarded.where((v) => v.result <= target);
+        results = lhs.results.where((v) => v.result > target);
+        dropped = lhs.results.where((v) => v.result <= target);
       case '->': // drop >
-        results = notDiscarded.where((v) => v.result <= target);
-        dropped = notDiscarded.where((v) => v.result > target);
+        results = lhs.results.where((v) => v.result <= target);
+        dropped = lhs.results.where((v) => v.result > target);
       case '->=': // drop >=
-        results = notDiscarded.where((v) => v.result < target);
-        dropped = notDiscarded.where((v) => v.result >= target);
+        results = lhs.results.where((v) => v.result < target);
+        dropped = lhs.results.where((v) => v.result >= target);
       case '-=': // drop =
-        results = notDiscarded.where((v) => v.result != target);
-        dropped = notDiscarded.where((v) => v.result == target);
+        results = lhs.results.where((v) => v.result != target);
+        dropped = lhs.results.where((v) => v.result == target);
       default:
         throw FormatException(
           "unknown drop operation '$name'",
@@ -266,11 +262,8 @@ class DropOp extends Binary {
     return RollResult(
       expression: toString(),
       opType: OpType.drop,
-      results: [
-        ...results,
-        ...dropped.map(RolledDie.discard),
-        ...lhs.results.discarded,
-      ],
+      results: [...results],
+      discarded: [...dropped.map(RolledDie.discard), ...lhs.discarded],
       left: lhs,
       right: rhs,
     );
@@ -285,7 +278,7 @@ class DropHighLowOp extends Binary {
   RollResult eval() {
     final lhs = left();
     final rhs = right();
-    final sorted = lhs.results.notDiscarded.toList()..sort();
+    final sorted = lhs.results.toList()..sort();
     final numToDrop = rhs.totalOrDefault(() => 1); // if missing, assume '1'
     final Iterable<RolledDie> results;
     final Iterable<RolledDie> dropped;
@@ -315,11 +308,8 @@ class DropHighLowOp extends Binary {
     return RollResult(
       expression: toString(),
       opType: OpType.drop,
-      results: [
-        ...results,
-        ...dropped.map(RolledDie.discard),
-        ...lhs.results.discarded,
-      ],
+      results: [...results],
+      discarded: [...dropped.map(RolledDie.discard), ...lhs.discarded],
       left: lhs,
       right: rhs,
     );
@@ -343,7 +333,7 @@ class ClampOp extends Binary {
     });
 
     final newResults = <RolledDie>[];
-    for (final d in lhs.results.notDiscarded) {
+    for (final d in lhs.results) {
       if (name == 'c>' && d.result > target) {
         newResults.add(RolledDie.copyWith(d, result: target, clampHigh: true));
       } else if (name == 'c<' && d.result < target) {
@@ -355,7 +345,8 @@ class ClampOp extends Binary {
     return RollResult(
       expression: toString(),
       opType: OpType.clamp,
-      results: [...newResults, ...lhs.results.discarded],
+      results: newResults,
+      discarded: lhs.discarded,
       left: lhs,
       right: rhs,
     );
@@ -459,6 +450,7 @@ class D66Dice extends UnaryDice {
   RollResult eval() {
     final lhs = left();
     final ndice = lhs.totalOrDefault(() => 1);
+    // TODO: capture the rolls as discarded.
     final results = [
       for (var i = 0; i < ndice; i++)
         roller.roll(1, 6).total * 10 + roller.roll(1, 6).total,
@@ -563,7 +555,7 @@ class RerollDice extends BinaryDice {
     }
 
     final results = <RolledDie>[];
-    lhs.results.notDiscarded.forEachIndexed((i, v) {
+    lhs.results.forEachIndexed((i, v) {
       if (test(v)) {
         RolledDie rerolled;
         var rerollCount = 0;
@@ -584,7 +576,8 @@ class RerollDice extends BinaryDice {
     return RollResult(
       expression: toString(),
       opType: OpType.reroll,
-      results: [...results, ...lhs.results.discarded],
+      results: results,
+      discarded: lhs.discarded,
       left: lhs,
       right: rhs,
     );
@@ -638,7 +631,8 @@ class CompoundingDice extends BinaryDice {
     }
 
     final results = <RolledDie>[];
-    lhs.results.notDiscarded.forEachIndexed((i, v) {
+    final discarded = <RolledDie>[];
+    lhs.results.forEachIndexed((i, v) {
       if (test(v)) {
         var sum = v.result;
         RolledDie rerolled;
@@ -647,10 +641,13 @@ class CompoundingDice extends BinaryDice {
           rerolled = roller
               .roll(1, v.nsides, '(compound ind $i,  #$numCompounded)')
               .results[0];
+          discarded.add(
+            RolledDie.copyWith(rerolled, discarded: true, compounded: true),
+          );
           sum += rerolled.result;
           numCompounded++;
         } while (test(rerolled) && numCompounded < limit);
-        results.add(RolledDie.copyWith(v, result: sum, compounded: true));
+        results.add(RolledDie.copyWith(v, result: sum, compoundedFinal: true));
       } else {
         results.add(v);
       }
@@ -659,7 +656,8 @@ class CompoundingDice extends BinaryDice {
     return RollResult(
       expression: toString(),
       opType: OpType.compound,
-      results: [...results, ...lhs.results.discarded],
+      results: results,
+      discarded: lhs.discarded + discarded,
       left: lhs,
       right: rhs,
     );
@@ -713,7 +711,8 @@ class ExplodingDice extends BinaryDice {
     }
 
     final newResults = <RolledDie>[];
-    for (final rolledDie in lhs.results.notDiscarded.where(test)) {
+    for (final rolledDie in lhs.results.where(test)) {
+      newResults.add(RolledDie.copyWith(rolledDie, exploded: true));
       var numExplosions = 0;
       RolledDie rerolledDie;
       do {
@@ -721,7 +720,6 @@ class ExplodingDice extends BinaryDice {
             .roll(1, rolledDie.nsides, '(explode #${numExplosions + 1})')
             .results[0];
         numExplosions++;
-        newResults.add(RolledDie.copyWith(rolledDie, exploded: true));
         newResults.add(RolledDie.copyWith(rerolledDie, explosion: true));
       } while (test(rerolledDie) && numExplosions < limit);
     }
@@ -729,11 +727,8 @@ class ExplodingDice extends BinaryDice {
     return RollResult(
       expression: toString(),
       opType: OpType.explode,
-      results: [
-        ...newResults,
-        ...lhs.results.notDiscarded.whereNot(test),
-        ...lhs.results.discarded,
-      ],
+      results: [...newResults, ...lhs.results.whereNot(test)],
+      discarded: lhs.discarded,
       left: lhs,
       right: rhs,
     );

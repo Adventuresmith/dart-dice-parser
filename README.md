@@ -38,7 +38,7 @@ void main() {
 
 * advantage
     * `2d20-L` -- drop lowest
-    * `2d20k`, `2d20kh` -- keep highest
+    * `2d20k`, or `2d20kh` -- keep highest
 * disadvantage
     * `2d20-H` -- drop highest
     * `2d20-kl` -- keep lowest
@@ -141,6 +141,7 @@ void main() {
             * `(5d6+5d10)-L2` -- roll 5d6 and 5d10, and from aggregate results drop the lowest 2.
             * `5d6+5d10-L2` -- roll 5d6 and 5d10, and from only the 5d10 results drop the lowest 2. equivalent to
               `5d6+(5d10-L2)`
+            * `((1d6 + 1d8)-L)!` -- roll 1d6 and 1d8, drop the lowest result, and explode the remaining die
     * `*` for multiplication
     * `-` for subtraction
     * numbers must be integers
@@ -168,9 +169,7 @@ final roll = diceExpr_SecureRNG.roll();
 
 //....
 // when dice expr changes, update the stats graph. 
-final stats = await
-diceExpr_FastRNG.stats
-();
+final stats = await diceExpr_FastRNG.stats();
 // output of stats: {mean: 6.98, stddev: 2.41, min: 2, max: 12, count: 10000, histogram: {2: 310, 3: 557, 4: 787, 5: 1090, 6: 1450, 7: 1646, 8: 1395, 9: 1147, 10: 825, 11: 526, 12: 267}}
 
 ```

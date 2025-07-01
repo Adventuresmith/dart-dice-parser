@@ -45,8 +45,8 @@ enum CountType { count, success, failure, critSuccess, critFailure }
 class RollSummary extends Equatable {
   RollSummary({required this.detailedResults}) {
     total = detailedResults.results.sum;
-    results = detailedResults.results.notDiscarded.toList(growable: false);
-    discarded = detailedResults.results.discarded.toList(growable: false);
+    results = detailedResults.results;
+    discarded = detailedResults.discarded;
     expression = detailedResults.expression;
     successCount = detailedResults.results.successCount;
     failureCount = detailedResults.results.failureCount;
@@ -68,6 +68,8 @@ class RollSummary extends Equatable {
 
   /// the results of the evaluating the expression
   late final List<RolledDie> results;
+
+  /// the dice we lost along the way
   late final List<RolledDie> discarded;
 
   @override
@@ -156,10 +158,11 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     this.critFailure = false,
     this.exploded = false,
     this.explosion = false,
+    this.compoundedFinal = false,
     this.compounded = false,
     this.rerolled = false,
-    this.clampHigh = false,
-    this.clampLow = false,
+    this.clampCeiling = false,
+    this.clampFloor = false,
     this.modifiedFrom,
   });
 
@@ -190,6 +193,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     bool? exploded,
     bool? explosion,
     bool? compounded,
+    bool? compoundedFinal,
     bool? rerolled,
     bool? clampHigh,
     bool? clampLow,
@@ -206,28 +210,15 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     exploded: exploded ?? other.exploded,
     explosion: explosion ?? other.explosion,
     compounded: compounded ?? other.compounded,
+    compoundedFinal: compoundedFinal ?? other.compoundedFinal,
     rerolled: rerolled ?? other.rerolled,
-    clampHigh: clampHigh ?? other.clampHigh,
-    clampLow: clampLow ?? other.clampLow,
+    clampCeiling: clampHigh ?? other.clampCeiling,
+    clampFloor: clampLow ?? other.clampFloor,
     modifiedFrom: other,
   );
 
   factory RolledDie.discard(RolledDie other) =>
       RolledDie.copyWith(other, discarded: true);
-
-  factory RolledDie.score(
-    RolledDie other, {
-    bool? success,
-    bool? failure,
-    bool? critSuccess,
-    bool? critFailure,
-  }) => RolledDie.copyWith(
-    other,
-    success: success,
-    failure: failure,
-    critSuccess: critSuccess,
-    critFailure: critFailure,
-  );
 
   factory RolledDie.scoreForCountType(
     RolledDie other, {
@@ -243,7 +234,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
   /// the rolled result
   final int result;
 
-  /// the number of sides on the die.
+  /// the number of sides on the die. Generally only set if dieType == polyhedral
   final int nsides;
 
   /// the die faces (potential values).
@@ -255,6 +246,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
 
   bool get isDiscarded => discarded;
 
+  // TODO: is this true? can fudge dice explode?
   bool get isExplodable => dieType == DieType.polyhedral;
 
   bool get isCompoundable => isExplodable;
@@ -282,11 +274,14 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
   /// true if the die is the result of a die exploding
   final bool explosion;
 
-  /// true if the die is the result of a compounding operation
+  /// true if the die was discarded as a roll during compounding
   final bool compounded;
+
+  /// true if the die is the sum a multiple die due to compounding
+  final bool compoundedFinal;
   final bool rerolled;
-  final bool clampHigh;
-  final bool clampLow;
+  final bool clampCeiling;
+  final bool clampFloor;
 
   @override
   List<Object?> get props => [
@@ -299,6 +294,13 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     failure,
     critFailure,
     critSuccess,
+    exploded,
+    explosion,
+    compounded,
+    compoundedFinal,
+    rerolled,
+    clampCeiling,
+    clampFloor,
   ];
 
   Map<String, dynamic> toJson() =>
@@ -312,6 +314,13 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
         'failure': failure,
         'critSuccess': critSuccess,
         'critFailure': critFailure,
+        'exploded': exploded,
+        'explosion': explosion,
+        'compounded': compounded,
+        'compoundedFinal': compoundedFinal,
+        'rerolled': rerolled,
+        'clampHigh': clampCeiling,
+        'clampLow': clampFloor,
       }..removeWhere(
         (k, v) =>
             v == null ||
@@ -321,24 +330,23 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
             (v is bool && !v),
       );
 
-  @override
-  String toString() {
-    final buffer = StringBuffer();
-    buffer.write(result);
-    buffer.write('(');
+  String getDieGlyph() {
     switch (dieType) {
       case DieType.polyhedral:
-        buffer.write('d$nsides');
+        return 'd$nsides';
       case DieType.fudge:
-        buffer.write('dF');
+        return 'dF';
       case DieType.d66:
-        buffer.write('D66');
+        return 'D66';
       case DieType.singleVal:
-        //no-op
-        break;
+        return '';
       default:
-        buffer.write('?');
+        return '?';
     }
+  }
+
+  String getDieStateGlyphs() {
+    final buffer = StringBuffer();
 
     if (discarded) {
       buffer.write('⛔︎');
@@ -352,13 +360,16 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     if (explosion) {
       buffer.write('🔥'); //'⇪');
     }
-    if (compounded) {
+    if (compoundedFinal) {
       buffer.write('∑');
     }
-    if (clampHigh) {
+    if (compounded) {
+      buffer.write('+');
+    }
+    if (clampCeiling) {
       buffer.write('⌉');
     }
-    if (clampLow) {
+    if (clampFloor) {
       buffer.write('⌋');
     }
     if (success) {
@@ -373,6 +384,16 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     if (critFailure) {
       buffer.write('❌'); //'☠'
     }
+    return buffer.toString();
+  }
+
+  @override
+  String toString() {
+    final buffer = StringBuffer();
+    buffer.write(result);
+    buffer.write('(');
+    buffer.write(getDieGlyph());
+    buffer.write(getDieStateGlyphs());
     buffer.write(')');
     return buffer.toString();
   }
@@ -382,19 +403,15 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
 }
 
 extension RolledDieListExtensions on List<RolledDie> {
-  int get sum => notDiscarded.map((d) => d.result).fold(0, (sum, i) => sum + i);
+  int get sum => map((d) => d.result).fold(0, (sum, i) => sum + i);
 
-  int get successCount => notDiscarded.where((d) => d.success).length;
+  int get successCount => where((d) => d.success).length;
 
-  int get failureCount => notDiscarded.where((d) => d.failure).length;
+  int get failureCount => where((d) => d.failure).length;
 
-  int get critSuccessCount => notDiscarded.where((d) => d.critSuccess).length;
+  int get critSuccessCount => where((d) => d.critSuccess).length;
 
-  int get critFailureCount => notDiscarded.where((d) => d.critFailure).length;
-
-  Iterable<RolledDie> get discarded => where((d) => d.discarded);
-
-  Iterable<RolledDie> get notDiscarded => whereNot((d) => d.discarded);
+  int get critFailureCount => where((d) => d.critFailure).length;
 }
 
 /// [RollResult] represents the result of evaluating a particular node of the AST.
@@ -404,6 +421,7 @@ class RollResult extends Equatable {
     required this.expression,
     required this.opType,
     this.results = const [],
+    this.discarded = const [],
     this.left,
     this.right,
   });
@@ -415,12 +433,14 @@ class RollResult extends Equatable {
     required String expression,
     OpType? opType,
     List<RolledDie>? results,
+    List<RolledDie>? discarded,
     RollResult? left,
     RollResult? right,
   }) => RollResult(
     expression: expression,
     opType: opType ?? other.opType,
     results: results ?? other.results,
+    discarded: discarded ?? other.discarded,
     left: left ?? other.left,
     right: right ?? other.right,
   );
@@ -434,6 +454,7 @@ class RollResult extends Equatable {
     other,
     expression: '($expression + ${other.expression})',
     results: results + other.results,
+    discarded: discarded + other.discarded,
     opType: OpType.add,
     left: this,
     right: other,
@@ -446,8 +467,8 @@ class RollResult extends Equatable {
   RollResult operator *(RollResult other) => RollResult.fromRollResult(
     other,
     expression: '($expression * ${other.expression})',
-    results: [
-      RolledDie.singleVal(result: results.sum * other.results.sum),
+    results: [RolledDie.singleVal(result: results.sum * other.results.sum)],
+    discarded: [
       ...results.map(RolledDie.discard),
       ...other.results.map(RolledDie.discard),
     ],
@@ -468,8 +489,8 @@ class RollResult extends Equatable {
     results: [
       ...results,
       RolledDie.singleVal(result: -1 * other.results.sum),
-      ...other.results.map(RolledDie.discard),
     ],
+    discarded: [...other.results.map(RolledDie.discard)],
     left: this,
     right: other,
   );
@@ -479,6 +500,7 @@ class RollResult extends Equatable {
 
   /// the results of the evaluating the expression
   final List<RolledDie> results;
+  final List<RolledDie> discarded;
 
   final RollResult? left;
   final RollResult? right;
@@ -501,6 +523,7 @@ class RollResult extends Equatable {
     expression,
     opType,
     results,
+    discarded,
     opType,
     //left,
     //right,
@@ -521,7 +544,12 @@ class RollResult extends Equatable {
       '$expression =${opType.name}=> RollResult(${opType == OpType.value ? 'value' : 'total'}: $total',
     );
     if (opType != OpType.value) {
-      buffer.write(', results: $results');
+      if (results.isNotEmpty) {
+        buffer.write(', results: $results');
+      }
+      if (discarded.isNotEmpty) {
+        buffer.write(', discarded: $discarded');
+      }
     }
     buffer.write(')');
     return buffer.toString();
@@ -534,6 +562,7 @@ class RollResult extends Equatable {
         'expression': expression,
         'opType': opType.name,
         'results': results.map((e) => e.toJson()).toList(growable: false),
+        'discarded': discarded.map((e) => e.toJson()).toList(growable: false),
         'left': left != null && left?.opType != OpType.value
             ? left?.toJson()
             : null,

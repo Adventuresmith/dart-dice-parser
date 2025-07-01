@@ -11,7 +11,12 @@ Roll results have changed significantly (again). It's amazing what having users 
 - remove metadata & score from RollResult
 - rather than simple list of Integers representing the output of a roll or operation, now each
   die rolled is a 'RolledDie' object which has the metadata/score.
-- RollResult.results will include both discarded an not-discarded RolledDie. TODO: change?
+    - the RollResult's results field changes from List<int> to List<RolledDie>. RolledDie represents not just the
+      outcome of the roll, but also includes metadata about the type of die, nsides of the die (if polyhedral die),
+      and metadata about the dice expression's modification of the rolls.
+- RollResult.results will include both discarded an not-discarded RolledDie.
+- RollSummary.results is just not-discarded die, there's a separate RollSummary.discarded. Alternatively, look at
+  RollSummary.detailedResults.results to see the whole set of die that accumulated while evaluating the expression.
 
 # 7.1.1
 
