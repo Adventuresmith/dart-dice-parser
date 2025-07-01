@@ -70,34 +70,55 @@ abstract class Binary extends DiceOp {
 
 /// multiply operation (flattens results)
 class MultiplyOp extends Binary {
-  MultiplyOp(super.name, super.left, super.right);
+  bool simultaneous;
+  MultiplyOp(super.name, super.left, super.right, {this.simultaneous = false});
 
   @override
   Future<RollResult> eval() async {
-    final results = await Future.wait([left(), right()]);
-    return results[0] * results[1];
+    if (simultaneous) {
+      final results = await Future.wait([left(), right()]);
+      return results[0] * results[1];
+    } else {
+      final lhs = await left();
+      final rhs = await right();
+      return lhs * rhs;
+    }
   }
 }
 
 /// add operation
 class AddOp extends Binary {
-  AddOp(super.name, super.left, super.right);
+  bool simultaneous;
+  AddOp(super.name, super.left, super.right, {this.simultaneous = false});
 
   @override
   Future<RollResult> eval() async {
-    final results = await Future.wait([left(), right()]);
-    return results[0] + results[1];
+    if (simultaneous) {
+      final results = await Future.wait([left(), right()]);
+      return results[0] + results[1];
+    } else {
+      final lhs = await left();
+      final rhs = await right();
+      return lhs + rhs;
+    }
   }
 }
 
 /// subtraction operation
 class SubOp extends Binary {
-  SubOp(super.name, super.left, super.right);
+  bool simultaneous;
+  SubOp(super.name, super.left, super.right, {this.simultaneous = false});
 
   @override
   Future<RollResult> eval() async {
-    final results = await Future.wait([left(), right()]);
-    return results[0] - results[1];
+    if (simultaneous) {
+      final results = await Future.wait([left(), right()]);
+      return results[0] - results[1];
+    } else {
+      final lhs = await left();
+      final rhs = await right();
+      return lhs - rhs;
+    }
   }
 }
 
@@ -231,16 +252,25 @@ class CountOp extends Binary {
 
 /// drop operations -- drop high/low, or drop <,>,= rhs
 class DropOp extends Binary {
-  DropOp(super.name, super.left, super.right);
+  bool simultaneous;
+  DropOp(super.name, super.left, super.right, {this.simultaneous = false});
 
   @override
   Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
 
-    final leftRight = await Future.wait([lhs, rhs]);
-    final finalLeft = leftRight[0];
-    final finalRight = leftRight[1];
+    final RollResult finalLeft;
+    final RollResult finalRight;
+
+    if (simultaneous) {
+      final leftRight = await Future.wait([lhs, rhs]);
+      finalLeft = leftRight[0];
+      finalRight = leftRight[1];
+    } else {
+      finalLeft = await lhs;
+      finalRight = await rhs;
+    }
 
     final target = finalRight.totalOrDefault(() {
       throw FormatException(
@@ -293,16 +323,25 @@ class DropOp extends Binary {
 
 /// drop operations -- drop high/low, or drop <,>,= rhs
 class DropHighLowOp extends Binary {
-  DropHighLowOp(super.name, super.left, super.right);
+  bool simultaneous;
+  DropHighLowOp(super.name, super.left, super.right, {this.simultaneous = false});
 
   @override
   Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
 
-    final leftRight = await Future.wait([lhs, rhs]);
-    final finalLeft = leftRight[0];
-    final finalRight = leftRight[1];
+    final RollResult finalLeft;
+    final RollResult finalRight;
+
+    if (simultaneous) {
+      final leftRight = await Future.wait([lhs, rhs]);
+      finalLeft = leftRight[0];
+      finalRight = leftRight[1];
+    } else {
+      finalLeft = await lhs;
+      finalRight = await rhs;
+    }
 
     final sorted = finalLeft.results..sort();
     final numToDrop =
@@ -349,16 +388,25 @@ class DropHighLowOp extends Binary {
 
 /// clamp results of lhs to >,< rhs.
 class ClampOp extends Binary {
-  ClampOp(super.name, super.left, super.right);
+  bool simultaneous;
+  ClampOp(super.name, super.left, super.right, {this.simultaneous = false});
 
   @override
   Future<RollResult> eval() async {
     final lhs = left();
     final rhs = right();
 
-    final leftRight = await Future.wait([lhs, rhs]);
-    final finalLeft = leftRight[0];
-    final finalRight = leftRight[1];
+    final RollResult finalLeft;
+    final RollResult finalRight;
+
+    if (simultaneous) {
+      final leftRight = await Future.wait([lhs, rhs]);
+      finalLeft = leftRight[0];
+      finalRight = leftRight[1];
+    } else {
+      finalLeft = await lhs;
+      finalRight = await rhs;
+    }
 
     final target = finalRight.totalOrDefault(() {
       throw FormatException(
@@ -541,7 +589,8 @@ class D66Dice extends UnaryDice {
 
 /// roll N dice of Y sides.
 class StdDice extends BinaryDice {
-  StdDice(super.name, super.left, super.right, super.roller);
+  bool simultaneous;
+  StdDice(super.name, super.left, super.right, super.roller, {this.simultaneous = false});
 
   @override
   String toString() => '($left$name$right)';
@@ -551,9 +600,17 @@ class StdDice extends BinaryDice {
     final lhs = left();
     final rhs = right();
 
-    final leftRight = await Future.wait([lhs, rhs]);
-    final finalLeft = leftRight[0];
-    final finalRight = leftRight[1];
+    final RollResult finalLeft;
+    final RollResult finalRight;
+
+    if (simultaneous) {
+      final leftRight = await Future.wait([lhs, rhs]);
+      finalLeft = leftRight[0];
+      finalRight = leftRight[1];
+    } else {
+      finalLeft = await lhs;
+      finalRight = await rhs;
+    }
 
     final ndice = finalLeft.totalOrDefault(() => 1);
     final nsides = finalRight.totalOrDefault(() => 1);
@@ -588,12 +645,14 @@ class StdDice extends BinaryDice {
 }
 
 class RerollDice extends BinaryDice {
+  bool simultaneous;
   RerollDice(
     super.name,
     super.left,
     super.right,
     super.roller, {
     this.limit = defaultRerollLimit,
+    this.simultaneous = false,
   }) {
     if (name.startsWith('ro')) {
       limit = 1;
@@ -607,9 +666,17 @@ class RerollDice extends BinaryDice {
     final lhs = left();
     final rhs = right();
 
-    final leftRight = await Future.wait([lhs, rhs]);
-    final finalLeft = leftRight[0];
-    final finalRight = leftRight[1];
+    final RollResult finalLeft;
+    final RollResult finalRight;
+
+    if (simultaneous) {
+      final leftRight = await Future.wait([lhs, rhs]);
+      finalLeft = leftRight[0];
+      finalRight = leftRight[1];
+    } else {
+      finalLeft = await lhs;
+      finalRight = await rhs;
+    }
 
     if (finalLeft.nsides == 0) {
       throw FormatException(
@@ -676,7 +743,7 @@ class RerollDice extends BinaryDice {
     // Await all rerolls in parallel.
     final rerolledValues = await Future.wait(rerollFutures);
 
-    int rerollIdx = 0;
+    var rerollIdx = 0;
     for (var i = 0; i < finalLeft.results.length; i++) {
       final v = finalLeft.results[i];
       if (test(v)) {
@@ -706,12 +773,14 @@ class RerollDice extends BinaryDice {
 }
 
 class CompoundingDice extends BinaryDice {
+  bool simultaneous;
   CompoundingDice(
     super.name,
     super.left,
     super.right,
     super.roller, {
     this.limit = defaultRerollLimit,
+    this.simultaneous = false,
   }) {
     if (name.startsWith('!!o')) {
       limit = 1;
@@ -725,9 +794,17 @@ class CompoundingDice extends BinaryDice {
     final lhs = left();
     final rhs = right();
 
-    final leftRight = await Future.wait([lhs, rhs]);
-    final finalLeft = leftRight[0];
-    final finalRight = leftRight[1];
+    final RollResult finalLeft;
+    final RollResult finalRight;
+
+    if (simultaneous) {
+      final leftRight = await Future.wait([lhs, rhs]);
+      finalLeft = leftRight[0];
+      finalRight = leftRight[1];
+    } else {
+      finalLeft = await lhs;
+      finalRight = await rhs;
+    }
 
     if (finalLeft.nsides == 0) {
       throw FormatException(
@@ -817,12 +894,14 @@ class CompoundingDice extends BinaryDice {
 }
 
 class ExplodingDice extends BinaryDice {
+  bool simultaneous;
   ExplodingDice(
     super.name,
     super.left,
     super.right,
     super.roller, {
     this.limit = defaultRerollLimit,
+    this.simultaneous = false,
   }) {
     if (name.startsWith('!o')) {
       limit = 1;
@@ -836,9 +915,17 @@ class ExplodingDice extends BinaryDice {
     final lhs = left();
     final rhs = right();
 
-    final leftRight = await Future.wait([lhs, rhs]);
-    final finalLeft = leftRight[0];
-    final finalRight = leftRight[1];
+    final RollResult finalLeft;
+    final RollResult finalRight;
+
+    if (simultaneous) {
+      final leftRight = await Future.wait([lhs, rhs]);
+      finalLeft = leftRight[0];
+      finalRight = leftRight[1];
+    } else {
+      finalLeft = await lhs;
+      finalRight = await rhs;
+    }
 
     if (finalLeft.nsides == 0) {
       throw FormatException(
