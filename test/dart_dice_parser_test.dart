@@ -22,9 +22,12 @@ void main() {
     ).thenReturn(1);
   });
   void staticRandTest(String name, String input, int expectedTotal) {
-    test('$name - $input', () {
+    test('$name - $input', () async {
       expect(
-        DiceExpression.create(input, staticMockRandom).roll().total,
+        (await DiceExpression.create(input,
+                    diceRoller: DefaultDiceRoller(staticMockRandom))
+                .roll())
+            .total,
         equals(expectedTotal),
       );
     });
@@ -41,8 +44,10 @@ void main() {
     int? critSuccessCount,
     int? critFailureCount,
   }) {
-    test('$testName - $inputExpr', () {
-      final rollSummary = DiceExpression.create(inputExpr, seededRandom).roll();
+    test('$testName - $inputExpr', () async {
+      final rollSummary = await DiceExpression.create(inputExpr,
+              diceRoller: DefaultDiceRoller(staticMockRandom))
+          .roll();
       if (expectedTotal != null) {
         expect(
           rollSummary.total,
@@ -329,7 +334,7 @@ void main() {
     for (final v in invalids) {
       test('invalid count - $v', () {
         expect(
-          () => DiceExpression.create(v).roll(),
+          () async => DiceExpression.create(v).roll(),
           throwsFormatException,
         );
       });
@@ -390,18 +395,21 @@ void main() {
 
     test('missing clamp target', () {
       expect(
-        () => DiceExpression.create('6d6 C<', seededRandom).roll(),
+        () => DiceExpression.create('6d6 C<',
+                diceRoller: DefaultDiceRoller(seededRandom))
+            .roll(),
         throwsFormatException,
       );
     });
   });
 
   group('listeners', () {
-    test('basic', () {
-      final dice = DiceExpression.create('2d6 kh', seededRandom);
+    test('basic', () async {
+      final dice = DiceExpression.create('2d6 kh',
+          diceRoller: DefaultDiceRoller(seededRandom));
       final results = <RollResult>[];
       final summaries = <RollSummary>[];
-      dice.roll(
+      await dice.roll(
         onRoll: (rr) {
           results.add(rr);
         },
@@ -474,7 +482,9 @@ void main() {
 
     test('missing nsides', () {
       expect(
-        () => DiceExpression.create('6d', seededRandom).roll(),
+        () => DiceExpression.create('6d',
+                diceRoller: DefaultDiceRoller(seededRandom))
+            .roll(),
         throwsFormatException,
       );
     });
@@ -635,27 +645,31 @@ void main() {
     );
     seededRandTest('fudge add to d6', '4dF+4d6', 13);
 
-    test('multiple rolls is multiple results', () {
-      final dice = DiceExpression.create('2d6', seededRandom);
-      expect(dice.roll().total, 8);
-      expect(dice.roll().total, 6);
+    test('multiple rolls is multiple results', () async {
+      final dice = DiceExpression.create('2d6',
+          diceRoller: DefaultDiceRoller(seededRandom));
+      expect((await dice.roll()).total, 8);
+      expect((await dice.roll()).total, 6);
     });
 
-    test('create dice with real random', () {
+    test('create dice with real random', () async {
       final dice = DiceExpression.create('10d100');
-      final result1 = dice.roll();
+      final result1 = await dice.roll();
       // result will never be zero -- this test is verifying creating the expr & doing roll
       expect(result1, isNot(0));
     });
 
     test('string method returns expr', () {
-      final dice = DiceExpression.create('2d6# + 5d6!>=5 + 5D66', seededRandom);
+      final dice = DiceExpression.create('2d6# + 5d6!>=5 + 5D66',
+          diceRoller: DefaultDiceRoller(seededRandom));
       expect(dice.toString(), '((2d6) # (( + ((5d6) !>= 5)) + (5D66)))');
     });
 
     test('invalid dice str', () {
       expect(
-        () => DiceExpression.create('1d5 + x2', seededRandom).roll(),
+        () => DiceExpression.create('1d5 + x2',
+                diceRoller: DefaultDiceRoller(seededRandom))
+            .roll(),
         throwsFormatException,
       );
     });
@@ -671,19 +685,21 @@ void main() {
     for (final i in invalids) {
       test('invalid - $i', () {
         expect(
-          () => DiceExpression.create(i, seededRandom).roll(),
+          () => DiceExpression.create(i,
+                  diceRoller: DefaultDiceRoller(seededRandom))
+              .roll(),
           throwsFormatException,
         );
       });
     }
 
-    test('toString', () {
+    test('toString', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create(
         '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f',
-        seededRandom,
+        diceRoller: DefaultDiceRoller(seededRandom),
       );
-      final out = dice.roll().toString();
+      final out = (await dice.roll()).toString();
       expect(
         out,
         equals(
@@ -691,13 +707,13 @@ void main() {
         ),
       );
     });
-    test('toStringPretty', () {
+    test('toStringPretty', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create(
         '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f',
-        seededRandom,
+        diceRoller: DefaultDiceRoller(seededRandom),
       );
-      final out = dice.roll().toStringPretty();
+      final out = (await dice.roll()).toStringPretty();
       expect(
         out,
         equals(
@@ -718,10 +734,11 @@ void main() {
         ),
       );
     });
-    test('toJson', () {
+    test('toJson', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
-      final dice = DiceExpression.create('4d6', seededRandom);
-      final obj = dice.roll().toJson();
+      final dice = DiceExpression.create('4d6',
+          diceRoller: DefaultDiceRoller(seededRandom));
+      final obj = (await dice.roll()).toJson();
       expect(
         obj,
         equals({
@@ -745,10 +762,11 @@ void main() {
       );
     });
 
-    test('toJson - metadata', () {
+    test('toJson - metadata', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
-      final dice = DiceExpression.create('4d6 #cf #cs', seededRandom);
-      final obj = dice.roll().toJson();
+      final dice = DiceExpression.create('4d6 #cf #cs',
+          diceRoller: DefaultDiceRoller(seededRandom));
+      final obj = (await dice.roll()).toJson();
       expect(
         obj,
         equals(
@@ -803,7 +821,8 @@ void main() {
     });
 
     test('rollN test', () async {
-      final dice = DiceExpression.create('2d6', seededRandom);
+      final dice = DiceExpression.create('2d6',
+          diceRoller: DefaultDiceRoller(seededRandom));
 
       final results =
           await dice.rollN(2).map((result) => result.total).toList();
@@ -812,7 +831,8 @@ void main() {
     });
 
     test('stats test', () async {
-      final dice = DiceExpression.create('2d6', seededRandom);
+      final dice = DiceExpression.create('2d6',
+          diceRoller: DefaultDiceRoller(seededRandom));
 
       final stats = await dice.stats(num: 100);
 

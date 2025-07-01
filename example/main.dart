@@ -112,7 +112,7 @@ void main(List<String> arguments) async {
     if (collectStats) {
       random = Random();
     }
-    final diceExpr = DiceExpression.create(input, random);
+    final diceExpr = DiceExpression.create(input, diceRoller: DefaultDiceRoller(random));
 
     exit(
       await run(

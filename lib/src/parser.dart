@@ -44,7 +44,8 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     );
   builder.group().left(
         char('d').trim(),
-        (a, op, b) => StdDice(op, a, b, roller),
+        (a, op, b) => StdDice(op, a, b, roller,
+          simultaneous: roller.simultaneousRolls),
       );
 
   // compounding dice (has to be in separate group from exploding)
@@ -55,7 +56,8 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
                 char('=').optional())
             .flatten()
             .trim(),
-        (a, op, b) => CompoundingDice(op.toLowerCase(), a, b, roller),
+        (a, op, b) => CompoundingDice(op.toLowerCase(), a, b, roller, 
+          simultaneous: roller.simultaneousRolls),
       );
   builder.group()
     // reroll & reroll once
@@ -66,7 +68,8 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
               char('=').optional())
           .flatten()
           .trim(),
-      (a, op, b) => RerollDice(op.toLowerCase(), a, b, roller),
+      (a, op, b) => RerollDice(op.toLowerCase(), a, b, roller,
+        simultaneous: roller.simultaneousRolls),
     )
     // exploding
     ..left(
@@ -76,37 +79,38 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
               char('=').optional())
           .flatten()
           .trim(),
-      (a, op, b) => ExplodingDice(op.toLowerCase(), a, b, roller),
+      (a, op, b) => ExplodingDice(op.toLowerCase(), a, b, roller, 
+        simultaneous: roller.simultaneousRolls),
     )
     // cap/clamp >,<
     ..left(
       (pattern('cC') & pattern('<>').optional()).flatten().trim(),
-      (a, op, b) => ClampOp(op.toLowerCase(), a, b),
+      (a, op, b) => ClampOp(op.toLowerCase(), a, b, simultaneous: roller.simultaneousRolls),
     )
     // drop >=,<=,>,<
     ..left(
       (char('-') & pattern('<>') & char('=').optional()).flatten().trim(),
-      (a, op, b) => DropOp(op.toLowerCase(), a, b),
+      (a, op, b) => DropOp(op.toLowerCase(), a, b, simultaneous: roller.simultaneousRolls),
     )
     ..left(
       (string('-=')).flatten().trim(),
-      (a, op, b) => DropOp(op.toLowerCase(), a, b),
+      (a, op, b) => DropOp(op.toLowerCase(), a, b, simultaneous: roller.simultaneousRolls),
     )
     // drop(-) low, high
     ..left(
       (char('-') & pattern('LlHh')).flatten().trim(),
-      (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
+      (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b, simultaneous: roller.simultaneousRolls),
     )
     // keep low/high
     ..left(
       (pattern('Kk') & pattern('LlHh').optional()).flatten().trim(),
-      (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
+      (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b, simultaneous: roller.simultaneousRolls),
     );
 
-  builder.group().left(char('*').trim(), (a, op, b) => MultiplyOp(op, a, b));
+  builder.group().left(char('*').trim(), (a, op, b) => MultiplyOp(op, a, b, simultaneous: roller.simultaneousRolls));
   builder.group()
-    ..left(char('+').trim(), (a, op, b) => AddOp(op, a, b))
-    ..left(char('-').trim(), (a, op, b) => SubOp(op, a, b));
+    ..left(char('+').trim(), (a, op, b) => AddOp(op, a, b, simultaneous: roller.simultaneousRolls))
+    ..left(char('-').trim(), (a, op, b) => SubOp(op, a, b, simultaneous: roller.simultaneousRolls));
   // count >=, <=, <, >, =,
   // #s, #cs, #f, #cf -- count (critical) successes / failures
   builder.group().left(

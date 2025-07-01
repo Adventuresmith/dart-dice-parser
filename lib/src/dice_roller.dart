@@ -3,14 +3,8 @@ import 'dart:math';
 import 'results.dart';
 import 'utils.dart';
 
-/// A dice roller for M dice of N sides (e.g. `2d6`).
-/// A roll returns a list of ints.
-class DiceRoller with LoggingMixin {
-  /// Constructs a dice roller
-  DiceRoller([Random? r]) : _random = r ?? Random.secure();
-
-  final Random _random;
-
+/// Abstract dice roller interface.
+abstract class DiceRoller with LoggingMixin {
   /// minimum dice to roll (0)
   static const int minDice = 0;
 
@@ -26,11 +20,40 @@ class DiceRoller with LoggingMixin {
   /// default limit to # of times dice rolls can explode (100)
   static const int defaultExplodeLimit = 100;
 
+  /// simultaneous rolls flag (impacts Futures queuing)
+  bool simultaneousRolls = false;
+
   /// Roll ndice of nsides and return results as list.
-  RollResult roll(int ndice, int nsides, [String msg = '']) {
-    RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
-    RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
-    // nextInt is zero-inclusive; add 1 so result will be in range 1-nsides
+  Future<RollResult> roll(int ndice, int nsides, [String msg = '']);
+
+  /// Roll N fudge dice, return results
+  Future<RollResult> rollFudge(int ndice);
+
+  /// Roll N dice with custom side values, return results
+  Future<RollResult> rollVals(int ndice, List<int> sideVals);
+}
+
+/// Default implementation of DiceRoller.
+class DefaultDiceRoller extends DiceRoller {
+  /// Constructs a dice roller
+  DefaultDiceRoller([Random? r, bool simultaneousRolls = false])
+      : _random = r ?? Random.secure() {
+    this.simultaneousRolls = simultaneousRolls;
+  }
+
+  final Random _random;
+
+  /// select n items from the list of values
+  List<T> selectN<T>(int n, List<T> vals) => [
+        for (var i = 0; i < n; i++) vals[_random.nextInt(vals.length)],
+      ];
+
+  @override
+  Future<RollResult> roll(int ndice, int nsides, [String msg = '']) async {
+    RangeError.checkValueInInterval(
+        ndice, DiceRoller.minDice, DiceRoller.maxDice, 'ndice');
+    RangeError.checkValueInInterval(
+        nsides, DiceRoller.minSides, DiceRoller.maxSides, 'nsides');
     final results = [
       for (int i = 0; i < ndice; i++) _random.nextInt(nsides) + 1,
     ];
@@ -47,14 +70,10 @@ class DiceRoller with LoggingMixin {
 
   static const _fudgeVals = [-1, -1, 0, 0, 1, 1];
 
-  /// select n items from the list of values
-  List<T> selectN<T>(int n, List<T> vals) => [
-        for (var i = 0; i < n; i++) vals[_random.nextInt(vals.length)],
-      ];
-
-  /// Roll N fudge dice, return results
-  RollResult rollFudge(int ndice) {
-    RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
+  @override
+  Future<RollResult> rollFudge(int ndice) async {
+    RangeError.checkValueInInterval(
+        ndice, DiceRoller.minDice, DiceRoller.maxDice, 'ndice');
     final results = selectN(ndice, _fudgeVals);
 
     logger.finest(() => 'roll ${ndice}dF => $results');
@@ -68,9 +87,10 @@ class DiceRoller with LoggingMixin {
     );
   }
 
-  /// Roll N fudge dice, return results
-  RollResult rollVals(int ndice, List<int> sideVals) {
-    RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
+  @override
+  Future<RollResult> rollVals(int ndice, List<int> sideVals) async {
+    RangeError.checkValueInInterval(
+        ndice, DiceRoller.minDice, DiceRoller.maxDice, 'ndice');
     final results = selectN(ndice, sideVals);
 
     logger.finest(() => 'roll ${ndice}d$sideVals => $results');
