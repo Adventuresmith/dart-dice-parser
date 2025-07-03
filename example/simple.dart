@@ -31,25 +31,18 @@ Future<void> main() async {
   stdout.writeln(result1);
   stdout.writeln(result2);
   // outputs:
-  //  ((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 34, results: [17(d20), 17(d20), 12(d20)⛔︎, 11(d20)⛔︎])
-  //  ((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 39, results: [20(d20)☘, 19(d20), 12(d20)⛔︎, 1(d20)⛔︎], {critSuccessCount: 1})
+  //((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 34, results: [17(d20), 17(d20)], discarded: [12(d20⛔︎), 11(d20⛔︎)])
+  //((((4d20) kh 2) #cf ) #cs ) ===> RollSummary(total: 39, results: [20(d20✅), 19(d20)], discarded: [12(d20⛔︎), 1(d20⛔︎)], critSuccessCount: 1)
 
   // demonstrate navigation of the result graph
   assert(result2.total == 39);
-  assert(
-    listEquals(result2.results.notDiscarded.map((d) => d.result).toList(), [
-      20,
-      19,
-    ]),
-  );
+  assert(listEquals(result2.results.map((d) => d.result).toList(), [20, 19]));
   // read the score-related properties
   assert(result2.successCount == 0);
   assert(result2.failureCount == 0);
   assert(result2.critFailureCount == 0);
   assert(result2.critSuccessCount == 1);
-  assert(
-    result2.results.notDiscarded.where((d) => d.critSuccess).first.result == 20,
-  );
+  assert(result2.results.where((d) => d.critSuccess).first.result == 20);
 
   // look at the expression tree :
   // at the top level, it's a 'count' operation that counted the critical success
@@ -65,25 +58,17 @@ Future<void> main() async {
   final dropResult = critFailureResult!.left;
   assert(dropResult!.opType == OpType.drop);
 
-  assert(
-    listEquals(result2.results.discarded.map((d) => d.result).toList(), [
-      12,
-      1,
-    ]),
-  );
+  assert(listEquals(result2.discarded.map((d) => d.result).toList(), [12, 1]));
 
   assert(
-    listEquals(dropResult!.results.discarded.map((d) => d.result).toList(), [
-      12,
-      1,
-    ]),
+    listEquals(dropResult!.discarded.map((d) => d.result).toList(), [12, 1]),
   );
 
   final rollResult = dropResult!.left;
   assert(rollResult!.opType == OpType.rollDice);
 
   assert(
-    listEquals(rollResult!.results.notDiscarded.map((d) => d.result).toList(), [
+    listEquals(rollResult!.results.map((d) => d.result).toList(), [
       20,
       19,
       1,
