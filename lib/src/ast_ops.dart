@@ -1,98 +1,10 @@
 import 'package:collection/collection.dart';
-import 'package:petitparser/parser.dart';
 
-import 'dice_expression.dart';
-import 'dice_roller.dart';
+import 'ast_core.dart';
 import 'results.dart';
-import 'utils.dart';
 
 /// default limit for rerolls/exploding/compounding to avoid getting stuck in loop
 const defaultRerollLimit = 1000;
-
-/// A value expression. The token we read from input will be a String,
-/// it must parse as an int, and an empty string will return empty set.
-class SimpleValue extends DiceExpression {
-  SimpleValue(this.value)
-    : _results = RollResult(
-        expression: value,
-        opType: OpType.value,
-        results: value.isEmpty
-            ? []
-            : [RolledDie.singleVal(result: int.parse(value))],
-      );
-
-  final String value;
-  final RollResult _results;
-
-  @override
-  RollResult call() => _results;
-
-  @override
-  String toString() => value;
-}
-
-/// All our operations will inherit from this class.
-/// The `call()` method will be called by the parent node.
-/// The `eval()` method is called from the node
-abstract class DiceOp extends DiceExpression with LoggingMixin {
-  // each child class should override this to implement their operation
-  RollResult eval();
-
-  // all children can share this call operator -- and it'll let us be consistent w/ regard to logging
-  @override
-  RollResult call() {
-    final result = eval();
-    logger.finer(() => '$result');
-    return result;
-  }
-}
-
-/// base class for unary operations
-abstract class Unary extends DiceOp {
-  Unary(this.name, this.left);
-
-  final String name;
-  final DiceExpression left;
-
-  @override
-  String toString() => '($left)$name';
-}
-
-/// base class for binary operations
-abstract class Binary extends DiceOp {
-  Binary(this.name, this.left, this.right);
-
-  final String name;
-  final DiceExpression left;
-  final DiceExpression right;
-
-  @override
-  String toString() => '($left $name $right)';
-}
-
-/// multiply operation (flattens results)
-class MultiplyOp extends Binary {
-  MultiplyOp(super.name, super.left, super.right);
-
-  @override
-  RollResult eval() => left() * right();
-}
-
-/// add operation
-class AddOp extends Binary {
-  AddOp(super.name, super.left, super.right);
-
-  @override
-  RollResult eval() => left() + right();
-}
-
-/// subtraction operation
-class SubOp extends Binary {
-  SubOp(super.name, super.left, super.right);
-
-  @override
-  RollResult eval() => left() - right();
-}
 
 /// variation on count -- count how many results from lhs are =,<,> rhs.
 class CountOp extends Binary {
@@ -181,7 +93,7 @@ class CountOp extends Binary {
       }
     }
 
-    final filteredResults = lhs.results.where(test);
+    final scoredResults = lhs.results.where(test);
 
     if (countType == CountType.count) {
       // if counting, the count becomes the new result
@@ -189,7 +101,9 @@ class CountOp extends Binary {
       return RollResult(
         expression: toString(),
         opType: OpType.count,
-        results: [RolledDie.singleVal(result: filteredResults.length)],
+        results: [
+          RolledDie.singleVal(result: scoredResults.length, from: lhs.results),
+        ],
         discarded: [...lhs.results.map(RolledDie.discard), ...lhs.discarded],
         left: lhs,
         right: rhs,
@@ -203,7 +117,7 @@ class CountOp extends Binary {
         expression: toString(),
         opType: OpType.count,
         results: [
-          ...filteredResults.map(
+          ...scoredResults.map(
             (v) => RolledDie.scoreForCountType(v, countType: countType),
           ),
           ...nonScoredResults,
@@ -333,10 +247,13 @@ class ClampOp extends Binary {
     });
 
     final newResults = <RolledDie>[];
+    final discarded = <RolledDie>[];
     for (final d in lhs.results) {
       if (name == 'c>' && d.result > target) {
+        discarded.add(RolledDie.discard(d));
         newResults.add(RolledDie.copyWith(d, result: target, clampHigh: true));
       } else if (name == 'c<' && d.result < target) {
+        discarded.add(RolledDie.discard(d));
         newResults.add(RolledDie.copyWith(d, result: target, clampLow: true));
       } else {
         newResults.add(d);
@@ -346,158 +263,7 @@ class ClampOp extends Binary {
       expression: toString(),
       opType: OpType.clamp,
       results: newResults,
-      discarded: lhs.discarded,
-      left: lhs,
-      right: rhs,
-    );
-  }
-}
-
-/// base class for unary dice operations
-abstract class UnaryDice extends Unary {
-  UnaryDice(super.name, super.left, this.roller);
-
-  final DiceRoller roller;
-
-  @override
-  String toString() => '($left$name)';
-}
-
-/// base class for binary dice expressions
-abstract class BinaryDice extends Binary {
-  BinaryDice(super.name, super.left, super.right, this.roller);
-
-  final DiceRoller roller;
-}
-
-/// roll fudge dice
-class FudgeDice extends UnaryDice {
-  FudgeDice(super.name, super.left, super.roller);
-
-  @override
-  RollResult eval() {
-    final lhs = left();
-    final ndice = lhs.totalOrDefault(() => 1);
-
-    // redundant w/ RangeError checks in the DiceRoller. But we can construct better error messages here.
-    if (ndice < DiceRoller.minDice || ndice > DiceRoller.maxDice) {
-      throw FormatException(
-        'Invalid number of dice ($ndice)',
-        toString(),
-        left.toString().length,
-      );
-    }
-    final roll = roller.rollFudge(ndice);
-    return RollResult.fromRollResult(
-      roll,
-      expression: toString(),
-      opType: roll.opType,
-      left: lhs,
-    );
-  }
-}
-
-class CSVDice extends UnaryDice {
-  CSVDice(super.op, super.left, super.roller, this.vals);
-
-  final SeparatedList<String, String> vals;
-
-  @override
-  String toString() => '(${left}d${vals.elements})';
-
-  @override
-  RollResult eval() {
-    final lhs = left();
-    final ndice = lhs.totalOrDefault(() => 1);
-
-    final roll = roller.rollVals(
-      ndice,
-      vals.elements.map(int.parse).toList(growable: false),
-    );
-
-    return RollResult.fromRollResult(
-      roll,
-      expression: toString(),
-      opType: OpType.rollVals,
-      left: lhs,
-    );
-  }
-}
-
-/// roll n % dice
-class PercentDice extends UnaryDice {
-  PercentDice(super.name, super.left, super.roller);
-
-  @override
-  RollResult eval() {
-    final lhs = left();
-    final ndice = lhs.totalOrDefault(() => 1);
-    final roll = roller.roll(ndice, 100);
-    return RollResult.fromRollResult(
-      roll,
-      expression: toString(),
-      opType: OpType.rollPercent,
-      left: lhs,
-    );
-  }
-}
-
-/// roll n D66
-class D66Dice extends UnaryDice {
-  D66Dice(super.name, super.left, super.roller);
-
-  @override
-  RollResult eval() {
-    final lhs = left();
-    final ndice = lhs.totalOrDefault(() => 1);
-    // TODO: capture the rolls as discarded.
-    final results = [
-      for (var i = 0; i < ndice; i++)
-        roller.roll(1, 6).total * 10 + roller.roll(1, 6).total,
-    ].map((i) => RolledDie.d66(result: i));
-    return RollResult(
-      expression: toString(),
-      opType: OpType.rollD66,
-      results: [...results],
-      left: lhs,
-    );
-  }
-}
-
-/// roll N dice of Y sides.
-class StdDice extends BinaryDice {
-  StdDice(super.name, super.left, super.right, super.roller);
-
-  @override
-  String toString() => '($left$name$right)';
-
-  @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
-    final ndice = lhs.totalOrDefault(() => 1);
-    final nsides = rhs.totalOrDefault(() => 1);
-
-    // redundant w/ RangeError checks in the DiceRoller. But we can construct better error messages here.
-    if (ndice < DiceRoller.minDice || ndice > DiceRoller.maxDice) {
-      throw FormatException(
-        'Invalid number of dice ($ndice)',
-        toString(),
-        left.toString().length,
-      );
-    }
-    if (nsides < DiceRoller.minSides || nsides > DiceRoller.maxSides) {
-      throw FormatException(
-        'Invalid number of sides ($nsides)',
-        toString(),
-        left.toString().length + name.length + 1,
-      );
-    }
-    final roll = roller.roll(ndice, nsides);
-    return RollResult.fromRollResult(
-      roll,
-      expression: toString(),
-      opType: roll.opType,
+      discarded: lhs.discarded + discarded,
       left: lhs,
       right: rhs,
     );
@@ -532,7 +298,7 @@ class RerollDice extends BinaryDice {
       );
     });
 
-    bool test(RolledDie rolledDie) {
+    bool shouldReroll(RolledDie rolledDie) {
       final val = rolledDie.result;
       switch (name) {
         case 'r' || 'ro' || 'r=' || 'ro=':
@@ -555,18 +321,21 @@ class RerollDice extends BinaryDice {
     }
 
     final results = <RolledDie>[];
+    final discarded = <RolledDie>[];
     lhs.results.forEachIndexed((i, v) {
-      if (test(v)) {
+      if (shouldReroll(v)) {
         RolledDie rerolled;
         var rerollCount = 0;
         do {
           rerolled = roller
-              .roll(1, v.nsides, '(reroll ind $i,  #$rerollCount)')
-              .results[0];
+              .reroll(v, '(reroll ind $i,  #$rerollCount)')
+              .results
+              .first;
           rerollCount++;
-        } while (test(rerolled) && rerollCount < limit);
+        } while (shouldReroll(rerolled) && rerollCount < limit);
+        discarded.add(RolledDie.copyWith(v, discarded: true, rerolled: true));
         results.add(
-          RolledDie.copyWith(v, result: rerolled.result, rerolled: true),
+          RolledDie.copyWith(v, result: rerolled.result, reroll: true),
         );
       } else {
         results.add(v);
@@ -577,7 +346,7 @@ class RerollDice extends BinaryDice {
       expression: toString(),
       opType: OpType.reroll,
       results: results,
-      discarded: lhs.discarded,
+      discarded: lhs.discarded + discarded,
       left: lhs,
       right: rhs,
     );
@@ -604,12 +373,13 @@ class CompoundingDice extends BinaryDice {
     final lhs = left();
     final rhs = right();
 
-    bool test(RolledDie rolledDie) {
-      final target = rhs.totalOrDefault(() => rolledDie.nsides);
+    bool shouldCompound(RolledDie rolledDie) {
       final val = rolledDie.result;
-      if (!rolledDie.isCompoundable) {
+      if (!rolledDie.dieType.compoundable) {
+        logger.finest('$rolledDie cannot compound due to dieType');
         return false;
       }
+      final target = rhs.totalOrDefault(() => rolledDie.maxPotentialValue);
       switch (name) {
         case '!!' || '!!=' || '!!o' || '!!o=':
           return val == target;
@@ -633,20 +403,21 @@ class CompoundingDice extends BinaryDice {
     final results = <RolledDie>[];
     final discarded = <RolledDie>[];
     lhs.results.forEachIndexed((i, v) {
-      if (test(v)) {
+      if (shouldCompound(v)) {
         var sum = v.result;
         RolledDie rerolled;
         var numCompounded = 0;
         do {
           rerolled = roller
-              .roll(1, v.nsides, '(compound ind $i,  #$numCompounded)')
-              .results[0];
+              .reroll(v, '(compound ind $i,  #$numCompounded)')
+              .results
+              .first;
           discarded.add(
             RolledDie.copyWith(rerolled, discarded: true, compounded: true),
           );
           sum += rerolled.result;
           numCompounded++;
-        } while (test(rerolled) && numCompounded < limit);
+        } while (shouldCompound(rerolled) && numCompounded < limit);
         results.add(RolledDie.copyWith(v, result: sum, compoundedFinal: true));
       } else {
         results.add(v);
@@ -684,12 +455,13 @@ class ExplodingDice extends BinaryDice {
     final lhs = left();
     final rhs = right();
 
-    bool test(RolledDie rolledDie) {
-      final target = rhs.totalOrDefault(() => rolledDie.nsides);
+    bool shouldExplode(RolledDie rolledDie) {
       final val = rolledDie.result;
-      if (!rolledDie.isExplodable) {
+      if (!rolledDie.dieType.explodable) {
+        logger.finest('$rolledDie cannot compound due to dieType');
         return false;
       }
+      final target = rhs.totalOrDefault(() => rolledDie.maxPotentialValue);
       switch (name) {
         case '!' || '!=' || '!o' || '!o=':
           return val == target;
@@ -711,23 +483,24 @@ class ExplodingDice extends BinaryDice {
     }
 
     final newResults = <RolledDie>[];
-    for (final rolledDie in lhs.results.where(test)) {
+    for (final rolledDie in lhs.results.where(shouldExplode)) {
       newResults.add(RolledDie.copyWith(rolledDie, exploded: true));
       var numExplosions = 0;
       RolledDie rerolledDie;
       do {
         rerolledDie = roller
-            .roll(1, rolledDie.nsides, '(explode #${numExplosions + 1})')
-            .results[0];
+            .reroll(rolledDie, '(explode #${numExplosions + 1})')
+            .results
+            .first;
         numExplosions++;
         newResults.add(RolledDie.copyWith(rerolledDie, explosion: true));
-      } while (test(rerolledDie) && numExplosions < limit);
+      } while (shouldExplode(rerolledDie) && numExplosions < limit);
     }
 
     return RollResult(
       expression: toString(),
       opType: OpType.explode,
-      results: [...newResults, ...lhs.results.whereNot(test)],
+      results: [...newResults, ...lhs.results.whereNot(shouldExplode)],
       discarded: lhs.discarded,
       left: lhs,
       right: rhs,

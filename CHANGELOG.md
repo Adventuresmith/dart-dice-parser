@@ -2,16 +2,23 @@
 
 ## ⚠️⚠️ Breaking changes ⚠️⚠️
 
-Roll results have changed significantly (again). It's amazing what having users will do to a package!
+Roll results have changed significantly. Now, the individual die results are modeled 
+as a RolledDie object, rather than an integer. The RolledDie object incorporates 
+a lot of the metadata/scoring in pre-8.0.0 results. 
+
+Having a more elaborate result will make it easier for client applications
+to render the outcome of a roll. Each RolledDie knows its result, the # of sides on the die,
+whether it was counted as a success/failure, and 
 
 ## 📈 Enhancements
 
 - upgrade to dart 3.8.0
 - upgrade to petitparser 7.0.0
+- added dependency on fast_immutable_collections
 - remove metadata & score from RollResult
 - rather than simple list of Integers representing the output of a roll or operation, now each
   die rolled is a 'RolledDie' object which has the metadata/score.
-    - the RollResult's results field changes from List<int> to List<RolledDie>. RolledDie represents not just the
+    - the RollResult's results field changes from List<int> to IList<RolledDie>. RolledDie represents not just the
       outcome of the roll, but also includes metadata about the type of die, nsides of the die (if polyhedral die),
       and metadata about the dice expression's modification of the rolls.
 - RollResult.results will include both discarded an not-discarded RolledDie.

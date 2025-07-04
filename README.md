@@ -117,10 +117,12 @@ void main() {
         * `4d6 #<=2` -- roll 4d6, count any <= 2
         * `4d6 #=5` -- roll 4d6, count any equal to 5
     * successes and failures
-        * A normal count operation `#` discards the rolled dice and changes the result to be the count
+        * A simple count operation `#` discards the rolled dice and changes the result to be the count of results matching the condition
             * For example, `2d6#<=3` rolls `[3,4]` then counts which results are `<=3` , returning `[1]`
         * But, sometimes you want to be able to count successes/failures without discarding the dice rolls.
           In this case, use modifiers `#s`, `#f`, `#cs`, `#cf` to add metadata to the results.
+            * without modifiers, `#s` or `#cs` will count the result as a success if it matches the maximum possible value for the die
+            * without modifiers, `#f` or `#cf` will count the result as a failure if it matches the minimum possible value for the die
             * `6d6 #f<=2 #s>=5 #cs6 #cf1` -- roll 6d6, count results <= 2 as failures, >= 5 as successes, =6 as critical
               successes, =1 as critical failures
                 * The above returns a result like:

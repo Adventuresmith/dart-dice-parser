@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+
 import 'results.dart';
 import 'utils.dart';
 
@@ -26,7 +28,48 @@ class DiceRoller with LoggingMixin {
   /// default limit to # of times dice rolls can explode (100)
   static const int defaultExplodeLimit = 100;
 
-  /// Roll ndice of nsides and return results as list.
+  RollResult reroll(RolledDie rolledDie, [String msg = '']) {
+    switch (rolledDie.dieType) {
+      case DieType.polyhedral:
+        return roll(1, rolledDie.nsides, msg);
+      case DieType.fudge:
+        return rollFudge(1);
+      case DieType.d66:
+        return rollD66(1);
+      case DieType.special:
+        return rollVals(1, rolledDie.potentialValues);
+      default:
+        return RollResult(
+          expression: rolledDie.result.toString(),
+          opType: OpType.value,
+          results: [RolledDie.singleVal(result: rolledDie.result)],
+        );
+    }
+  }
+
+  RollResult rollD66(int ndice) {
+    final results = <RolledDie>[];
+    final discarded = <RolledDie>[];
+    for (var i = 0; i < ndice; i++) {
+      final tensRoll = roll(1, 6);
+      final onesRoll = roll(1, 6);
+      final total = tensRoll.total * 10 + onesRoll.total;
+      final rolled = [
+        RolledDie.discard(tensRoll.results.first),
+        RolledDie.discard(onesRoll.results.first),
+      ];
+      discarded.addAll(rolled);
+      results.add(RolledDie.d66(result: total, from: rolled));
+    }
+    return RollResult(
+      expression: toString(),
+      opType: OpType.rollD66,
+      results: results,
+      discarded: discarded,
+    );
+  }
+
+  /// Roll ndice of nsides and return results
   RollResult roll(int ndice, int nsides, [String msg = '']) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     RangeError.checkValueInInterval(nsides, minSides, maxSides, 'nsides');
@@ -45,7 +88,7 @@ class DiceRoller with LoggingMixin {
   }
 
   /// select n items from the list of values
-  List<T> selectN<T>(int n, List<T> vals) => [
+  Iterable<T> selectN<T>(int n, IList<T> vals) => [
     for (var i = 0; i < n; i++) vals[_random.nextInt(vals.length)],
   ];
 
@@ -64,11 +107,13 @@ class DiceRoller with LoggingMixin {
   }
 
   /// Roll N fudge dice, return results
-  RollResult rollVals(int ndice, List<int> sideVals) {
+  RollResult rollVals(int ndice, IList<int> sideVals) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     final results = selectN(ndice, sideVals);
 
-    logger.finest(() => 'roll ${ndice}d$sideVals => $results');
+    logger.finest(
+      () => 'roll ${ndice}d${sideVals.toString(false)} => $results',
+    );
 
     return RollResult(
       expression: '${ndice}d$sideVals',

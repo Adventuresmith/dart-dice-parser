@@ -1,6 +1,8 @@
 import 'package:petitparser/petitparser.dart';
 
-import 'ast.dart';
+import 'ast_core.dart';
+import 'ast_dice.dart';
+import 'ast_ops.dart';
 import 'dice_expression.dart';
 import 'dice_roller.dart';
 
@@ -44,6 +46,7 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     (a, op, b) => StdDice(op, a, b, roller),
   );
 
+  // TODO: !p penetrating dice
   // compounding dice (has to be in separate group from exploding)
   builder.group().left(
     (string('!!') &
