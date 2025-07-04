@@ -2,23 +2,37 @@ import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
-/// types of die
+/// types of die.
 enum DieType implements Comparable<DieType> {
   // normal polyhedral (1d6, 1d20, etc)
-  polyhedral(explodable: true, compoundable: true),
+  polyhedral(),
   // fudge dice
-  fudge(explodable: true, compoundable: true),
+  fudge(hasPotentialValues: true),
   // 1D66 (equivalent to `1d6*10 + 1d6`).
-  d66(explodable: true, compoundable: true),
+  d66(hasNSides: false),
   // 1d[1,3,5,7,9]
-  special(explodable: true, compoundable: true),
+  special(hasPotentialValues: true),
   // single value (e.g. a sum or count of dice)
-  singleVal(explodable: false, compoundable: false);
+  singleVal(explodable: false, compoundable: false, hasPotentialValues: true);
 
-  const DieType({required this.explodable, required this.compoundable});
+  const DieType({
+    this.explodable = true,
+    this.compoundable = true,
+    this.hasPotentialValues = false,
+    this.hasNSides = true,
+  });
 
+  /// can the die be exploded?
   final bool explodable;
+
+  /// can the die be compounded?
   final bool compoundable;
+
+  /// whether the RolledDie must have non-empty potentialValues
+  final bool hasPotentialValues;
+
+  /// whether the RolledDie must have non-zero nsides
+  final bool hasNSides;
 
   @override
   int compareTo(DieType dieType) => index.compareTo(dieType.index);
@@ -180,6 +194,16 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     this.clampFloor = false,
     this.from = const IList.empty(),
   }) : potentialValues = IList(potentialValues) {
+    if (dieType.hasPotentialValues && potentialValues.isEmpty) {
+      throw ArgumentError(
+        'Invalid die -- ${dieType.name} must have a potentialValues field',
+      );
+    }
+    if (dieType.hasNSides && nsides == 0) {
+      throw ArgumentError(
+        'Invalid die -- ${dieType.name} must have a nsides != 0',
+      );
+    }
     switch (dieType) {
       case DieType.polyhedral:
         maxPotentialValue = nsides;
@@ -190,11 +214,6 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
       case DieType.singleVal:
         maxPotentialValue = minPotentialValue = result;
       case DieType.special || DieType.fudge:
-        if (potentialValues.isEmpty) {
-          throw ArgumentError(
-            'Invalid die -- ${dieType.name} must have a potentialValues field',
-          );
-        }
         maxPotentialValue = potentialValues.max;
         minPotentialValue = potentialValues.min;
     }
@@ -215,6 +234,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     Iterable<RolledDie>? from,
   }) => RolledDie(
     result: result,
+    nsides: 1,
     dieType: DieType.singleVal,
     potentialValues: [result],
     from: IList.orNull(from) ?? const IList.empty(),
@@ -345,6 +365,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     result,
     nsides,
     maxPotentialValue,
+    minPotentialValue,
     potentialValues,
     dieType,
     discarded,

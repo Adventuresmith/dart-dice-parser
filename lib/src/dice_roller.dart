@@ -51,8 +51,8 @@ class DiceRoller with LoggingMixin {
     final results = <RolledDie>[];
     final discarded = <RolledDie>[];
     for (var i = 0; i < ndice; i++) {
-      final tensRoll = roll(1, 6);
-      final onesRoll = roll(1, 6);
+      final tensRoll = roll(1, 6, 'D66*10 $msg');
+      final onesRoll = roll(1, 6, 'D66*1 $msg');
       final total = tensRoll.total * 10 + onesRoll.total;
       final rolled = [
         RolledDie.discard(tensRoll.results.first),
