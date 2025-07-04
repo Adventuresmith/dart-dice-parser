@@ -7,8 +7,8 @@ as a RolledDie object, rather than an integer. The RolledDie object incorporates
 a lot of the metadata/scoring in pre-8.0.0 results. 
 
 Having a more elaborate result will make it easier for client applications
-to render the outcome of a roll. Each RolledDie knows its result, the # of sides on the die,
-whether it was counted as a success/failure, and 
+to render the outcome of a roll. Each RolledDie knows its result, the # of sides on the die, and 
+whether it was counted as a success/failure.
 
 ## 📈 Enhancements
 
@@ -16,6 +16,7 @@ whether it was counted as a success/failure, and
 - upgrade to petitparser 7.0.0
 - added dependency on fast_immutable_collections
 - remove metadata & score from RollResult
+- allow compounding, exploding, and rerolls for 'odd' die (`dF, D66, and d[vals]`)
 - rather than simple list of Integers representing the output of a roll or operation, now each
   die rolled is a 'RolledDie' object which has the metadata/score.
     - the RollResult's results field changes from List<int> to IList<RolledDie>. RolledDie represents not just the

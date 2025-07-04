@@ -34,7 +34,7 @@ class CountOp extends Binary {
     final lhs = left();
     final rhs = right();
 
-    bool test(RolledDie rolledDie) {
+    bool shouldCount(RolledDie rolledDie) {
       var rhsEmptyAndSimpleCount = false;
       final target = rhs.totalOrDefault(() {
         // if missing RHS, we can make assumptions depending on operator.
@@ -44,11 +44,11 @@ class CountOp extends Binary {
             rhsEmptyAndSimpleCount = true;
             return 0;
           case '#s' || '#cs':
-            // example: '3d6#s' -- assume target is nsides (maximum)
-            return rolledDie.nsides;
+            // example: '3d6#s' should match 6, or '3D66' should match 66
+            return rolledDie.maxPotentialValue;
           case '#f' || '#cf':
-            // example: '3d6#f' -- assume target is 1 (minimum)
-            return 1;
+            // generally should be 1.
+            return rolledDie.minPotentialValue;
           default:
             throw FormatException(
               'Invalid count operation. Missing count target',
@@ -93,7 +93,7 @@ class CountOp extends Binary {
       }
     }
 
-    final scoredResults = lhs.results.where(test);
+    final scoredResults = lhs.results.where(shouldCount);
 
     if (countType == CountType.count) {
       // if counting, the count becomes the new result
@@ -111,7 +111,7 @@ class CountOp extends Binary {
     } else {
       // if counting success/failures, the results are updated w/ scoring
 
-      final nonScoredResults = lhs.results.whereNot(test);
+      final nonScoredResults = lhs.results.whereNot(shouldCount);
 
       return RollResult(
         expression: toString(),

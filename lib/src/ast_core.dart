@@ -1,5 +1,3 @@
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-
 import 'dice_expression.dart';
 import 'dice_roller.dart';
 import 'results.dart';

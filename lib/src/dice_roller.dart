@@ -33,11 +33,11 @@ class DiceRoller with LoggingMixin {
       case DieType.polyhedral:
         return roll(1, rolledDie.nsides, msg);
       case DieType.fudge:
-        return rollFudge(1);
+        return rollFudge(1, msg);
       case DieType.d66:
-        return rollD66(1);
+        return rollD66(1, msg);
       case DieType.special:
-        return rollVals(1, rolledDie.potentialValues);
+        return rollVals(1, rolledDie.potentialValues, msg);
       default:
         return RollResult(
           expression: rolledDie.result.toString(),
@@ -47,7 +47,7 @@ class DiceRoller with LoggingMixin {
     }
   }
 
-  RollResult rollD66(int ndice) {
+  RollResult rollD66(int ndice, [String msg = '']) {
     final results = <RolledDie>[];
     final discarded = <RolledDie>[];
     for (var i = 0; i < ndice; i++) {
@@ -61,6 +61,9 @@ class DiceRoller with LoggingMixin {
       discarded.addAll(rolled);
       results.add(RolledDie.d66(result: total, from: rolled));
     }
+    logger.finest(
+      () => 'roll ${ndice}D66 => $results {discarded: $discarded} $msg',
+    );
     return RollResult(
       expression: toString(),
       opType: OpType.rollD66,
@@ -93,11 +96,11 @@ class DiceRoller with LoggingMixin {
   ];
 
   /// Roll N fudge dice, return results
-  RollResult rollFudge(int ndice) {
+  RollResult rollFudge(int ndice, [String msg = '']) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     final results = selectN(ndice, RolledDie.defaultFudgeVals);
 
-    logger.finest(() => 'roll ${ndice}dF => $results');
+    logger.finest(() => 'roll ${ndice}dF => $results $msg');
 
     return RollResult(
       expression: '${ndice}dF',
@@ -107,12 +110,12 @@ class DiceRoller with LoggingMixin {
   }
 
   /// Roll N fudge dice, return results
-  RollResult rollVals(int ndice, IList<int> sideVals) {
+  RollResult rollVals(int ndice, IList<int> sideVals, [String msg = '']) {
     RangeError.checkValueInInterval(ndice, minDice, maxDice, 'ndice');
     final results = selectN(ndice, sideVals);
 
     logger.finest(
-      () => 'roll ${ndice}d${sideVals.toString(false)} => $results',
+      () => 'roll ${ndice}d${sideVals.toString(false)} => $results $msg',
     );
 
     return RollResult(

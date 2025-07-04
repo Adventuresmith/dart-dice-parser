@@ -596,9 +596,9 @@ void main() {
                               (((4d(3 + 3)) ! ) + ((2 + 2)d6)) =add=> RollResult(total: 33, results: [6(d6💣), 3(d6🔥), 2(d6), 1(d6), 5(d6), 5(d6), 1(d6), 4(d6), 6(d6)])
                                   ((4d(3 + 3)) ! ) =explode=> RollResult(total: 17, results: [6(d6💣), 3(d6🔥), 2(d6), 1(d6), 5(d6)])
                                       (4d(3 + 3)) =rollDice=> RollResult(total: 14, results: [6(d6), 2(d6), 1(d6), 5(d6)])
-                                          (3 + 3) =add=> RollResult(total: 6, results: [3(), 3()])
+                                          (3 + 3) =add=> RollResult(total: 6, results: [3(val), 3(val)])
                                   ((2 + 2)d6) =rollDice=> RollResult(total: 16, results: [5(d6), 1(d6), 4(d6), 6(d6)])
-                                      (2 + 2) =add=> RollResult(total: 4, results: [2(), 2()])
+                                      (2 + 2) =add=> RollResult(total: 4, results: [2(val), 2(val)])
           '''
               .trim(),
         ),
@@ -614,59 +614,19 @@ void main() {
           'expression': '(4d6)',
           'total': 14,
           'results': [
-            {
-              'result': 6,
-              'nsides': 6,
-              'maxPotentialValue': 6,
-              'dieType': 'polyhedral',
-            },
-            {
-              'result': 2,
-              'nsides': 6,
-              'maxPotentialValue': 6,
-              'dieType': 'polyhedral',
-            },
-            {
-              'result': 1,
-              'nsides': 6,
-              'maxPotentialValue': 6,
-              'dieType': 'polyhedral',
-            },
-            {
-              'result': 5,
-              'nsides': 6,
-              'maxPotentialValue': 6,
-              'dieType': 'polyhedral',
-            },
+            {'result': 6, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
           ],
           'detailedResults': {
             'expression': '(4d6)',
             'opType': 'rollDice',
             'results': [
-              {
-                'result': 6,
-                'nsides': 6,
-                'maxPotentialValue': 6,
-                'dieType': 'polyhedral',
-              },
-              {
-                'result': 2,
-                'nsides': 6,
-                'maxPotentialValue': 6,
-                'dieType': 'polyhedral',
-              },
-              {
-                'result': 1,
-                'nsides': 6,
-                'maxPotentialValue': 6,
-                'dieType': 'polyhedral',
-              },
-              {
-                'result': 5,
-                'nsides': 6,
-                'maxPotentialValue': 6,
-                'dieType': 'polyhedral',
-              },
+              {'result': 6, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
             ],
             'total': 14,
           },
@@ -689,29 +649,17 @@ void main() {
             {
               'result': 6,
               'nsides': 6,
-              'maxPotentialValue': 6,
               'dieType': 'polyhedral',
               'critSuccess': true,
             },
             {
               'result': 1,
               'nsides': 6,
-              'maxPotentialValue': 6,
               'dieType': 'polyhedral',
               'critFailure': true,
             },
-            {
-              'result': 2,
-              'nsides': 6,
-              'maxPotentialValue': 6,
-              'dieType': 'polyhedral',
-            },
-            {
-              'result': 5,
-              'nsides': 6,
-              'maxPotentialValue': 6,
-              'dieType': 'polyhedral',
-            },
+            {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
           ],
           'detailedResults': {
             'expression': '(((4d6) #cf ) #cs )',
@@ -720,29 +668,17 @@ void main() {
               {
                 'result': 6,
                 'nsides': 6,
-                'maxPotentialValue': 6,
                 'dieType': 'polyhedral',
                 'critSuccess': true,
               },
               {
                 'result': 1,
                 'nsides': 6,
-                'maxPotentialValue': 6,
                 'dieType': 'polyhedral',
                 'critFailure': true,
               },
-              {
-                'result': 2,
-                'nsides': 6,
-                'maxPotentialValue': 6,
-                'dieType': 'polyhedral',
-              },
-              {
-                'result': 5,
-                'nsides': 6,
-                'maxPotentialValue': 6,
-                'dieType': 'polyhedral',
-              },
+              {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
             ],
             'left': {
               'expression': '((4d6) #cf )',
@@ -751,57 +687,21 @@ void main() {
                 {
                   'result': 1,
                   'nsides': 6,
-                  'maxPotentialValue': 6,
                   'dieType': 'polyhedral',
                   'critFailure': true,
                 },
-                {
-                  'result': 6,
-                  'nsides': 6,
-                  'maxPotentialValue': 6,
-                  'dieType': 'polyhedral',
-                },
-                {
-                  'result': 2,
-                  'nsides': 6,
-                  'maxPotentialValue': 6,
-                  'dieType': 'polyhedral',
-                },
-                {
-                  'result': 5,
-                  'nsides': 6,
-                  'maxPotentialValue': 6,
-                  'dieType': 'polyhedral',
-                },
+                {'result': 6, 'nsides': 6, 'dieType': 'polyhedral'},
+                {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+                {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
               ],
               'left': {
                 'expression': '(4d6)',
                 'opType': 'rollDice',
                 'results': [
-                  {
-                    'result': 6,
-                    'nsides': 6,
-                    'maxPotentialValue': 6,
-                    'dieType': 'polyhedral',
-                  },
-                  {
-                    'result': 2,
-                    'nsides': 6,
-                    'maxPotentialValue': 6,
-                    'dieType': 'polyhedral',
-                  },
-                  {
-                    'result': 1,
-                    'nsides': 6,
-                    'maxPotentialValue': 6,
-                    'dieType': 'polyhedral',
-                  },
-                  {
-                    'result': 5,
-                    'nsides': 6,
-                    'maxPotentialValue': 6,
-                    'dieType': 'polyhedral',
-                  },
+                  {'result': 6, 'nsides': 6, 'dieType': 'polyhedral'},
+                  {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+                  {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+                  {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
                 ],
                 'total': 14,
               },

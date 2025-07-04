@@ -191,8 +191,8 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
         maxPotentialValue = minPotentialValue = result;
       case DieType.special || DieType.fudge:
         if (potentialValues.isEmpty) {
-          throw new ArgumentError(
-            'Invalid die -- ${dieType} must have a potentialValues field',
+          throw ArgumentError(
+            'Invalid die -- ${dieType.name} must have a potentialValues field',
           );
         }
         maxPotentialValue = potentialValues.max;
@@ -367,7 +367,6 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
         'result': result,
         'nsides': nsides,
         'potentialValues': potentialValues.toList(growable: false),
-        'maxPotentialValue': maxPotentialValue,
         'dieType': dieType.name,
         'discarded': discarded,
         'success': success,
