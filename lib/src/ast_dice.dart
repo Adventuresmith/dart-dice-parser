@@ -3,7 +3,8 @@ import 'package:petitparser/parser.dart';
 
 import 'ast_core.dart';
 import 'dice_roller.dart';
-import 'results.dart';
+import 'enums.dart';
+import 'roll_result.dart';
 
 /// roll fudge dice
 class FudgeDice extends UnaryDice {

@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
-import 'results.dart';
+import 'enums.dart';
+import 'roll_result.dart';
+import 'rolled_die.dart';
 import 'utils.dart';
 
 /// A dice roller for M dice of N sides (e.g. `2d6`).

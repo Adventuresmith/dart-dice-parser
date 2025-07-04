@@ -1,6 +1,8 @@
 import 'dice_expression.dart';
 import 'dice_roller.dart';
-import 'results.dart';
+import 'enums.dart';
+import 'roll_result.dart';
+import 'rolled_die.dart';
 import 'utils.dart';
 
 /// All our operations will inherit from this class.

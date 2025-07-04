@@ -1,7 +1,9 @@
 import 'package:collection/collection.dart';
 
 import 'ast_core.dart';
-import 'results.dart';
+import 'enums.dart';
+import 'roll_result.dart';
+import 'rolled_die.dart';
 
 /// default limit for rerolls/exploding/compounding to avoid getting stuck in loop
 const defaultRerollLimit = 1000;

@@ -4,8 +4,10 @@ import 'package:logging/logging.dart';
 import 'package:petitparser/petitparser.dart';
 
 import 'dice_roller.dart';
+import 'enums.dart';
 import 'parser.dart';
-import 'results.dart';
+import 'roll_result.dart';
+import 'roll_summary.dart';
 import 'stats.dart';
 
 /// An abstract expression that can be evaluated.

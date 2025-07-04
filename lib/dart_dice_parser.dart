@@ -15,4 +15,8 @@ library;
 
 export 'src/dice_expression.dart';
 export 'src/dice_roller.dart';
-export 'src/results.dart';
+export 'src/enums.dart';
+export 'src/extensions.dart';
+export 'src/roll_result.dart';
+export 'src/roll_summary.dart';
+export 'src/rolled_die.dart';
