@@ -7,6 +7,11 @@ repository: https://github.com/Adventuresmith/dart-dice-parser
 environment:
   sdk: "^3.8.0"
 
+topics:
+  - dice
+  - rpg
+  - ttrpg
+
 dependencies:
   collection: ^1.0.0
   equatable: ^2.0.0
