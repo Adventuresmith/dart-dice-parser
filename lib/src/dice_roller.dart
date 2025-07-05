@@ -7,12 +7,12 @@ import 'roll_result.dart';
 import 'rolled_die.dart';
 import 'utils.dart';
 
-/// A dice roller for M dice of N sides (e.g. `2d6`).
-/// A roll returns a list of ints.
+/// A dice roller for standard polyhedral dice, fudge dice, etc
 class DiceRoller with LoggingMixin {
   /// Constructs a dice roller
   DiceRoller([Random? r]) : _random = r ?? Random.secure();
 
+  /// the RNG to use
   final Random _random;
 
   /// minimum dice to roll (0)
