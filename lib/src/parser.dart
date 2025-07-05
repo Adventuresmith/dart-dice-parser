@@ -40,13 +40,27 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
         char(']').trim(),
       ),
       (a, op) => CSVDice(op.toString(), a, roller, op.$3),
+    )
+    ..postfix(
+      seq4(
+        char('d').trim(),
+        digit().plus().flatten().trim(),
+        char('p').trim(),
+        digit().plus().optional().flatten().trim(),
+      ),
+      (a, op) => PenetratingDice(
+        op.toString(),
+        a,
+        roller,
+        nsides: op.$2,
+        nsidesPenetration: op.$4,
+      ),
     );
   builder.group().left(
     char('d').trim(),
     (a, op, b) => StdDice(op, a, b, roller),
   );
 
-  // TODO: !p penetrating dice
   // compounding dice (has to be in separate group from exploding)
   builder.group().left(
     (string('!!') &

@@ -54,6 +54,8 @@ void main() {
     * `1D66` -- roll `1` D66, aka `1d6*10 + 1d6`
         * **_NOTE_**: you _must_ use uppercase `D66`, lowercase `d66` will be interpreted as a 66-sided die
     * `2d[2,3,5,7]`-- roll 2 dice with values `[2,3,5,7]`
+    * `4d6p` -- penetrating dice. Similar to exploding, and -1 is added for each subsequent reroll.
+      * `1d20p6`, `1d100p20` -- HackMaster rules say a d20 penetrates with d6s, and a d100 penetrates with d20s
 
 * exploding dice
     * `4d6!` -- roll `4` `6`-sided dice, explode if max (`6`) is rolled (re-roll and include in results)
@@ -422,7 +424,7 @@ stdout.writeln('${rollResult.opType.name} -> $rollResult');
 
 // if you want to listen for the RollSummary
 DiceExpression.registerSummaryListener((rollSummary) {
-stdout.writeln('$rollSummary');
+stdout.writeln('$rollSummary');[README.md](README.md)
 });
 
 ```
@@ -431,11 +433,7 @@ Alternatively, you may not want to know _all_ roll events, and are only interest
 the events for your specific roll. In that case, pass an 'onRoll' method to the `roll()` method
 
 ```dart 
-  DiceExpression.create
-('2d20kh
-'
-)
-.roll(
+  DiceExpression.create('2d20kh').roll(
 onRoll: (rr) => stdout.writeln('roll - $rr'),
 onSummary: (summary) => stdout.writeln('summary - $
 summary

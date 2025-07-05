@@ -14,6 +14,9 @@ whether it was counted as a success/failure.
 
 - upgrade to dart 3.8.0
 - upgrade to petitparser 7.0.0
+- implement penetrating dice ala Hackmaster
+  - `1d6p` -- roll d6, if 6 is rolled explode with d6s subtracting one each time.
+  - `1d100p20` -- roll a d100, if 100 is rolled penetrate with d20s
 - added dependency on fast_immutable_collections
 - remove metadata & score from RollResult
 - allow compounding, exploding, and rerolls for 'odd' die (`dF, D66, and d[vals]`)

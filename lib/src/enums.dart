@@ -9,20 +9,16 @@ enum DieType implements Comparable<DieType> {
   // 1d[1,3,5,7,9]
   special(hasPotentialValues: true),
   // single value (e.g. a sum or count of dice)
-  singleVal(explodable: false, compoundable: false, hasPotentialValues: true);
+  singleVal(explodable: false, hasPotentialValues: true);
 
   const DieType({
     this.explodable = true,
-    this.compoundable = true,
     this.hasPotentialValues = false,
     this.hasNSides = true,
   });
 
   /// can the die be exploded?
   final bool explodable;
-
-  /// can the die be compounded?
-  final bool compoundable;
 
   /// whether the RolledDie must have non-empty potentialValues
   final bool hasPotentialValues;
@@ -47,6 +43,7 @@ enum OpType {
   rollPercent,
   rollD66,
   rollVals,
+  rollPenetration,
   reroll,
   compound,
   explode,

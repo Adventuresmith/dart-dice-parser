@@ -85,7 +85,6 @@ class RollSummary extends Equatable {
     return buffer.toString();
   }
 
-  // TODO: implement fromJson?
   Map<String, dynamic> toJson() =>
       {
         'expression': expression,

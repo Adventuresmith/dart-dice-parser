@@ -505,6 +505,9 @@ void main() {
     seededRandTest('compounding dice', '9d6!!o<=3', 50);
     seededRandTest('compounding dice', '9d6!!o1', 44);
 
+    seededRandTest('penetrating dice', '9d6p', 45);
+    seededRandTest('penetrating dice', '9d6p4', 50);
+
     seededRandTest('explode arith result', '(9d6+3)!', 51);
 
     // explode, then count 6's
@@ -711,6 +714,227 @@ void main() {
             'total': 14,
             'critSuccessCount': 1,
             'critFailureCount': 1,
+          },
+        }),
+      );
+    });
+
+    test('toJson - 9d6p4', () {
+      final dice = DiceExpression.create('9d6p4', seededRandom);
+      final obj = dice.roll().toJson();
+      expect(
+        obj,
+        equals({
+          'expression': '(9d6p4)',
+          'total': 50,
+          'results': [
+            {
+              'result': 8,
+              'nsides': 6,
+              'dieType': 'polyhedral',
+              'penetrated': true,
+            },
+            {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 3, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+            {'result': 4, 'nsides': 6, 'dieType': 'polyhedral'},
+            {
+              'result': 21,
+              'nsides': 6,
+              'dieType': 'polyhedral',
+              'penetrated': true,
+            },
+          ],
+          'discarded': [
+            {
+              'result': 6,
+              'nsides': 6,
+              'dieType': 'polyhedral',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': 3,
+              'nsides': 4,
+              'dieType': 'polyhedral',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': -1,
+              'nsides': 1,
+              'potentialValues': [-1],
+              'dieType': 'singleVal',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': 6,
+              'nsides': 6,
+              'dieType': 'polyhedral',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': 4,
+              'nsides': 4,
+              'dieType': 'polyhedral',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': 4,
+              'nsides': 4,
+              'dieType': 'polyhedral',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': 4,
+              'nsides': 4,
+              'dieType': 'polyhedral',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': 4,
+              'nsides': 4,
+              'dieType': 'polyhedral',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': 4,
+              'nsides': 4,
+              'dieType': 'polyhedral',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': 1,
+              'nsides': 4,
+              'dieType': 'polyhedral',
+              'discarded': true,
+              'penetrator': true,
+            },
+            {
+              'result': -6,
+              'nsides': 1,
+              'potentialValues': [-6],
+              'dieType': 'singleVal',
+              'discarded': true,
+              'penetrator': true,
+            },
+          ],
+          'detailedResults': {
+            'expression': '(9d6p4)',
+            'opType': 'rollPenetration',
+            'results': [
+              {
+                'result': 8,
+                'nsides': 6,
+                'dieType': 'polyhedral',
+                'penetrated': true,
+              },
+              {'result': 2, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 3, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 5, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 1, 'nsides': 6, 'dieType': 'polyhedral'},
+              {'result': 4, 'nsides': 6, 'dieType': 'polyhedral'},
+              {
+                'result': 21,
+                'nsides': 6,
+                'dieType': 'polyhedral',
+                'penetrated': true,
+              },
+            ],
+            'discarded': [
+              {
+                'result': 6,
+                'nsides': 6,
+                'dieType': 'polyhedral',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': 3,
+                'nsides': 4,
+                'dieType': 'polyhedral',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': -1,
+                'nsides': 1,
+                'potentialValues': [-1],
+                'dieType': 'singleVal',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': 6,
+                'nsides': 6,
+                'dieType': 'polyhedral',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': 4,
+                'nsides': 4,
+                'dieType': 'polyhedral',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': 4,
+                'nsides': 4,
+                'dieType': 'polyhedral',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': 4,
+                'nsides': 4,
+                'dieType': 'polyhedral',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': 4,
+                'nsides': 4,
+                'dieType': 'polyhedral',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': 4,
+                'nsides': 4,
+                'dieType': 'polyhedral',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': 1,
+                'nsides': 4,
+                'dieType': 'polyhedral',
+                'discarded': true,
+                'penetrator': true,
+              },
+              {
+                'result': -6,
+                'nsides': 1,
+                'potentialValues': [-6],
+                'dieType': 'singleVal',
+                'discarded': true,
+                'penetrator': true,
+              },
+            ],
+            'total': 50,
           },
         }),
       );

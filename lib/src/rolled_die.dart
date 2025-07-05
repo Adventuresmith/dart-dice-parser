@@ -22,6 +22,8 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     this.explosion = false,
     this.compoundedFinal = false,
     this.compounded = false,
+    this.penetrated = false,
+    this.penetrator = false,
     this.reroll = false,
     this.rerolled = false,
     this.clampCeiling = false,
@@ -65,21 +67,23 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
 
   factory RolledDie.singleVal({
     required int result,
-    Iterable<RolledDie>? from,
+    bool discarded = false,
+    bool penetrator = false,
+    Iterable<RolledDie>? from = const IList.empty(),
   }) => RolledDie(
     result: result,
     nsides: 1,
+    discarded: discarded,
+    penetrator: penetrator,
     dieType: DieType.singleVal,
     potentialValues: [result],
-    from: IList.orNull(from) ?? const IList.empty(),
+    from: IList(from),
   );
 
-  factory RolledDie.d66({required int result, Iterable<RolledDie>? from}) =>
-      RolledDie(
-        result: result,
-        dieType: DieType.d66,
-        from: IList.orNull(from) ?? const IList.empty(),
-      );
+  factory RolledDie.d66({
+    required int result,
+    Iterable<RolledDie>? from = const IList.empty(),
+  }) => RolledDie(result: result, dieType: DieType.d66, from: IList(from));
 
   factory RolledDie.copyWith(
     RolledDie other, {
@@ -93,6 +97,8 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     bool? explosion,
     bool? compounded,
     bool? compoundedFinal,
+    bool? penetrator,
+    bool? penetrated,
     bool? reroll,
     bool? rerolled,
     bool? clampHigh,
@@ -106,6 +112,8 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     discarded: discarded ?? other.discarded,
     success: success ?? other.success,
     failure: failure ?? other.failure,
+    penetrated: penetrated ?? other.penetrated,
+    penetrator: penetrator ?? other.penetrator,
     critSuccess: critSuccess ?? other.critSuccess,
     critFailure: critFailure ?? other.critFailure,
     exploded: exploded ?? other.exploded,
@@ -182,6 +190,12 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
   /// true if the die is the sum a multiple die due to compounding
   final bool compoundedFinal;
 
+  /// true if the die was a discarded result during penetration
+  final bool penetrator;
+
+  /// true if the die was the result of penetration
+  final bool penetrated;
+
   /// true if the (discarded) result is from a reroll
   final bool rerolled;
 
@@ -193,6 +207,8 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
 
   /// true if the result has been clamped via `C<`
   final bool clampFloor;
+
+  bool get isMaxResult => result == maxPotentialValue;
 
   @override
   List<Object?> get props => [
@@ -215,6 +231,8 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     rerolled,
     clampCeiling,
     clampFloor,
+    penetrated,
+    penetrator,
   ];
 
   Map<String, dynamic> toJson() =>
@@ -236,6 +254,8 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
         'rerolled': rerolled,
         'clampHigh': clampCeiling,
         'clampLow': clampFloor,
+        'penetrated': penetrated,
+        'penetrator': penetrator,
       }..removeWhere(
         (k, v) =>
             v == null ||
@@ -278,11 +298,17 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     if (explosion) {
       buffer.write('🔥'); //'⇪');
     }
+    if (penetrated) {
+      buffer.write('➶');
+    }
+    if (penetrator) {
+      buffer.write('⥅');
+    }
     if (compoundedFinal) {
       buffer.write('∑');
     }
     if (compounded) {
-      buffer.write('+');
+      buffer.write('⥅');
     }
     if (clampCeiling) {
       buffer.write('⌈⌉');
@@ -316,14 +342,23 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     return buffer.toString();
   }
 
-  //TODO: should this compare other fields too?
   @override
   int compareTo(RolledDie other) => result
       .compareTo(other.result)
       .if0(dieType.compareTo(other.dieType))
-      .if0(
-        dieType == DieType.polyhedral && other.dieType == DieType.polyhedral
-            ? nsides.compareTo(other.nsides)
-            : 0,
-      );
+      .if0(nsides.compareTo(other.nsides))
+      .if0(discarded.compareTo(other.discarded))
+      .if0(success.compareTo(other.success))
+      .if0(failure.compareTo(other.failure))
+      .if0(failure.compareTo(other.failure))
+      .if0(critSuccess.compareTo(other.critSuccess))
+      .if0(critFailure.compareTo(other.critFailure))
+      .if0(exploded.compareTo(other.exploded))
+      .if0(explosion.compareTo(other.explosion))
+      .if0(compoundedFinal.compareTo(other.compoundedFinal))
+      .if0(compounded.compareTo(other.compounded))
+      .if0(reroll.compareTo(other.reroll))
+      .if0(rerolled.compareTo(other.rerolled))
+      .if0(clampCeiling.compareTo(other.clampCeiling))
+      .if0(clampFloor.compareTo(other.clampFloor));
 }

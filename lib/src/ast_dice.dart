@@ -1,10 +1,13 @@
+import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:petitparser/parser.dart';
 
 import 'ast_core.dart';
+import 'ast_ops.dart';
 import 'dice_roller.dart';
 import 'enums.dart';
 import 'roll_result.dart';
+import 'rolled_die.dart';
 
 /// roll fudge dice
 class FudgeDice extends UnaryDice {
@@ -52,6 +55,87 @@ class CSVDice extends UnaryDice {
       roll,
       expression: toString(),
       opType: OpType.rollVals,
+      left: lhs,
+    );
+  }
+}
+
+class PenetratingDice extends UnaryDice {
+  PenetratingDice(
+    super.op,
+    super.left,
+    super.roller, {
+    required String nsides,
+    required String nsidesPenetration,
+  }) : nsides = int.parse(nsides),
+       nsidesPenetration = nsidesPenetration.isEmpty
+           ? int.parse(nsides)
+           : int.parse(nsidesPenetration);
+
+  final int nsides;
+  final int nsidesPenetration;
+  final limit = defaultRerollLimit;
+
+  @override
+  String toString() => '(${left}d${nsides}p$nsidesPenetration)';
+
+  @override
+  RollResult eval() {
+    final lhs = left();
+    final ndice = lhs.totalOrDefault(() => 1);
+
+    final roll = roller.roll(ndice, nsides);
+
+    final results = <RolledDie>[];
+    final discarded = <RolledDie>[];
+    roll.results.forEachIndexed((i, rolledDie) {
+      if (rolledDie.isMaxResult) {
+        var sum = rolledDie.result;
+        RolledDie rerolled;
+        var numPenetrated = 0;
+        discarded.add(
+          RolledDie.copyWith(rolledDie, discarded: true, penetrator: true),
+        );
+        do {
+          rerolled = roller
+              .roll(
+                1,
+                nsidesPenetration,
+                '(penetration ind $i, $numPenetrated)',
+              )
+              .results
+              .first;
+          discarded.add(
+            RolledDie.copyWith(rerolled, discarded: true, penetrator: true),
+          );
+          sum += rerolled.result;
+          numPenetrated++;
+        } while (rerolled.isMaxResult && numPenetrated < limit);
+        discarded.add(
+          RolledDie.singleVal(
+            result: -numPenetrated,
+            discarded: true,
+            penetrator: true,
+          ),
+        );
+        results.add(
+          RolledDie.copyWith(
+            rolledDie,
+            result: sum - numPenetrated,
+            penetrated: true,
+            from: discarded,
+          ),
+        );
+      } else {
+        results.add(rolledDie);
+      }
+    });
+
+    return RollResult(
+      expression: toString(),
+      opType: OpType.rollPenetration,
+      results: results,
+      discarded: lhs.discarded + discarded,
       left: lhs,
     );
   }

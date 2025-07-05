@@ -377,7 +377,7 @@ class CompoundingDice extends BinaryDice {
 
     bool shouldCompound(RolledDie rolledDie) {
       final val = rolledDie.result;
-      if (!rolledDie.dieType.compoundable) {
+      if (!rolledDie.dieType.explodable) {
         logger.finest('$rolledDie cannot compound due to dieType');
         return false;
       }
@@ -409,6 +409,7 @@ class CompoundingDice extends BinaryDice {
         var sum = v.result;
         RolledDie rerolled;
         var numCompounded = 0;
+        discarded.add(RolledDie.copyWith(v, discarded: true, compounded: true));
         do {
           rerolled = roller
               .reroll(v, '(compound ind $i,  #$numCompounded)')
