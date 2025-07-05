@@ -14,7 +14,7 @@ class SortOp extends Unary {
   @override
   RollResult eval() {
     final lhs = left();
-    final bool reversed = name == 'sd';
+    final reversed = name == 'sd';
 
     return RollResult(
       results: reversed ? lhs.results.sortReversed() : lhs.results.sort(),
