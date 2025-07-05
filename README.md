@@ -107,6 +107,18 @@ void main() {
 * cap/clamp:
     * `4d20 C<5` -- roll 4d20, change any value < 5 to 5
     * `4d20 C>15` -- roll 4d20, change any value > 15 to 15
+* sorting results
+  * `4d20 s` -- results sorted in ascending order
+  * `4d20 sd` -- results sorted in descending order
+
+* multiple expressions separated by comma
+  * `(1d8!,1d6!)kh` -- rolls 1d8 and 1d6 exploding, and keeps the highest result
+  * NOTE: each subexpression is evaluated into a result, and the individual rolls are discarded.
+  * example: `(1d8!,1d6!)kh`
+    * `1d6!` rolls a 6, and explodes with a 4. total: 10
+    * `1d8!` rolls an 8, and explodes with a 1. total: 9
+    * the comma-separated results are each replaced -- the rolls are discarded, and the results now are `10,9`
+    * the highest is kept. the expression's total is 10.
 
 * scoring dice rolls:
     * counting:
@@ -234,16 +246,100 @@ Sometimes it's nice to change the output type so you can see the graph of result
 
 ```console
 # show the result graph:
-❯  dart run example/main.dart -o pretty '3d6 #cs #cf'
-(((3d6) #cs ) #cf ) ===> RollSummary(total: 9, results: [1(d6)❌, 3(d6), 5(d6)], critFailureCount: 1)
-  (((3d6) #cs ) #cf ) =count=> RollResult(total: 9, results: [1(d6)❌, 3(d6), 5(d6)])
-      ((3d6) #cs ) =count=> RollResult(total: 9, results: [1(d6), 3(d6), 5(d6)])
-          (3d6) =rollDice=> RollResult(total: 9, results: [1(d6), 3(d6), 5(d6)])
+❯ dart run example/main.dart -o pretty '3d6 #cs #cf'
+(((3d6) #cs ) #cf ) ===> RollSummary(total: 13, results: [6(d6✅), 5(d6), 2(d6)], critSuccessCount: 1)
+  (((3d6) #cs ) #cf ) =count=> RollResult(total: 13, results: [6(d6✅), 5(d6), 2(d6)])
+      ((3d6) #cs ) =count=> RollResult(total: 13, results: [6(d6✅), 5(d6), 2(d6)])
+          (3d6) =rollDice=> RollResult(total: 13, results: [6(d6), 5(d6), 2(d6)])
 
-❯ dart run example/main.dart -o json '3d6 #cs #cf'
-{"expression":"(((3d6) #cs ) #cf )","total":9,"results":[2,3,4],"detailedResults":{"expression":"(((3d6) #cs ) #cf )","opType":"count","nsides":6,"ndice":3,"results":[2,3,4],"left":{"expression":"((3d6) #cs )","opType":"count","nsides":6,"ndice":3,"results":[2,3,4],"left":{"expression":"(3d6)","opType":"rollDice","nsides":6,"ndice":3,"results":[2,3,4],"metadata":{"rolled":[2,3,4]}}}},"metadata":{"rolled":[2,3,4]}}
-
-
+❯ dart run example/main.dart -o json '3d6 #cs #cf' | jq
+{
+  "expression": "(((3d6) #cs ) #cf )",
+  "total": 12,
+  "results": [
+    {
+      "result": 4,
+      "nsides": 6,
+      "dieType": "polyhedral"
+    },
+    {
+      "result": 5,
+      "nsides": 6,
+      "dieType": "polyhedral"
+    },
+    {
+      "result": 3,
+      "nsides": 6,
+      "dieType": "polyhedral"
+    }
+  ],
+  "detailedResults": {
+    "expression": "(((3d6) #cs ) #cf )",
+    "opType": "count",
+    "results": [
+      {
+        "result": 4,
+        "nsides": 6,
+        "dieType": "polyhedral"
+      },
+      {
+        "result": 5,
+        "nsides": 6,
+        "dieType": "polyhedral"
+      },
+      {
+        "result": 3,
+        "nsides": 6,
+        "dieType": "polyhedral"
+      }
+    ],
+    "left": {
+      "expression": "((3d6) #cs )",
+      "opType": "count",
+      "results": [
+        {
+          "result": 4,
+          "nsides": 6,
+          "dieType": "polyhedral"
+        },
+        {
+          "result": 5,
+          "nsides": 6,
+          "dieType": "polyhedral"
+        },
+        {
+          "result": 3,
+          "nsides": 6,
+          "dieType": "polyhedral"
+        }
+      ],
+      "left": {
+        "expression": "(3d6)",
+        "opType": "rollDice",
+        "results": [
+          {
+            "result": 4,
+            "nsides": 6,
+            "dieType": "polyhedral"
+          },
+          {
+            "result": 5,
+            "nsides": 6,
+            "dieType": "polyhedral"
+          },
+          {
+            "result": 3,
+            "nsides": 6,
+            "dieType": "polyhedral"
+          }
+        ],
+        "total": 12
+      },
+      "total": 12
+    },
+    "total": 12
+  }
+}
 ```
 
 ## Statistics output

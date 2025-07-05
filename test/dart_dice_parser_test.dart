@@ -37,6 +37,7 @@ void main() {
     int? failureCount,
     int? critSuccessCount,
     int? critFailureCount,
+    bool? verifyResultOrder,
   }) {
     test('$testName - $inputExpr', () {
       final rollSummary = DiceExpression.create(inputExpr, seededRandom).roll();
@@ -51,7 +52,9 @@ void main() {
         final actualResults = rollSummary.results.map((d) => d.result).toList();
         expect(
           actualResults,
-          unorderedEquals(expectedResults),
+          verifyResultOrder ?? true
+              ? unorderedEquals(expectedResults)
+              : equals(expectedResults),
           reason: 'mismatching results',
         );
       }
@@ -221,9 +224,29 @@ void main() {
     seededRandTest('count > (missing from result)', '4d6#>6', 0);
     seededRandTest('count #', '4d6#', 4);
     seededRandTest('count # after drop', '4d6-<2#', 3);
-    seededRandTest('count # after drop', '4d6#1', 1);
-    seededRandTest('count # after drop', '4d6#=1', 1);
-    seededRandTest('count arith result', '(4d6+1)#1', 2);
+    seededRandTest('count # missing equals', '4d6#1', 1);
+    seededRandTest('count # with equals', '4d6#=1', 1);
+    // this only counts one if you use equals sign.
+    seededRandTest('count arith result - #1', '(4d6+1)#1', 2);
+    seededRandTest('count arith result - #=1', '(4d6+1)#=1', 2);
+    seededRandTest('count arith result - #', '(4d6+1)#', 5);
+    seededRandTest(
+      'count arith result - #=1',
+      '(4d6+1)#s#f',
+      15,
+      expectedResults: [1, 6, 2, 5, 1],
+      successCount: 1,
+      failureCount: 1, // the 1(val) does not count as a failure
+    );
+
+    seededRandTest(
+      'count arith result - #=1',
+      '(4d6+1)#s#f=1',
+      15,
+      expectedResults: [1, 6, 2, 5, 1],
+      successCount: 1,
+      failureCount: 2,
+    );
 
     // 1234 seed will return  [1, -1, -1, 1, 0, 1]
     seededRandTest('count fudge', '6dF#', 6);
@@ -524,6 +547,43 @@ void main() {
     seededRandTest('fudge add to d6', '4d6+4dF', 14);
     seededRandTest('fudge add to d6', '4dF+4d6', 13);
 
+    seededRandTest(
+      'sorted add',
+      '(1d4+1d6+1d8+1d10) s',
+      20,
+      expectedResults: [2, 4, 5, 9],
+      verifyResultOrder: true,
+    );
+    seededRandTest(
+      'sorted comma',
+      '(1d4,1d6,1d8,1d10) s',
+      20,
+      expectedResults: [2, 4, 5, 9],
+      verifyResultOrder: true,
+    );
+    seededRandTest(
+      'unsorted add',
+      '(1d4+1d6+1d8+1d10)',
+      20,
+      expectedResults: [4, 2, 5, 9],
+      verifyResultOrder: true,
+    );
+    seededRandTest(
+      'unsorted comma',
+      '(1d4,1d6,1d8,1d10)',
+      20,
+      expectedResults: [4, 2, 5, 9],
+      verifyResultOrder: true,
+    );
+
+    seededRandTest(
+      'scored comma',
+      '(1d4,1d4p,1d4!,1d4!!)#s>=4',
+      14,
+      expectedResults: [4, 4, 3, 3],
+      successCount: 2,
+    );
+
     test('multiple rolls is multiple results', () {
       final dice = DiceExpression.create('2d6', seededRandom);
       expect(dice.roll().total, 8);
@@ -602,6 +662,23 @@ void main() {
                                           (3 + 3) =add=> RollResult(total: 6, results: [3(val), 3(val)])
                                   ((2 + 2)d6) =rollDice=> RollResult(total: 16, results: [5(d6), 1(d6), 4(d6), 6(d6)])
                                       (2 + 2) =add=> RollResult(total: 4, results: [2(val), 2(val)])
+          '''
+              .trim(),
+        ),
+      );
+    });
+
+    test('toStringPretty - penetrating', () {
+      // mocked responses should return rolls of 6, 2, 1, 5
+      final dice = DiceExpression.create('9d6p', seededRandom);
+      final out = dice.roll().toStringPretty();
+      expect(
+        out,
+        equalsIgnoringWhitespace(
+          '''
+(9d6p6) ===> RollSummary(total: 45, results: [10(d6➶), 2(d6), 1(d6), 5(d6), 3(d6), 5(d6), 1(d6), 4(d6), 14(d6➶)], discarded: [6(d6⛔︎⥅), 5(d6⛔︎⥅), -1(val⛔︎⥅), 6(d6⛔︎⥅), 6(d6⛔︎⥅), 4(d6⛔︎⥅), -2(val⛔︎⥅)])
+  (9d6p6) =rollPenetration=> RollResult(total: 45, results: [10(d6➶), 2(d6), 1(d6), 5(d6), 3(d6), 5(d6), 1(d6), 4(d6), 14(d6➶)], discarded: [6(d6⛔︎⥅), 5(d6⛔︎⥅), -1(val⛔︎⥅), 6(d6⛔︎⥅), 6(d6⛔︎⥅), 4(d6⛔︎⥅), -2(val⛔︎⥅)])
+
           '''
               .trim(),
         ),

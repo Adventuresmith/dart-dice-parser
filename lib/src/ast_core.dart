@@ -1,6 +1,7 @@
 import 'dice_expression.dart';
 import 'dice_roller.dart';
 import 'enums.dart';
+import 'extensions.dart';
 import 'roll_result.dart';
 import 'rolled_die.dart';
 import 'utils.dart';
@@ -42,6 +43,48 @@ abstract class Binary extends DiceOp {
 
   @override
   String toString() => '($left $name $right)';
+}
+
+class CommaOp extends Binary {
+  CommaOp(super.name, super.left, super.right);
+
+  @override
+  RollResult eval() {
+    final lhs = left();
+    final rhs = right();
+
+    final results = <RolledDie>[];
+    final discarded = <RolledDie>[];
+
+    discarded.addAll(lhs.discarded);
+    discarded.addAll(rhs.discarded);
+
+    if (lhs.opType == OpType.comma) {
+      results.addAll(lhs.results);
+    } else {
+      results.add(
+        RolledDie.singleVal(result: lhs.results.sum, from: lhs.results),
+      );
+      discarded.addAll(lhs.results.map(RolledDie.discard));
+    }
+    if (rhs.opType == OpType.comma) {
+      results.addAll(rhs.results);
+    } else {
+      results.add(
+        RolledDie.singleVal(result: rhs.results.sum, from: rhs.results),
+      );
+      discarded.addAll(rhs.results.map(RolledDie.discard));
+    }
+
+    return RollResult(
+      expression: toString(),
+      opType: OpType.comma,
+      results: results,
+      discarded: discarded,
+      left: lhs,
+      right: rhs,
+    );
+  }
 }
 
 /// multiply operation (flattens results)

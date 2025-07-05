@@ -6,8 +6,6 @@ import 'ast_ops.dart';
 import 'dice_expression.dart';
 import 'dice_roller.dart';
 
-// TODO: support commas `(<expr>,<expr>,<expr>)kh` -- evaluate each subexpression into a new die result, discarding the ones that had been combined
-
 Parser<DiceExpression> parserBuilder(DiceRoller roller) {
   final builder = ExpressionBuilder<DiceExpression>();
   // numbers
@@ -128,15 +126,23 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
     ..left(char('-').trim(), (a, op, b) => SubOp(op, a, b));
   // count >=, <=, <, >, =,
   // #s, #cs, #f, #cf -- count (critical) successes / failures
-  builder.group().left(
-    (char('#') &
-            char('c').optional() &
-            pattern('sf').optional() &
-            pattern('<>').optional() &
-            char('=').optional())
-        .flatten()
-        .trim(),
-    (a, op, b) => CountOp(op.toLowerCase(), a, b),
-  );
+  builder.group()
+    ..left(
+      (char('#') &
+              char('c').optional() &
+              pattern('sf').optional() &
+              pattern('<>').optional() &
+              char('=').optional())
+          .flatten()
+          .trim(),
+      (a, op, b) => CountOp(op.toLowerCase(), a, b),
+    )
+    ..postfix(
+      (char('s', ignoreCase: true) & char('d', ignoreCase: true).optional())
+          .flatten()
+          .trim(),
+      (a, op) => SortOp(op.toLowerCase(), a),
+    )
+    ..left(char(',').trim(), (a, op, b) => CommaOp(op, a, b));
   return builder.build().end();
 }

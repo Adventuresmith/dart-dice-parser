@@ -8,6 +8,25 @@ import 'rolled_die.dart';
 /// default limit for rerolls/exploding/compounding to avoid getting stuck in loop
 const defaultRerollLimit = 1000;
 
+class SortOp extends Unary {
+  SortOp(super.name, super.left);
+
+  @override
+  RollResult eval() {
+    final lhs = left();
+    final bool reversed = name == 'sd';
+
+    return RollResult(
+      results: reversed ? lhs.results.sortReversed() : lhs.results.sort(),
+      discarded: reversed ? lhs.discarded.sortReversed() : lhs.discarded.sort(),
+      opType: OpType.sort,
+
+      expression: toString(),
+      left: lhs,
+    );
+  }
+}
+
 /// variation on count -- count how many results from lhs are =,<,> rhs.
 class CountOp extends Binary {
   CountOp(
@@ -38,8 +57,10 @@ class CountOp extends Binary {
 
     bool shouldCount(RolledDie rolledDie) {
       var rhsEmptyAndSimpleCount = false;
+      var calculatedDefault = false;
       final target = rhs.totalOrDefault(() {
-        // if missing RHS, we can make assumptions depending on operator.
+        calculatedDefault = true;
+        // if missing RHS, we can make assumptions depending on operator and the dietype
         switch (name) {
           case '#':
             // example: '3d6#' should be 3. target is ignored in case statement below.
@@ -49,7 +70,7 @@ class CountOp extends Binary {
             // example: '3d6#s' should match 6, or '3D66' should match 66
             return rolledDie.maxPotentialValue;
           case '#f' || '#cf':
-            // generally should be 1.
+            // generally should be 1 or whatever the minimum potential val is
             return rolledDie.minPotentialValue;
           default:
             throw FormatException(
@@ -82,6 +103,12 @@ class CountOp extends Binary {
             // that is, '3d6#' should return 3
             return true;
           } else {
+            // don't allow a singleVal/nvals(with 1 element) be counted as a success just because it's the min or max.
+            if (calculatedDefault &&
+                rolledDie.dieType.requirePotentialValues &&
+                rolledDie.potentialValues.length == 1) {
+              return false;
+            }
             // if not missing rhs, treat it as equivalent to '#='.
             // that is, '3d6#2' should count 2s
             return v == target;

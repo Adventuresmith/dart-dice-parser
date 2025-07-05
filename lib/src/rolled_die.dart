@@ -30,12 +30,12 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     this.clampFloor = false,
     this.from = const IList.empty(),
   }) : potentialValues = IList(potentialValues) {
-    if (dieType.hasPotentialValues && potentialValues.isEmpty) {
+    if (dieType.requirePotentialValues && potentialValues.isEmpty) {
       throw ArgumentError(
         'Invalid die -- ${dieType.name} must have a potentialValues field',
       );
     }
-    if (dieType.hasNSides && nsides == 0) {
+    if (dieType.requireNSides && nsides == 0) {
       throw ArgumentError(
         'Invalid die -- ${dieType.name} must have a nsides != 0',
       );
@@ -49,7 +49,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
         minPotentialValue = 1;
       case DieType.singleVal:
         maxPotentialValue = minPotentialValue = result;
-      case DieType.special || DieType.fudge:
+      case DieType.nvals || DieType.fudge:
         maxPotentialValue = potentialValues.max;
         minPotentialValue = potentialValues.min;
     }
@@ -209,6 +209,8 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
   final bool clampFloor;
 
   bool get isMaxResult => result == maxPotentialValue;
+
+  bool get isCountable => minPotentialValue != maxPotentialValue;
 
   @override
   List<Object?> get props => [

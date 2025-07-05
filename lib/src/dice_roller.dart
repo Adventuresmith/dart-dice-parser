@@ -38,7 +38,7 @@ class DiceRoller with LoggingMixin {
         return rollFudge(1, msg);
       case DieType.d66:
         return rollD66(1, msg);
-      case DieType.special:
+      case DieType.nvals:
         return rollVals(1, rolledDie.potentialValues, msg);
       default:
         return RollResult(
@@ -128,7 +128,7 @@ class DiceRoller with LoggingMixin {
           (i) => RolledDie(
             result: i,
             nsides: sideVals.length,
-            dieType: DieType.special,
+            dieType: DieType.nvals,
             potentialValues: sideVals,
           ),
         ),

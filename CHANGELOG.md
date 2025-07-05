@@ -14,6 +14,8 @@ whether it was counted as a success/failure.
 
 - upgrade to dart 3.8.0
 - upgrade to petitparser 7.0.0
+- add 'sort' to dice syntax -- `4d6 s` (ascending) or `4d6 sd` (descending)
+- allow commas to separate different dice expressions: `4d4,6d6,8d8`
 - implement penetrating dice ala Hackmaster
   - `1d6p` -- roll d6, if 6 is rolled explode with d6s subtracting one each time.
   - `1d100p20` -- roll a d100, if 100 is rolled penetrate with d20s

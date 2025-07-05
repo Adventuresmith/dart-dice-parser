@@ -101,7 +101,7 @@ class PenetratingDice extends UnaryDice {
               .roll(
                 1,
                 nsidesPenetration,
-                '(penetration ind $i, $numPenetrated)',
+                '(penetration ind $i, #$numPenetrated)',
               )
               .results
               .first;
