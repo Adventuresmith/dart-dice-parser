@@ -53,8 +53,8 @@ jobs:
         run: "dart run --enable-asserts dicecli -n 10 -o pretty '(3d6 + 3d6! + 3d6!!) #cs #cf #s #f'"
       - name: "Collect coverage"
         run: |
-          cd packages/dart_dice_parser && dart pub global activate coverage
-          cd packages/dart_dice_parser && dart pub global run coverage:test_with_coverage --branch-coverage
+          dart pub global activate coverage -C packages/dart_dice_parser
+          dart pub global run coverage:test_with_coverage --branch-coverage -C packages/dart_dice_parser
       - name: "Upload coverage"
         uses: codecov/codecov-action@v4
         env:
