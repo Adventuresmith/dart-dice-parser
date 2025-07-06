@@ -1,0 +1,24 @@
+name: dicecli
+description: A CLI tool
+version: 8.0.0
+homepage: https://github.com/Adventuresmith/dart-dice-parser
+repository: https://github.com/Adventuresmith/dart-dice-parser
+
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: "^3.8.0"
+
+executables:
+  dicecli:
+
+dependencies:
+  args: ^2.0.0
+  dart_dice_parser:
+    path: ../dart_dice_parser
+  io: ^1.0.0
+  logging: ^1.3.0
+
+dev_dependencies:
+  lint: ^2.8.0

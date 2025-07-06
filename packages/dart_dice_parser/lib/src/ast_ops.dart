@@ -278,11 +278,12 @@ class ClampOp extends Binary {
     final newResults = <RolledDie>[];
     final discarded = <RolledDie>[];
     for (final d in lhs.results) {
+      // TODO: add clamped flag?
       if (name == 'c>' && d.result > target) {
-        discarded.add(RolledDie.discard(d));
+        discarded.add(RolledDie.copyWith(d, discarded: true, clampHigh: true));
         newResults.add(RolledDie.copyWith(d, result: target, clampHigh: true));
       } else if (name == 'c<' && d.result < target) {
-        discarded.add(RolledDie.discard(d));
+        discarded.add(RolledDie.copyWith(d, discarded: true, clampLow: true));
         newResults.add(RolledDie.copyWith(d, result: target, clampLow: true));
       } else {
         newResults.add(d);

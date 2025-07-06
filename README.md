@@ -192,12 +192,12 @@ final stats = await diceExpr_FastRNG.stats();
 
 # CLI Usage
 
-There's no executable in bin, but there's an example CLI at `example/main.dart`.
+Within the repository, there's a packages/dicecli that can be used to experiment with different syntax.
 
 Usage:
 
 ```
-❯ dart run example/main.dart -h
+❯ dart run dicecli -h
 Usage:
 -n, --num                       Number of times to roll the expression
                                 (defaults to "1")
@@ -222,11 +222,11 @@ Usage:
 Examples:
 
 ```console
-❯ dart example/main.dart '3d6'
+❯ dart run dicecli '3d6'
 (3d6) ===> RollSummary(total: 9, results: [6(d6), 2(d6), 1(d6)])
 
 # run N number of rolls
-❯ dart run example/main.dart -n5 '3d6'
+❯ dart run dicecli -n5 '3d6'
 (3d6) ===> RollSummary(total: 6, results: [1(d6), 4(d6), 1(d6)])
 (3d6) ===> RollSummary(total: 9, results: [4(d6), 1(d6), 4(d6)])
 (3d6) ===> RollSummary(total: 14, results: [4(d6), 6(d6), 4(d6)])
@@ -237,7 +237,7 @@ Examples:
 
 
 # show statistics for a dice expression
-❯ dart example/main.dart  -s '3d6'
+❯ dart run dicecli  -s '3d6'
 {mean: 10.5, stddev: 2.97, min: 3, max: 18, count: 10000, histogram: {3: 49, 4: 121, 5: 273, 6: 461, 7: 727, 8: 961, 9: 1153, 10: 1182, 11: 1272, 12: 1151, 13: 952, 14: 733, 15: 486, 16: 289, 17: 154, 18: 36}}
 
 ```
@@ -246,13 +246,13 @@ Sometimes it's nice to change the output type so you can see the graph of result
 
 ```console
 # show the result graph:
-❯ dart run example/main.dart -o pretty '3d6 #cs #cf'
+❯ dart run dicecli -o pretty '3d6 #cs #cf'
 (((3d6) #cs ) #cf ) ===> RollSummary(total: 13, results: [6(d6✅), 5(d6), 2(d6)], critSuccessCount: 1)
   (((3d6) #cs ) #cf ) =count=> RollResult(total: 13, results: [6(d6✅), 5(d6), 2(d6)])
       ((3d6) #cs ) =count=> RollResult(total: 13, results: [6(d6✅), 5(d6), 2(d6)])
           (3d6) =rollDice=> RollResult(total: 13, results: [6(d6), 5(d6), 2(d6)])
 
-❯ dart run example/main.dart -o json '3d6 #cs #cf' | jq
+❯ dart run dicecli -o json '3d6 #cs #cf' | jq
 {
   "expression": "(((3d6) #cs ) #cf )",
   "total": 12,
@@ -351,16 +351,16 @@ To explore that, you can use stats output:
 ```console
 
 # roll 4d6
-❯ dart run example/main.dart -s '4d6'
+❯ dart run dicecli -s '4d6'
 {mean: 14.0, stddev: 3.44, min: 4, max: 24, count: 10000, histogram: {4: 5, 5: 28, 6: 72, 7: 163, 8: 280, 9: 468, 10: 573, 11: 816, 12: 948, 13: 1069, 14: 1047, 15: 1118, 16: 1010, 17: 786, 18: 637, 19: 412, 20: 278, 21: 161, 22: 84, 23: 32, 24: 13}}
 
 
 # roll 4d6 explode 
-❯ dart run example/main.dart -s '4d6!'
+❯ dart run dicecli -s '4d6!'
 {mean: 16.7, stddev: 6.46, min: 4, max: 54, count: 10000, histogram: {4: 6, 5: 32, 6: 87, 7: 166, 8: 264, 9: 403, 10: 558, 11: 655, 12: 690, 13: 734, 14: 695, 15: 651, 16: 621, 17: 607, 18: 498, 19: 507, 20: 425, 21: 350, 22: 353, 23: 260, 24: 229, 25: 194, 26: 167, 27: 150, 28: 143, 29: 118, 30: 99, 31: 69, 32: 53
 
 # roll 4d5 compounding 
-❯ dart run example/main.dart -s '4d6!!'
+❯ dart run dicecli -s '4d6!!'
 {mean: 16.8, stddev: 6.43, min: 4, max: 58, count: 10000, histogram: {4: 6, 5: 29, 6: 78, 7: 162, 8: 230, 9: 389, 10: 506, 11: 635, 12: 726, 13: 705, 14: 751, 15: 682, 16: 597, 17: 602, 18: 571, 19: 498, 20: 456, 21: 365, 22: 310, 23: 286, 24: 262, 25: 192, 26: 167, 27: 156, 28: 114, 29: 92, 30: 76, 31: 72, 32: 57, 33: 41, 34: 32, 35: 31, 36: 20, 37: 15, 38: 16, 39: 10, 40: 12, 41: 8, 42: 10, 43: 4, 44: 8, 45: 5, 46: 4, 47: 2, 48: 1, 49: 2, 50: 3, 51: 2, 53: 1, 58: 1}}
 
 ```
@@ -369,13 +369,13 @@ Or, if I wonder, "in those rolls, how many times might I see a roll >=6?". For t
 operation
 
 ```console
-❯ dart run example/main.dart -s '4d6 #>=6'
+❯ dart run dicecli -s '4d6 #>=6'
 {mean: 0.664, stddev: 0.75, min: 0, max: 4, count: 10000, histogram: {0: 4871, 1: 3781, 2: 1192, 3: 144, 4: 12}}
 
-❯ dart run example/main.dart -s '4d6! #>=6'
+❯ dart run dicecli -s '4d6! #>=6'
 {mean: 0.793, stddev: 0.973, min: 0, max: 7, count: 10000, histogram: {0: 4846, 1: 3213, 2: 1328, 3: 449, 4: 116, 5: 40, 6: 4, 7: 4}}
 
-❯ dart run example/main.dart -s '4d6!! #>=6'
+❯ dart run dicecli -s '4d6!! #>=6'
 {mean: 0.665, stddev: 0.747, min: 0, max: 4, count: 10000, histogram: {0: 4840, 1: 3845, 2: 1144, 3: 164, 4: 7}}
 ```
 
@@ -389,7 +389,7 @@ needs.
 ## Traversing the result graph
 
 Use the 'left' and 'right' fields of each RollResult node to walk the graph. For an example,
-see [simple.dart](example/simple.dart)
+see [simple.dart](packages/dart_dice_parser/example/dart_dice_parser_example.dart)
 
 When a dice expression is parsed, it creates a binary tree to evaluate the roll.
 
