@@ -44,9 +44,9 @@ jobs:
         run: dart analyze --fatal-infos .
 
       - name: "VM Tests"
-        run: dart test --platform vm
+        run: cd packages/dart_dice_parser && dart test --platform vm
       - name: "Chrome Tests"
-        run: dart test --platform chrome
+        run: cd packages/dart_dice_parser && dart test --platform chrome
       - name: "Run example/simple.dart"
         run: cd packages/dart_dice_parser && dart run --enable-asserts example/dart_dice_parser_example.dart
       - name: "Run dicecli"
