@@ -6,7 +6,7 @@ import 'enums.dart';
 
 /// representation of a single dice roll result.
 class RolledDie extends Equatable implements Comparable<RolledDie> {
-  static const defaultFudgeVals = IListConst([-1, -1, 0, 0, 1, 1]);
+  static const defaultFudgeVals = [-1, -1, 0, 0, 1, 1];
 
   RolledDie({
     required this.result,
@@ -28,6 +28,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     this.rerolled = false,
     this.clampCeiling = false,
     this.clampFloor = false,
+    this.totaled = false,
     this.from = const IList.empty(),
   }) : potentialValues = IList(potentialValues) {
     if (dieType.requirePotentialValues && potentialValues.isEmpty) {
@@ -55,8 +56,16 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     }
   }
 
-  factory RolledDie.polyhedral({required int result, required int nsides}) =>
-      RolledDie(result: result, nsides: nsides, dieType: DieType.polyhedral);
+  factory RolledDie.polyhedral({
+    required int result,
+    required int nsides,
+    bool discarded = false,
+  }) => RolledDie(
+    result: result,
+    nsides: nsides,
+    dieType: DieType.polyhedral,
+    discarded: discarded,
+  );
 
   factory RolledDie.fudge({required int result}) => RolledDie(
     result: result,
@@ -69,6 +78,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     required int result,
     bool discarded = false,
     bool penetrator = false,
+    bool totaled = false,
     Iterable<RolledDie>? from = const IList.empty(),
   }) => RolledDie(
     result: result,
@@ -77,6 +87,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     penetrator: penetrator,
     dieType: DieType.singleVal,
     potentialValues: [result],
+    totaled: totaled,
     from: IList(from),
   );
 
@@ -103,6 +114,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     bool? rerolled,
     bool? clampHigh,
     bool? clampLow,
+    bool? totaled,
     Iterable<RolledDie>? from,
   }) => RolledDie(
     potentialValues: other.potentialValues,
@@ -124,6 +136,7 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
     rerolled: rerolled ?? other.rerolled,
     clampCeiling: clampHigh ?? other.clampCeiling,
     clampFloor: clampLow ?? other.clampFloor,
+    totaled: totaled ?? other.totaled,
     from: IList.orNull(from) ?? IList([other]),
   );
 
@@ -207,6 +220,9 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
 
   /// true if the result has been clamped via `C<`
   final bool clampFloor;
+
+  /// true if the result is a sum of other die results
+  final bool totaled;
 
   bool get isMaxResult => result == maxPotentialValue;
 
@@ -304,19 +320,22 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
       buffer.write('➶');
     }
     if (penetrator) {
-      buffer.write('⥅');
+      buffer.write('⇡');
     }
     if (compoundedFinal) {
-      buffer.write('∑');
+      buffer.write('⇈');
     }
     if (compounded) {
-      buffer.write('⥅');
+      buffer.write('↑');
     }
     if (clampCeiling) {
       buffer.write('⌈⌉');
     }
     if (clampFloor) {
       buffer.write('⌊⌋');
+    }
+    if (totaled) {
+      buffer.write('∑');
     }
     if (success) {
       buffer.write('✓');

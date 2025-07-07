@@ -14,22 +14,28 @@ whether it was counted as a success/failure.
 
 - upgrade to dart 3.8.0
 - upgrade to petitparser 7.0.0
-- add 'sort' to dice syntax -- `4d6 s` (ascending) or `4d6 sd` (descending)
-- allow commas to separate different dice expressions: `4d4,6d6,8d8`
-- implement penetrating dice ala Hackmaster
-  - `1d6p` -- roll d6, if 6 is rolled explode with d6s subtracting one each time.
-  - `1d100p20` -- roll a d100, if 100 is rolled penetrate with d20s
 - added dependency on fast_immutable_collections
-- remove metadata & score from RollResult
 - allow compounding, exploding, and rerolls for 'odd' die (`dF, D66, and d[vals]`)
-- rather than simple list of Integers representing the output of a roll or operation, now each
-  die rolled is a 'RolledDie' object which has the metadata/score.
+- API Changes
+  - change signature of roll method to be async `Future<RollResult> DiceExpression.roll()`
+  - on DiceExpression.create(), allow passing a `DiceRoller` implementation that returns `Stream<int>` results
+  - remove metadata & score from RollResult
+  - rather than simple list of Integers representing the output of a roll or operation, now each
+    die rolled is a 'RolledDie' object which has the metadata/score.
     - the RollResult's results field changes from List<int> to IList<RolledDie>. RolledDie represents not just the
       outcome of the roll, but also includes metadata about the type of die, nsides of the die (if polyhedral die),
       and metadata about the dice expression's modification of the rolls.
-- RollResult.results will include both discarded an not-discarded RolledDie.
-- RollSummary.results is just not-discarded die, there's a separate RollSummary.discarded. Alternatively, look at
-  RollSummary.detailedResults.results to see the whole set of die that accumulated while evaluating the expression.
+  - RollResult.results will include both discarded an not-discarded RolledDie.
+  - RollSummary.results is just not-discarded die, there's a separate RollSummary.discarded. Alternatively, look at
+    RollSummary.detailedResults.results to see the whole set of die that accumulated while evaluating the expression.
+- new dice expression syntax: 
+  - add 'sort' to dice syntax -- `4d6 s` (ascending) or `4d6 sd` (descending)
+  - allow commas to separate different dice expressions: `4d4,6d6,8d8`
+  - implement penetrating dice ala Hackmaster
+    - `1d6p` -- roll d6, if 6 is rolled explode with d6s subtracting one each time.
+    - `1d100p20` -- roll a d100, if 100 is rolled penetrate with d20s
+  - use curly braces to create a 'total' result instead of keeping each individual result.
+    - `{3d6}` -- if that rolled `2,4,1`, those would be discarded and replaced with a `7` for the total.
 
 # 7.1.1
 

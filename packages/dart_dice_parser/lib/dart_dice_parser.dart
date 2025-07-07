@@ -7,7 +7,7 @@
 /// const input = '2d20-L'; // D20 advantage -- roll 2d20, drop lowest
 /// final diceExpr = DiceExpression.create(input);
 /// for (var i = 0; i < 2; i++) {
-///   final int result = diceExpr.roll();
+///   final int result = await diceExpr.roll();
 ///   stdout.writeln("$i : $result");
 /// }
 /// ```

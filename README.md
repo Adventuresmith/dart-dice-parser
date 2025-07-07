@@ -15,15 +15,15 @@ exploding, compounding, and other variations.
 
 import 'package:dart_dice_parser/dart_dice_parser.dart';
 
-void main() {
+Future<void> main() async {
   // Create a roller for D20 advantage (roll 2d20, keep highest).
   final d20adv = DiceExpression.create('2d20 kh');
 
-  stdout.writeln(d20adv.roll());
+  stdout.writeln(await d20adv.roll());
   // outputs:
   //  ((2d20) kh ) ===> RollSummary(total: 16, results: [16(d20), 4(d20)⛔︎])
 
-  stdout.writeln(d20adv.roll());
+  stdout.writeln(await d20adv.roll());
   // outputs:
   //  ((2d20) kh ) ===> RollSummary(total: 19, results: [19(d20), 13(d20)⛔︎])
 }
@@ -105,11 +105,22 @@ void main() {
         * `4d6 - 3` -- roll 4d6, subtract 3
         * `4d6 - 2d6` -- roll 4d6, subtract the result of rolling 2d6
 * cap/clamp:
-    * `4d20 C<5` -- roll 4d20, change any value < 5 to 5
-    * `4d20 C>15` -- roll 4d20, change any value > 15 to 15
+  * You can think of these similar to the floor and ceiling mathematical operations.
+  * `4d20 C<5` -- roll 4d20, change any value < 5 to 5. 
+  * `4d20 C>15` -- roll 4d20, change any value > 15 to 15. 
 * sorting results
   * `4d20 s` -- results sorted in ascending order
   * `4d20 sd` -- results sorted in descending order
+* totalling results - `{`,`}`
+  * In general, this library will try to keep each individual die result as its own separate entity
+    as long as possible. But, that can have unwanted consequences certain operations.
+  * For example, say you want to roll `2d6+2` but have a maximum result of 10.
+    * `(2d6+2)C>10` -- rolls 2d6 and adds 2. But, these are all individual results: `[3,6,2]`. 
+      The clamping tests on each die roll individually, and doesn't have our desired effect 
+      -- limiting the total result to no more than 10.
+    * Instead, use curly braces to aggregate the results into a total: `{2d6+2} C>10`.
+      If that subexpression resulted in `[3,6,2]` then the curly braces discard those results and replaces 
+      them with `[11]`, which will be clamped to `10` 
 
 * multiple expressions separated by comma
   * `(1d8!,1d6!)kh` -- rolls 1d8 and 1d6 exploding, and keeps the highest result
@@ -166,8 +177,10 @@ void main() {
 # Random Number Generator
 
 By default, Random.secure() is used. You can select other RNGs when creating the
-dice expression. Random() will be faster than Random.secure(); if you're doing lots of rolls
-for use cases where security doesn't matter, you will want to use Random().
+dice expression. 
+
+Random() is much faster than Random.secure(); if you're doing many rolls
+for use cases where security doesn't matter, you probably want to use Random().
 
 For example, you might create a dice-rolling app that both provides rolls _and_ displays statistics
 (mean, stddev, etc) about the dice expression. To do that, you might create two separate
@@ -177,11 +190,11 @@ clicks a button), and the second to display min/max/mean/stddev/etc
 ```dart 
 
 final diceExpr_SecureRNG = DiceExpression.create('2d6');
-final diceExpr_FastRNG = DiceExpression.create('2d6', Random());
+final diceExpr_FastRNG = DiceExpression.create('2d6', RNGRoller(Random()));
 
 //....
 // on button-click, roll the dice
-final roll = diceExpr_SecureRNG.roll();
+final roll = await diceExpr_SecureRNG.roll();
 
 //....
 // when dice expr changes, update the stats graph. 
@@ -448,7 +461,7 @@ flowchart TD
 
 ```dart
 
-Map<String, dynamic> rollResultAsJson = DiceExpression.create('2d20kh').roll().toJson();
+Map<String, dynamic> rollResultAsJson = (await DiceExpression.create('2d20kh').roll()).toJson();
 ```
 
 The returned objects will look roughly like:
@@ -512,15 +525,13 @@ There is a default logging listener that logs at FINE level.
 ```dart 
 
 // if you want to listen to every individual operation within the expression
-DiceExpression.registerListener
-(
-(rollResult) {
-stdout.writeln('${rollResult.opType.name} -> $rollResult');
+DiceExpression.registerListener((rollResult) {
+  stdout.writeln('${rollResult.opType.name} -> $rollResult');
 });
 
 // if you want to listen for the RollSummary
 DiceExpression.registerSummaryListener((rollSummary) {
-stdout.writeln('$rollSummary');[README.md](README.md)
+  stdout.writeln('$rollSummary');[README.md](README.md)
 });
 
 ```
@@ -530,12 +541,9 @@ the events for your specific roll. In that case, pass an 'onRoll' method to the 
 
 ```dart 
   DiceExpression.create('2d20kh').roll(
-onRoll: (rr) => stdout.writeln('roll - $rr'),
-onSummary: (summary) => stdout.writeln('summary - $
-summary
-'
-)
-);
+    onRoll: (rr) => stdout.writeln('roll - $rr'),
+    onSummary: (summary) => stdout.writeln('summary - $summary')
+  );
 ```
 
 # Features and bugs

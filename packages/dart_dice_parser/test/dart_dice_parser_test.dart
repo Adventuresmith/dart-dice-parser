@@ -20,9 +20,12 @@ void main() {
     when(() => staticMockRandom.nextInt(any())).thenReturn(1);
   });
   void staticRandTest(String name, String input, int expectedTotal) {
-    test('$name - $input', () {
+    test('$name - $input', () async {
       expect(
-        DiceExpression.create(input, staticMockRandom).roll().total,
+        (await DiceExpression.create(
+          input,
+          roller: RNGRoller(staticMockRandom),
+        ).roll()).total,
         equals(expectedTotal),
       );
     });
@@ -39,8 +42,11 @@ void main() {
     int? critFailureCount,
     bool? verifyResultOrder,
   }) {
-    test('$testName - $inputExpr', () {
-      final rollSummary = DiceExpression.create(inputExpr, seededRandom).roll();
+    test('$testName - $inputExpr', () async {
+      final rollSummary = await DiceExpression.create(
+        inputExpr,
+        roller: RNGRoller(seededRandom),
+      ).roll();
       if (expectedTotal != null) {
         expect(
           rollSummary.total,
@@ -329,18 +335,24 @@ void main() {
 
     test('missing clamp target', () {
       expect(
-        () => DiceExpression.create('6d6 C<', seededRandom).roll(),
+        () => DiceExpression.create(
+          '6d6 C<',
+          roller: RNGRoller(seededRandom),
+        ).roll(),
         throwsFormatException,
       );
     });
   });
 
   group('listeners', () {
-    test('basic', () {
-      final dice = DiceExpression.create('2d6 kh', seededRandom);
+    test('basic', () async {
+      final dice = DiceExpression.create(
+        '2d6 kh',
+        roller: RNGRoller(seededRandom),
+      );
       final results = <RollResult>[];
       final summaries = <RollSummary>[];
-      dice.roll(
+      await dice.roll(
         onRoll: (rr) {
           results.add(rr);
         },
@@ -403,7 +415,8 @@ void main() {
 
     test('missing nsides', () {
       expect(
-        () => DiceExpression.create('6d', seededRandom).roll(),
+        () =>
+            DiceExpression.create('6d', roller: RNGRoller(seededRandom)).roll(),
         throwsFormatException,
       );
     });
@@ -584,10 +597,13 @@ void main() {
       successCount: 2,
     );
 
-    test('multiple rolls is multiple results', () {
-      final dice = DiceExpression.create('2d6', seededRandom);
-      expect(dice.roll().total, 8);
-      expect(dice.roll().total, 6);
+    test('multiple rolls is multiple results', () async {
+      final dice = DiceExpression.create(
+        '2d6',
+        roller: RNGRoller(seededRandom),
+      );
+      expect((await dice.roll()).total, 8);
+      expect((await dice.roll()).total, 6);
     });
 
     test('create dice with real random', () {
@@ -598,13 +614,19 @@ void main() {
     });
 
     test('string method returns expr', () {
-      final dice = DiceExpression.create('2d6# + 5d6!>=5 + 5D66', seededRandom);
+      final dice = DiceExpression.create(
+        '2d6# + 5d6!>=5 + 5D66',
+        roller: RNGRoller(seededRandom),
+      );
       expect(dice.toString(), '((2d6) # (( + ((5d6) !>= 5)) + (5D66)))');
     });
 
     test('invalid dice str', () {
       expect(
-        () => DiceExpression.create('1d5 + x2', seededRandom).roll(),
+        () => DiceExpression.create(
+          '1d5 + x2',
+          roller: RNGRoller(seededRandom),
+        ).roll(),
         throwsFormatException,
       );
     });
@@ -620,19 +642,20 @@ void main() {
     for (final i in invalids) {
       test('invalid - $i', () {
         expect(
-          () => DiceExpression.create(i, seededRandom).roll(),
+          () =>
+              DiceExpression.create(i, roller: RNGRoller(seededRandom)).roll(),
           throwsFormatException,
         );
       });
     }
 
-    test('toString', () {
+    test('toString', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create(
         '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f',
-        seededRandom,
+        roller: RNGRoller(seededRandom),
       );
-      final out = dice.roll().toString();
+      final out = (await dice.roll()).toString();
       expect(
         out,
         equalsIgnoringWhitespace(
@@ -640,13 +663,13 @@ void main() {
         ),
       );
     });
-    test('toStringPretty', () {
+    test('toStringPretty', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
       final dice = DiceExpression.create(
         '(4d(3+3)!  + (2+2)d6) #cs #cf #s #f',
-        seededRandom,
+        roller: RNGRoller(seededRandom),
       );
-      final out = dice.roll().toStringPretty();
+      final out = (await dice.roll()).toStringPretty();
       expect(
         out,
         equalsIgnoringWhitespace(
@@ -668,26 +691,32 @@ void main() {
       );
     });
 
-    test('toStringPretty - penetrating', () {
+    test('toStringPretty - penetrating', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
-      final dice = DiceExpression.create('9d6p', seededRandom);
-      final out = dice.roll().toStringPretty();
+      final dice = DiceExpression.create(
+        '9d6p',
+        roller: RNGRoller(seededRandom),
+      );
+      final out = (await dice.roll()).toStringPretty();
       expect(
         out,
         equalsIgnoringWhitespace(
           '''
-(9d6p6) ===> RollSummary(total: 45, results: [10(d6➶), 2(d6), 1(d6), 5(d6), 3(d6), 5(d6), 1(d6), 4(d6), 14(d6➶)], discarded: [6(d6⛔︎⥅), 5(d6⛔︎⥅), -1(val⛔︎⥅), 6(d6⛔︎⥅), 6(d6⛔︎⥅), 4(d6⛔︎⥅), -2(val⛔︎⥅)])
-  (9d6p6) =rollPenetration=> RollResult(total: 45, results: [10(d6➶), 2(d6), 1(d6), 5(d6), 3(d6), 5(d6), 1(d6), 4(d6), 14(d6➶)], discarded: [6(d6⛔︎⥅), 5(d6⛔︎⥅), -1(val⛔︎⥅), 6(d6⛔︎⥅), 6(d6⛔︎⥅), 4(d6⛔︎⥅), -2(val⛔︎⥅)])
+(9d6p6) ===> RollSummary(total: 45, results: [10(d6➶), 2(d6), 1(d6), 5(d6), 3(d6), 5(d6), 1(d6), 4(d6), 14(d6➶)], discarded: [6(d6⛔︎⇡), 5(d6⛔︎⇡), -1(val⛔︎⇡), 6(d6⛔︎⇡), 6(d6⛔︎⇡), 4(d6⛔︎⇡), -2(val⛔︎⇡)])
+  (9d6p6) =rollPenetration=> RollResult(total: 45, results: [10(d6➶), 2(d6), 1(d6), 5(d6), 3(d6), 5(d6), 1(d6), 4(d6), 14(d6➶)], discarded: [6(d6⛔︎⇡), 5(d6⛔︎⇡), -1(val⛔︎⇡), 6(d6⛔︎⇡), 6(d6⛔︎⇡), 4(d6⛔︎⇡), -2(val⛔︎⇡)])
 
           '''
               .trim(),
         ),
       );
     });
-    test('toJson', () {
+    test('toJson', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
-      final dice = DiceExpression.create('4d6', seededRandom);
-      final obj = dice.roll().toJson();
+      final dice = DiceExpression.create(
+        '4d6',
+        roller: RNGRoller(seededRandom),
+      );
+      final obj = (await dice.roll()).toJson();
       expect(
         obj,
         equals({
@@ -714,10 +743,13 @@ void main() {
       );
     });
 
-    test('toJson - with scoring', () {
+    test('toJson - with scoring', () async {
       // mocked responses should return rolls of 6, 2, 1, 5
-      final dice = DiceExpression.create('4d6 #cf #cs', seededRandom);
-      final obj = dice.roll().toJson();
+      final dice = DiceExpression.create(
+        '4d6 #cf #cs',
+        roller: RNGRoller(seededRandom),
+      );
+      final obj = (await dice.roll()).toJson();
       expect(
         obj,
         equals({
@@ -796,9 +828,12 @@ void main() {
       );
     });
 
-    test('toJson - 9d6p4', () {
-      final dice = DiceExpression.create('9d6p4', seededRandom);
-      final obj = dice.roll().toJson();
+    test('toJson - 9d6p4', () async {
+      final dice = DiceExpression.create(
+        '9d6p4',
+        roller: RNGRoller(seededRandom),
+      );
+      final obj = (await dice.roll()).toJson();
       expect(
         obj,
         equals({
@@ -1018,7 +1053,10 @@ void main() {
     });
 
     test('rollN test', () async {
-      final dice = DiceExpression.create('2d6', seededRandom);
+      final dice = DiceExpression.create(
+        '2d6',
+        roller: RNGRoller(seededRandom),
+      );
 
       final results = await dice
           .rollN(2)
@@ -1029,7 +1067,10 @@ void main() {
     });
 
     test('stats test', () async {
-      final dice = DiceExpression.create('2d6', seededRandom);
+      final dice = DiceExpression.create(
+        '2d6',
+        roller: RNGRoller(seededRandom),
+      );
 
       final stats = await dice.stats(num: 100);
 

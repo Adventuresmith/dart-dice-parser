@@ -1,19 +1,15 @@
-import 'package:collection/collection.dart';
-
 import 'ast_core.dart';
+import 'dice_roller.dart';
 import 'enums.dart';
 import 'roll_result.dart';
 import 'rolled_die.dart';
-
-/// default limit for rerolls/exploding/compounding to avoid getting stuck in loop
-const defaultRerollLimit = 1000;
 
 class SortOp extends Unary {
   SortOp(super.name, super.left);
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     final reversed = name == 'sd';
 
     return RollResult(
@@ -51,9 +47,9 @@ class CountOp extends Binary {
   CountType countType;
 
   @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
+  Future<RollResult> eval() async {
+    final lhs = await left();
+    final rhs = await right();
 
     bool shouldCount(RolledDie rolledDie) {
       var rhsEmptyAndSimpleCount = false;
@@ -164,9 +160,9 @@ class DropOp extends Binary {
   DropOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
+  Future<RollResult> eval() async {
+    final lhs = await left();
+    final rhs = await right();
 
     final target = rhs.totalOrDefault(() {
       throw FormatException(
@@ -218,9 +214,9 @@ class DropHighLowOp extends Binary {
   DropHighLowOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
+  Future<RollResult> eval() async {
+    final lhs = await left();
+    final rhs = await right();
     final sorted = lhs.results.toList()..sort();
     final numToDrop = rhs.totalOrDefault(() => 1); // if missing, assume '1'
     final Iterable<RolledDie> results;
@@ -264,9 +260,9 @@ class ClampOp extends Binary {
   ClampOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
+  Future<RollResult> eval() async {
+    final lhs = await left();
+    final rhs = await right();
     final target = rhs.totalOrDefault(() {
       throw FormatException(
         'Invalid clamp operation. Missing clamp target',
@@ -306,7 +302,7 @@ class RerollDice extends BinaryDice {
     super.left,
     super.right,
     super.roller, {
-    this.limit = defaultRerollLimit,
+    this.limit = DiceRoller.defaultRerollLimit,
   }) {
     if (name.startsWith('ro')) {
       limit = 1;
@@ -316,9 +312,9 @@ class RerollDice extends BinaryDice {
   int limit;
 
   @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
+  Future<RollResult> eval() async {
+    final lhs = await left();
+    final rhs = await right();
 
     final target = rhs.totalOrDefault(() {
       throw FormatException(
@@ -352,15 +348,15 @@ class RerollDice extends BinaryDice {
 
     final results = <RolledDie>[];
     final discarded = <RolledDie>[];
-    lhs.results.forEachIndexed((i, v) {
+    for (final v in lhs.results) {
       if (shouldReroll(v)) {
         RolledDie rerolled;
         var rerollCount = 0;
         do {
-          rerolled = roller
-              .reroll(v, '(reroll ind $i,  #$rerollCount)')
-              .results
-              .first;
+          rerolled = (await roller.reroll(
+            v,
+            '(reroll #$rerollCount)',
+          )).results.first;
           rerollCount++;
         } while (shouldReroll(rerolled) && rerollCount < limit);
         discarded.add(RolledDie.copyWith(v, discarded: true, rerolled: true));
@@ -370,7 +366,7 @@ class RerollDice extends BinaryDice {
       } else {
         results.add(v);
       }
-    });
+    }
 
     return RollResult(
       expression: toString(),
@@ -389,7 +385,7 @@ class CompoundingDice extends BinaryDice {
     super.left,
     super.right,
     super.roller, {
-    this.limit = defaultRerollLimit,
+    this.limit = DiceRoller.defaultRerollLimit,
   }) {
     if (name.startsWith('!!o')) {
       limit = 1;
@@ -399,9 +395,9 @@ class CompoundingDice extends BinaryDice {
   int limit;
 
   @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
+  Future<RollResult> eval() async {
+    final lhs = await left();
+    final rhs = await right();
 
     bool shouldCompound(RolledDie rolledDie) {
       final val = rolledDie.result;
@@ -432,28 +428,32 @@ class CompoundingDice extends BinaryDice {
 
     final results = <RolledDie>[];
     final discarded = <RolledDie>[];
-    lhs.results.forEachIndexed((i, v) {
-      if (shouldCompound(v)) {
-        var sum = v.result;
+    for (final (index, rolledDie) in lhs.results.indexed) {
+      if (shouldCompound(rolledDie)) {
+        var sum = rolledDie.result;
         RolledDie rerolled;
         var numCompounded = 0;
-        discarded.add(RolledDie.copyWith(v, discarded: true, compounded: true));
+        discarded.add(
+          RolledDie.copyWith(rolledDie, discarded: true, compounded: true),
+        );
         do {
-          rerolled = roller
-              .reroll(v, '(compound ind $i,  #$numCompounded)')
-              .results
-              .first;
+          rerolled = (await roller.reroll(
+            rolledDie,
+            '(compound ind[$index] #$numCompounded)',
+          )).results.first;
           discarded.add(
             RolledDie.copyWith(rerolled, discarded: true, compounded: true),
           );
           sum += rerolled.result;
           numCompounded++;
         } while (shouldCompound(rerolled) && numCompounded < limit);
-        results.add(RolledDie.copyWith(v, result: sum, compoundedFinal: true));
+        results.add(
+          RolledDie.copyWith(rolledDie, result: sum, compoundedFinal: true),
+        );
       } else {
-        results.add(v);
+        results.add(rolledDie);
       }
-    });
+    }
 
     return RollResult(
       expression: toString(),
@@ -472,7 +472,7 @@ class ExplodingDice extends BinaryDice {
     super.left,
     super.right,
     super.roller, {
-    this.limit = defaultRerollLimit,
+    this.limit = DiceRoller.defaultRerollLimit,
   }) {
     if (name.startsWith('!o')) {
       limit = 1;
@@ -482,9 +482,9 @@ class ExplodingDice extends BinaryDice {
   int limit;
 
   @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
+  Future<RollResult> eval() async {
+    final lhs = await left();
+    final rhs = await right();
 
     bool shouldExplode(RolledDie rolledDie) {
       final val = rolledDie.result;
@@ -519,10 +519,10 @@ class ExplodingDice extends BinaryDice {
       var numExplosions = 0;
       RolledDie rerolledDie;
       do {
-        rerolledDie = roller
-            .reroll(rolledDie, '(explode #${numExplosions + 1})')
-            .results
-            .first;
+        rerolledDie = (await roller.reroll(
+          rolledDie,
+          '(explode #${numExplosions + 1})',
+        )).results.first;
         numExplosions++;
         newResults.add(RolledDie.copyWith(rerolledDie, explosion: true));
       } while (shouldExplode(rerolledDie) && numExplosions < limit);

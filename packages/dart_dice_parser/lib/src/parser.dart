@@ -6,7 +6,7 @@ import 'ast_ops.dart';
 import 'dice_expression.dart';
 import 'dice_roller.dart';
 
-Parser<DiceExpression> parserBuilder(DiceRoller roller) {
+Parser<DiceExpression> parserBuilder(DiceResultRoller roller) {
   final builder = ExpressionBuilder<DiceExpression>();
   // numbers
   builder.primitive(
@@ -17,11 +17,13 @@ Parser<DiceExpression> parserBuilder(DiceRoller roller) {
         .map(SimpleValue.new),
   );
   // parens
-  builder.group().wrapper(
-    char('(').trim(),
-    char(')').trim(),
-    (left, value, right) => value,
-  );
+  builder.group()
+    ..wrapper(char('(').trim(), char(')').trim(), (left, value, right) => value)
+    ..wrapper(
+      char('{').trim(),
+      char('}').trim(),
+      (left, value, right) => AggregateOp(value),
+    );
   // special dice handling need to have higher precedence than 'd'
   builder.group()
     ..postfix(string('dF').trim(), (a, op) => FudgeDice(op, a, roller))

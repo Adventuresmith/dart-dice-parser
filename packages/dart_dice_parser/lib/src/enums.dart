@@ -51,6 +51,7 @@ enum OpType {
   explode,
   sort,
   comma,
+  total,
 }
 
 enum CountType { count, success, failure, critSuccess, critFailure }

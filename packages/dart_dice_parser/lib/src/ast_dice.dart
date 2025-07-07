@@ -1,9 +1,7 @@
-import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:petitparser/parser.dart';
 
 import 'ast_core.dart';
-import 'ast_ops.dart';
 import 'dice_roller.dart';
 import 'enums.dart';
 import 'roll_result.dart';
@@ -14,8 +12,8 @@ class FudgeDice extends UnaryDice {
   FudgeDice(super.name, super.left, super.roller);
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     final ndice = lhs.totalOrDefault(() => 1);
 
     // redundant w/ RangeError checks in the DiceRoller. But we can construct better error messages here.
@@ -26,7 +24,7 @@ class FudgeDice extends UnaryDice {
         left.toString().length,
       );
     }
-    final roll = roller.rollFudge(ndice);
+    final roll = await roller.rollFudge(ndice);
     return RollResult.fromRollResult(
       roll,
       expression: toString(),
@@ -45,11 +43,14 @@ class CSVDice extends UnaryDice {
   String toString() => '(${left}d${vals.elements})';
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     final ndice = lhs.totalOrDefault(() => 1);
 
-    final roll = roller.rollVals(ndice, IList(vals.elements.map(int.parse)));
+    final roll = await roller.rollVals(
+      ndice,
+      IList(vals.elements.map(int.parse)),
+    );
 
     return RollResult.fromRollResult(
       roll,
@@ -74,21 +75,21 @@ class PenetratingDice extends UnaryDice {
 
   final int nsides;
   final int nsidesPenetration;
-  final limit = defaultRerollLimit;
+  final limit = DiceRoller.defaultRerollLimit;
 
   @override
   String toString() => '(${left}d${nsides}p$nsidesPenetration)';
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     final ndice = lhs.totalOrDefault(() => 1);
 
-    final roll = roller.roll(ndice, nsides);
+    final roll = await roller.roll(ndice, nsides);
 
     final results = <RolledDie>[];
     final discarded = <RolledDie>[];
-    roll.results.forEachIndexed((i, rolledDie) {
+    for (final (index, rolledDie) in roll.results.indexed) {
       if (rolledDie.isMaxResult) {
         var sum = rolledDie.result;
         RolledDie rerolled;
@@ -97,14 +98,11 @@ class PenetratingDice extends UnaryDice {
           RolledDie.copyWith(rolledDie, discarded: true, penetrator: true),
         );
         do {
-          rerolled = roller
-              .roll(
-                1,
-                nsidesPenetration,
-                '(penetration ind $i, #$numPenetrated)',
-              )
-              .results
-              .first;
+          rerolled = (await roller.roll(
+            1,
+            nsidesPenetration,
+            '(penetration ind[$index] #${numPenetrated + 1})',
+          )).results.first;
           discarded.add(
             RolledDie.copyWith(rerolled, discarded: true, penetrator: true),
           );
@@ -129,7 +127,7 @@ class PenetratingDice extends UnaryDice {
       } else {
         results.add(rolledDie);
       }
-    });
+    }
 
     return RollResult(
       expression: toString(),
@@ -146,10 +144,10 @@ class PercentDice extends UnaryDice {
   PercentDice(super.name, super.left, super.roller);
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     final ndice = lhs.totalOrDefault(() => 1);
-    final roll = roller.roll(ndice, 100);
+    final roll = await roller.roll(ndice, 100);
     return RollResult.fromRollResult(
       roll,
       expression: toString(),
@@ -164,10 +162,10 @@ class D66Dice extends UnaryDice {
   D66Dice(super.name, super.left, super.roller);
 
   @override
-  RollResult eval() {
-    final lhs = left();
+  Future<RollResult> eval() async {
+    final lhs = await left();
     final ndice = lhs.totalOrDefault(() => 1);
-    final roll = roller.rollD66(ndice);
+    final roll = await roller.rollD66(ndice);
     return RollResult.fromRollResult(
       roll,
       expression: toString(),
@@ -185,9 +183,9 @@ class StdDice extends BinaryDice {
   String toString() => '($left$name$right)';
 
   @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
+  Future<RollResult> eval() async {
+    final lhs = await left();
+    final rhs = await right();
     final ndice = lhs.totalOrDefault(() => 1);
     final nsides = rhs.totalOrDefault(() => 1);
 
@@ -206,7 +204,7 @@ class StdDice extends BinaryDice {
         left.toString().length + name.length + 1,
       );
     }
-    final roll = roller.roll(ndice, nsides);
+    final roll = await roller.roll(ndice, nsides);
     return RollResult.fromRollResult(
       roll,
       expression: toString(),

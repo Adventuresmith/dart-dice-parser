@@ -11,12 +11,12 @@ import 'utils.dart';
 /// The `eval()` method is called from the node
 abstract class DiceOp extends DiceExpression with LoggingMixin {
   // each child class should override this to implement their operation
-  RollResult eval();
+  Future<RollResult> eval();
 
   // all children can share this call operator -- and it'll let us be consistent w/ regard to logging
   @override
-  RollResult call() {
-    final result = eval();
+  Future<RollResult> call() async {
+    final result = await eval();
     logger.finer(() => '$result');
     return result;
   }
@@ -49,9 +49,9 @@ class CommaOp extends Binary {
   CommaOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() {
-    final lhs = left();
-    final rhs = right();
+  Future<RollResult> eval() async {
+    final lhs = await left();
+    final rhs = await right();
 
     final results = <RolledDie>[];
     final discarded = <RolledDie>[];
@@ -63,7 +63,11 @@ class CommaOp extends Binary {
       results.addAll(lhs.results);
     } else {
       results.add(
-        RolledDie.singleVal(result: lhs.results.sum, from: lhs.results),
+        RolledDie.singleVal(
+          result: lhs.results.sum,
+          from: lhs.results,
+          totaled: true,
+        ),
       );
       discarded.addAll(lhs.results.map(RolledDie.discard));
     }
@@ -71,7 +75,11 @@ class CommaOp extends Binary {
       results.addAll(rhs.results);
     } else {
       results.add(
-        RolledDie.singleVal(result: rhs.results.sum, from: rhs.results),
+        RolledDie.singleVal(
+          result: rhs.results.sum,
+          from: rhs.results,
+          totaled: true,
+        ),
       );
       discarded.addAll(rhs.results.map(RolledDie.discard));
     }
@@ -92,7 +100,7 @@ class MultiplyOp extends Binary {
   MultiplyOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() => left() * right();
+  Future<RollResult> eval() async => await left() * await right();
 }
 
 /// add operation
@@ -100,7 +108,7 @@ class AddOp extends Binary {
   AddOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() => left() + right();
+  Future<RollResult> eval() async => await left() + await right();
 }
 
 /// subtraction operation
@@ -108,14 +116,14 @@ class SubOp extends Binary {
   SubOp(super.name, super.left, super.right);
 
   @override
-  RollResult eval() => left() - right();
+  Future<RollResult> eval() async => await left() - await right();
 }
 
 /// base class for unary dice operations
 abstract class UnaryDice extends Unary {
   UnaryDice(super.name, super.left, this.roller);
 
-  final DiceRoller roller;
+  final DiceResultRoller roller;
 
   @override
   String toString() => '($left$name)';
@@ -125,7 +133,7 @@ abstract class UnaryDice extends Unary {
 abstract class BinaryDice extends Binary {
   BinaryDice(super.name, super.left, super.right, this.roller);
 
-  final DiceRoller roller;
+  final DiceResultRoller roller;
 }
 
 /// A value expression. The token we read from input will be a String,
@@ -144,8 +152,39 @@ class SimpleValue extends DiceExpression {
   final RollResult _results;
 
   @override
-  RollResult call() => _results;
+  Future<RollResult> call() async => _results;
 
   @override
   String toString() => value;
+}
+
+class AggregateOp extends DiceOp {
+  AggregateOp(this.subexpression);
+
+  final DiceExpression subexpression;
+
+  @override
+  String toString() => '{$subexpression}';
+
+  @override
+  Future<RollResult> eval() async {
+    final outcome = await subexpression();
+
+    return RollResult(
+      expression: toString(),
+      opType: OpType.total,
+      results: [
+        RolledDie.singleVal(
+          result: outcome.results.sum,
+          from: outcome.results,
+          totaled: true,
+        ),
+      ],
+      discarded: [
+        ...outcome.discarded,
+        ...outcome.results.map(RolledDie.discard),
+      ],
+      left: outcome,
+    );
+  }
 }
