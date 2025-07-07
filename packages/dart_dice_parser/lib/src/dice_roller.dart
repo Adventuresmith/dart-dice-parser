@@ -23,6 +23,8 @@ abstract class DiceRoller {
   /// default limit for rerolls/exploding/compounding to avoid getting stuck in loop
   static const defaultRerollLimit = 1000;
 
+  static const defaultFudgeVals = [-1, -1, 0, 0, 1, 1];
+
   /// return an Stream of ints. length == ndice, range: [min,nsides]
   /// duplicates allowed.
   Stream<int> roll({required int ndice, required int nsides, int min = 1});
@@ -161,7 +163,7 @@ class DiceResultRoller with LoggingMixin {
   /// Roll N fudge dice, return results
   Future<RollResult> rollFudge(int ndice, [String msg = '']) async {
     final results = await _diceRoller
-        .rollVals(ndice, RolledDie.defaultFudgeVals)
+        .rollVals(ndice, DiceRoller.defaultFudgeVals)
         .toList();
 
     logger.finest(() => 'roll ${ndice}dF => $results $msg');

@@ -2,12 +2,11 @@ import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
+import 'dice_roller.dart';
 import 'enums.dart';
 
 /// representation of a single dice roll result.
 class RolledDie extends Equatable implements Comparable<RolledDie> {
-  static const defaultFudgeVals = [-1, -1, 0, 0, 1, 1];
-
   RolledDie({
     required this.result,
     required this.dieType,
@@ -69,9 +68,9 @@ class RolledDie extends Equatable implements Comparable<RolledDie> {
 
   factory RolledDie.fudge({required int result}) => RolledDie(
     result: result,
-    nsides: defaultFudgeVals.length,
+    nsides: DiceRoller.defaultFudgeVals.length,
     dieType: DieType.fudge,
-    potentialValues: defaultFudgeVals,
+    potentialValues: DiceRoller.defaultFudgeVals,
   );
 
   factory RolledDie.singleVal({
