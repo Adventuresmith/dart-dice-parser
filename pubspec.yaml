@@ -5,3 +5,4 @@ environment:
 workspace:
   - packages/dart_dice_parser
   - packages/dicecli
+  #- packages/diceui

@@ -13,7 +13,6 @@ whether it was counted as a success/failure.
 ## 📈 Enhancements
 
 - upgrade to dart 3.8.0
-- upgrade to petitparser 7.0.0
 - added dependency on fast_immutable_collections
 - allow compounding, exploding, and rerolls for 'odd' die (`dF, D66, and d[vals]`)
 - API Changes

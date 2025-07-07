@@ -10,11 +10,7 @@ Parser<DiceExpression> parserBuilder(DiceResultRoller roller) {
   final builder = ExpressionBuilder<DiceExpression>();
   // numbers
   builder.primitive(
-    digit()
-        .star()
-        .flatten(message: 'integer expected')
-        .trim()
-        .map(SimpleValue.new),
+    digit().star().flatten('integer expected').trim().map(SimpleValue.new),
   );
   // parens
   builder.group()
@@ -64,7 +60,7 @@ Parser<DiceExpression> parserBuilder(DiceResultRoller roller) {
   // compounding dice (has to be in separate group from exploding)
   builder.group().left(
     (string('!!') &
-            pattern('o', ignoreCase: true).optional() &
+            pattern('o').optional() &
             pattern('<>').optional() &
             char('=').optional())
         .flatten()
@@ -74,8 +70,8 @@ Parser<DiceExpression> parserBuilder(DiceResultRoller roller) {
   builder.group()
     // reroll & reroll once
     ..left(
-      (pattern('r', ignoreCase: true) &
-              pattern('o', ignoreCase: true).optional() &
+      (pattern('rR') &
+              pattern('oO').optional() &
               pattern('<>').optional() &
               char('=').optional())
           .flatten()
@@ -85,7 +81,7 @@ Parser<DiceExpression> parserBuilder(DiceResultRoller roller) {
     // exploding
     ..left(
       (char('!') &
-              pattern('o', ignoreCase: true).optional() &
+              pattern('oO').optional() &
               pattern('<>').optional() &
               char('=').optional())
           .flatten()
@@ -94,9 +90,7 @@ Parser<DiceExpression> parserBuilder(DiceResultRoller roller) {
     )
     // cap/clamp >,<
     ..left(
-      (pattern('c', ignoreCase: true) & pattern('<>').optional())
-          .flatten()
-          .trim(),
+      (pattern('cC') & pattern('<>').optional()).flatten().trim(),
       (a, op, b) => ClampOp(op.toLowerCase(), a, b),
     )
     // drop >=,<=,>,<
@@ -110,15 +104,12 @@ Parser<DiceExpression> parserBuilder(DiceResultRoller roller) {
     )
     // drop(-) low, high
     ..left(
-      (char('-') & pattern('lh', ignoreCase: true)).flatten().trim(),
+      (char('-') & pattern('lLhH')).flatten().trim(),
       (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
     )
     // keep low/high
     ..left(
-      (pattern('k', ignoreCase: true) &
-              pattern('lh', ignoreCase: true).optional())
-          .flatten()
-          .trim(),
+      (pattern('k') & pattern('lLhH').optional()).flatten().trim(),
       (a, op, b) => DropHighLowOp(op.toLowerCase(), a, b),
     );
 
@@ -140,9 +131,7 @@ Parser<DiceExpression> parserBuilder(DiceResultRoller roller) {
       (a, op, b) => CountOp(op.toLowerCase(), a, b),
     )
     ..postfix(
-      (char('s', ignoreCase: true) & char('d', ignoreCase: true).optional())
-          .flatten()
-          .trim(),
+      (char('s') & char('d').optional()).flatten().trim(),
       (a, op) => SortOp(op.toLowerCase(), a),
     )
     ..left(char(',').trim(), (a, op, b) => CommaOp(op, a, b));
