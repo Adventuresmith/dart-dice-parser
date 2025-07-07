@@ -2,8 +2,8 @@ name: dart_dice_parser_repo
 publish_to: none
 environment:
   sdk: "^3.8.0"
-  flutter: ">=3.32.0 <4.0.0"
+  #flutter: ">=3.32.0 <4.0.0"
 workspace:
   - packages/dart_dice_parser
   - packages/dicecli
-  - packages/diceui
+  #- packages/diceui
