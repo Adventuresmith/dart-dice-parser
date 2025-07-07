@@ -12,7 +12,7 @@ analyzer:
     strict-casts: true
     strict-raw-types: true
   exclude:
-    - dice_parser_demo/**
+    - packages/diceui/**
     #- '**.freezed.dart'
     #- '**.g.dart'
 
