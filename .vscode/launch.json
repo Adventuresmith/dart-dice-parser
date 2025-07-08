@@ -27,6 +27,15 @@
       "type": "dart"
     },
     {
+      "name": "(3d6!! + 4d6!) -<2",
+      "program": "example/main.dart",
+      "args": [
+        "(3d6!! + 4d6!) -<2",
+      ],
+      "request": "launch",
+      "type": "dart"
+    },
+    {
       "name": "explode - old syntax",
       "program": "example/main.dart",
       "args": [

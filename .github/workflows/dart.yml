@@ -44,17 +44,17 @@ jobs:
         run: dart analyze --fatal-infos .
 
       - name: "VM Tests"
-        run: dart test --platform vm
+        run: cd packages/dart_dice_parser && dart test --platform vm
       - name: "Chrome Tests"
-        run: dart test --platform chrome
+        run: cd packages/dart_dice_parser && dart test --platform chrome
       - name: "Run example/simple.dart"
-        run: dart run --enable-asserts example/simple.dart
-      - name: "Run example/main.dart"
-        run: "dart run --enable-asserts example/main.dart -n 10 -o pretty '(3d6 + 3d6! + 3d6!!) #cs #cf #s #f'"
+        run: cd packages/dart_dice_parser && dart run --enable-asserts example/simple.dart
+      - name: "Run dicecli"
+        run: "dart run --enable-asserts dicecli -n 10 -o pretty '(3d6 + 3d6! + 3d6!!) #cs #cf #s #f'"
       - name: "Collect coverage"
         run: |
-          dart pub global activate coverage
-          dart pub global run coverage:test_with_coverage --branch-coverage
+          dart pub global activate coverage 
+          cd packages/dart_dice_parser && dart pub global run coverage:test_with_coverage --branch-coverage
       - name: "Upload coverage"
         uses: codecov/codecov-action@v4
         env:
