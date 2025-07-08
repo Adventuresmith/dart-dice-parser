@@ -50,11 +50,12 @@ class RNGRoller extends DiceRoller {
 
   final Random _random;
 
-  /// select n items from the list of values. duplicates are possible
-  Iterable<T> selectNFromVals<T>(num ndice, List<T> vals) => [
+  /// select ndice random items from the list of values. duplicates are possible
+  Iterable<T> selectNFromVals<T>(int ndice, List<T> vals) => [
     for (var i = 0; i < ndice; i++) vals[_random.nextInt(vals.length)],
   ];
 
+  /// return an iterable of ndice random integer values in range [min,nsides]
   Iterable<int> selectN({
     required int ndice,
     required int nsides,
