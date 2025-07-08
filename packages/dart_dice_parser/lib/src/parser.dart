@@ -12,7 +12,7 @@ Parser<DiceExpression> parserBuilder(DiceResultRoller roller) {
   builder.primitive(
     digit().star().flatten('integer expected').trim().map(SimpleValue.new),
   );
-  // parens
+  // parens & curlies
   builder.group()
     ..wrapper(char('(').trim(), char(')').trim(), (left, value, right) => value)
     ..wrapper(

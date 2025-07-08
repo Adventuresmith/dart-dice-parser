@@ -27,12 +27,21 @@ abstract class DiceRoller {
 
   /// return an Stream of ints. length == ndice, range: [min,nsides]
   /// duplicates allowed.
-  Stream<int> roll({required int ndice, required int nsides, int min = 1});
+  Stream<int> roll({
+    required int ndice,
+    required int nsides,
+    int min = 1,
+    DieType dieType = DieType.polyhedral,
+  });
 
-  /// return an Stream of ints selected from the given vals. length = ndice.
+  /// return an Stream of results selected from the given vals. length == ndice.
   /// results should be selected at random from vals.
-  /// duplicates allowed.
-  Stream<int> rollVals(int ndice, List<int> vals);
+  /// duplicates are allowed.
+  Stream<T> rollVals<T>(
+    int ndice,
+    List<T> vals, {
+    DieType dieType = DieType.polyhedral,
+  });
 }
 
 /// a dice roller that uses an RNG
@@ -42,7 +51,7 @@ class RNGRoller extends DiceRoller {
   final Random _random;
 
   /// select n items from the list of values. duplicates are possible
-  Iterable<int> selectNFromVals<int>(num ndice, List<int> vals) => [
+  Iterable<T> selectNFromVals<T>(num ndice, List<T> vals) => [
     for (var i = 0; i < ndice; i++) vals[_random.nextInt(vals.length)],
   ];
 
@@ -57,6 +66,7 @@ class RNGRoller extends DiceRoller {
     required int ndice,
     required int nsides,
     int min = 1,
+    DieType dieType = DieType.polyhedral,
   }) async* {
     RangeError.checkValueInInterval(
       ndice,
@@ -76,7 +86,11 @@ class RNGRoller extends DiceRoller {
   }
 
   @override
-  Stream<int> rollVals(int ndice, List<int> vals) async* {
+  Stream<T> rollVals<T>(
+    int ndice,
+    List<T> vals, {
+    DieType dieType = DieType.polyhedral,
+  }) async* {
     RangeError.checkValueInInterval(
       ndice,
       DiceRoller.minDice,
@@ -120,7 +134,9 @@ class DiceResultRoller with LoggingMixin {
     final results = <RolledDie>[];
     final discarded = <RolledDie>[];
     for (var i = 0; i < ndice; i++) {
-      final digits = await _diceRoller.roll(ndice: 2, nsides: 6).toList();
+      final digits = await _diceRoller
+          .roll(ndice: 2, nsides: 6, dieType: DieType.d66)
+          .toList();
       logger.finest(() => 'roll ${ndice}D66 => $digits $msg');
       final tens = digits[0];
       final ones = digits[1];
@@ -163,7 +179,7 @@ class DiceResultRoller with LoggingMixin {
   /// Roll N fudge dice, return results
   Future<RollResult> rollFudge(int ndice, [String msg = '']) async {
     final results = await _diceRoller
-        .rollVals(ndice, DiceRoller.defaultFudgeVals)
+        .rollVals(ndice, DiceRoller.defaultFudgeVals, dieType: DieType.fudge)
         .toList();
 
     logger.finest(() => 'roll ${ndice}dF => $results $msg');
@@ -182,7 +198,11 @@ class DiceResultRoller with LoggingMixin {
     String msg = '',
   ]) async {
     final results = await _diceRoller
-        .rollVals(ndice, sideVals.toList(growable: false))
+        .rollVals(
+          ndice,
+          sideVals.toList(growable: false),
+          dieType: DieType.nvals,
+        )
         .toList();
 
     logger.finest(

@@ -9,9 +9,7 @@ enum DieType implements Comparable<DieType> {
   // 1d[1,3,5,7,9]
   nvals(requirePotentialValues: true),
   // single value (e.g. a sum or count of dice)
-  singleVal(explodable: false, requirePotentialValues: true)
-  //penetration(explodable: false)
-  ;
+  singleVal(explodable: false, requirePotentialValues: true);
 
   const DieType({
     this.explodable = true,

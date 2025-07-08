@@ -50,7 +50,7 @@ Future<void> main() async {
 * `2d6` -- roll `2` dice of `6` sides
 * special dice variations:
     * `4dF` -- roll `4` fudge dice (sides: `[-1, -1, 0, 0, 1, 1]`)
-    * `1d%` -- roll `1` percentile dice (equivalent to `1d100`)
+    * `1d%` -- roll `1` percentile dice (equivalent to `1d100` or `1d10 * 10 + 1d10`)
     * `1D66` -- roll `1` D66, aka `1d6*10 + 1d6`
         * **_NOTE_**: you _must_ use uppercase `D66`, lowercase `d66` will be interpreted as a 66-sided die
     * `2d[2,3,5,7]`-- roll 2 dice with values `[2,3,5,7]`
